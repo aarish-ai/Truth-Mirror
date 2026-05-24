@@ -26,5 +26,65 @@
   {
     "claim": "Human DNA is 50% identical to bananas.",
     "entities": []
+  },
+  {
+    "claim": "Imran Khan won the elections in 2013 in Pakistan",
+    "entities": []
+  },
+  {
+    "claim": "Imran Khan won the elections in 2018 in Pakistan",
+    "entities": []
+  },
+  {
+    "claim": "Biden won the Elections in 2018 in USA",
+    "entities": []
+  },
+  {
+    "claim": "Biden won the Elections in 2020 in USA",
+    "entities": []
+  },
+  {
+    "claim": "Biden won the Elections in 1991 in USA",
+    "entities": []
+  },
+  {
+    "claim": "Biden won the Elections in 756 in USA",
+    "entities": []
+  },
+  {
+    "claim": "Biden won the Elections in 2020 in USA",
+    "entities": []
+  },
+  {
+    "claim": "Biden won the Elections in 2020 in USA",
+    "entities": []
+  },
+  {
+    "claim": "Biden won the Elections in 2020 in USA",
+    "entities": []
+  },
+  {
+    "claim": "Trump won the 2020 election",
+    "entities": []
+  },
+  {
+    "claim": "The moon landing happened in 1969",
+    "entities": []
+  },
+  {
+    "claim": "The Earth is flat",
+    "entities": [
+      "http://www.wikidata.org/entity/Q135052350",
+      "http://www.wikidata.org/entity/Q122698146",
+      "http://www.wikidata.org/entity/Q115640629"
+    ]
+  },
+  {
+    "claim": "COVID-19 pandemic started in 2019",
+    "entities": []
+  },
+  {
+    "claim": "COVID-19 pandemic started in 1850",
+    "entities": []
   }
 ]

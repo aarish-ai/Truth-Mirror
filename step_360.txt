@@ -1,0 +1,76 @@
+﻿<USER_REQUEST>
+Now can you pull up a 9  sub-agent (1 for each step and 1 for testing and pushing the changes to GutHub with the commit message "Critical Fixes + Gemini Integration") fix up marathon according to the following details?
+PROJECT: Truth Mirror Enhancement - Critical Fixes + Gemini Integration
+
+CURRENT PROBLEMS DIAGNOSED:
+1. System returns "Unclear" for obviously true claims ("Biden won 2020 election")
+2. System returns "Unclear" for temporally impossible claims ("Biden won 756 election") instead of "Contradicted"
+3. Abstention thresholds too aggressive - system gives up too easily
+4. No temporal validation - impossible dates not caught early
+5. No intelligent evidence synthesis - just mechanical scoring
+
+SOLUTION: Three-tier fix
+- Tier 1: Add temporal validation (catch impossible dates immediately)
+- Tier 2: Lower abstention thresholds (be less cautious)
+- Tier 3: Add Gemini API integration (intelligent evidence synthesis)
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+IMPLEMENTATION INSTRUCTIONS
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+STEP 1: CREATE NEW FILE - truth_mirror/temporal_validator.py
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+"""
+Temporal validation - catch impossible/future dates early.
+"""
+from datetime import datetime
+import re
+
+class TemporalValidator:
+    """Validates temporal claims before evidence retrieval."""
+    
+    def __init__(self):
+        self.current_year = datetime.now().year
+        self.min_reasonable_year = 1000  # Nothing before medieval times makes sense for mos
+<truncated 22369 bytes>
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+WHY THESE CHANGES MAKE IT STATE-OF-THE-ART
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+1. TEMPORAL VALIDATION (Novel Feature)
+   - Catches impossible dates BEFORE wasting time on retrieval
+   - No other open-source fact-checker has this
+   - Handles entity-date compatibility (Biden in year 756 = impossible)
+
+2. GEMINI INTEGRATION (Game Changer)
+   - LLM reads ALL evidence like a human fact-checker
+   - Synthesizes nuanced verdicts with reasoning
+   - Handles cases that mechanical scoring misses
+   - Free API with generous limits
+
+3. REDUCED ABSTENTION (More Useful)
+   - Old system said "Unclear" too often
+   - New system gives verdicts when possible
+   - Only abstains when truly necessary
+
+4. HYBRID APPROACH (Best of Both Worlds)
+   - Structured pipeline for retrieval/filtering
+   - LLM for intelligent synthesis
+   - Graceful fallback if Gemini unavailable
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+FINAL NOTES
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+- All changes are MODULAR - easy to test individually
+- Maintains backward compatibility with existing code
+- Gemini integration is OPTIONAL - system works without it (fallback mode)
+- Free tier Gemini API has generous limits (60 requests/minute)
+- Temporal validation has NO dependencies - pure Python
+
+This transforms Truth Mirror from an MVP into a production-ready fact-checker.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-05-24T13:33:04+05:00.
+</ADDITIONAL_METADATA>

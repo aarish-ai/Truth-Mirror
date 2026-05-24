@@ -23,19 +23,19 @@ def compute_uncertainty(evidence: list[EvidenceItem], base_confidence: float) ->
     avg_quality = sum((i.relevance_score + i.credibility_score) / 2 for i in evidence) / total
     independence = len({i.independence_key for i in evidence if i.independence_key}) / total
 
-    if independence < 0.5:
+    if independence < 0.3:
         warnings.append("low-source-independence")
         provenance.append("Sources appear highly correlated or lack independent verification.")
     else:
         provenance.append("Good source independence.")
 
-    if avg_quality < 0.5:
+    if avg_quality < 0.3:
         warnings.append("low-evidence-quality")
         provenance.append("Overall evidence quality is low based on relevance and credibility.")
     else:
         provenance.append("Evidence quality is generally acceptable.")
 
-    if insufficient_ratio > 0.5:
+    if insufficient_ratio > 0.7:
         warnings.append("mostly-insufficient-evidence")
         provenance.append(f"High proportion ({insufficient_ratio:.0%}) of evidence is insufficient to verify the claim.")
         

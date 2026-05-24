@@ -16,6 +16,8 @@ from truth_mirror.retrieval_free import FreeSourceRetrieval
 from truth_mirror.entity_resolution import EntityResolver
 from truth_mirror.context_tracker import ContextTracker
 from truth_mirror.triangulation import HostileSourceTriangulator
+from truth_mirror.temporal_validator import TemporalValidator
+from truth_mirror.gemini_analyzer import GeminiAnalyzer
 
 
 class TruthMirrorPipeline:
@@ -25,12 +27,31 @@ class TruthMirrorPipeline:
         self.entity_resolver = EntityResolver(use_dbpedia=True)
         self.context_tracker = ContextTracker()
         self.triangulator = HostileSourceTriangulator()
+        self.temporal_validator = TemporalValidator()
+        self.gemini_analyzer = GeminiAnalyzer()
 
     def verify(self, claim: str) -> VerificationResult:
         warnings: list[str] = []
         missing_info: list[str] = []
         normalized = normalize_claim(claim)
         
+        is_valid, temp_reason = self.temporal_validator.validate(normalized.normalized)
+        if not is_valid:
+            return VerificationResult(
+                original_claim=claim,
+                normalized_claim=normalized.normalized,
+                claim_type="unknown",
+                sub_claims=[],
+                final_verdict="Contradicted",
+                confidence=1.0,
+                confidence_interval=(1.0, 1.0),
+                evidence_summary="Rejected before retrieval due to temporal impossibility.",
+                key_sources=[],
+                reasoning=temp_reason,
+                missing_information=[],
+                warnings=[f"temporal-validation-failed: {temp_reason}"]
+            )
+
         if normalized.language != "en":
             warnings.append("non-english-or-unknown-language")
         if normalized.is_time_sensitive:
@@ -70,6 +91,14 @@ class TruthMirrorPipeline:
             "hidden-premise: " + premise for premise in decomposition.hidden_premises
         )
         
+        all_evidence = []
+        for sr in sub_results:
+            all_evidence.extend(sr.evidence)
+            
+        gemini_result = self.gemini_analyzer.synthesize(
+            claim, all_evidence
+        )
+
         result = aggregate_verdict(
             original_claim=claim,
             normalized_claim=normalized.normalized,
@@ -78,6 +107,11 @@ class TruthMirrorPipeline:
             warnings=warnings,
             missing_information=missing_info,
         )
+        
+        if gemini_result:
+            result.final_verdict = gemini_result["verdict"]
+            result.reasoning = f"Gemini Synthesis: {gemini_result['reasoning']}"
+
         result.context = context
         return result
 
