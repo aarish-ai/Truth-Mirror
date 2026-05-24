@@ -10,6 +10,9 @@ Truth Mirror has undergone significant architectural enhancements, transitioning
 - **Phase 5 (Advanced Decomposition)**: Capable of splitting complex, multi-faceted claims into precise, atomic sub-claims.
 - **Phase 6 (Entity Disambiguation)**: Enhances evidence retrieval by accurately resolving and clarifying entities within claims.
 - **Phase 7 (Triangulation, Scoring & Uncertainty)**: Employs robust evidence triangulation across multiple sources, advanced scoring metrics, and explicit uncertainty handling to minimize overconfident errors.
+- **Tier 1 (Temporal Validation)**: Catches impossible historical or future dates immediately before wasting time on retrieval.
+- **Tier 2 (Lowered Abstention)**: Reduced the strictness of the heuristic fallback to provide verdicts more consistently when evidence is adequate.
+- **Tier 3 (Gemini Integration)**: Incorporates the Gemini LLM for intelligent, human-like evidence synthesis and reasoning (if enabled).
 
 ## Core Features
 
@@ -52,10 +55,12 @@ Truth Mirror integrates external APIs to pull authoritative data and fact-checks
 
 1. **Google Fact Check Tools API**: Required to query the global database of verified fact-checks. (Free)
 2. **FRED API**: Required to access authoritative economic data. (Free)
+3. **Gemini API Key**: Required to enable intelligent evidence synthesis via Google's Gemini LLM. (Free)
 
 Create a `.env` file with the following:
 
 ```env
+GEMINI_API_KEY=your_gemini_api_key_here
 GOOGLE_FACT_CHECK_API_KEY=your_google_api_key_here
 FRED_API_KEY=your_fred_api_key_here
 ```
@@ -89,6 +94,6 @@ If unavailable, Truth Mirror automatically falls back to heuristic stance scorin
 - **External API Reliance**: The system's retrieval capability depends heavily on the uptime and availability of external APIs.
 - **Rate Limits & IP Bans**: Aggressive scraping or API querying may result in temporary rate limits or IP bans.
 - **Scraping Brittleness**: Custom scrapers can break when target websites update their layout or DOM structures.
-- **Lack of Deep-Reasoning LLM**: Currently, the system lacks a deep-reasoning LLM, meaning it may struggle with highly complex nuances, abstract logic, or subtle inferences.
+- **LLM Reasoning Ceiling**: While the new Gemini integration provides deep reasoning, it requires an active API key. Without it, the system falls back to a heuristic NLI approach which may struggle with highly abstract logic.
 - **Connector Coverage**: Connectors may have sparse coverage for niche or localized claims. Crossref returns metadata (and abstracts when available), but not always full text.
-- **Assisting Nature**: Confidence and abstention are conservatively calibrated. For high-stakes claims, this tool provides assistive analysis, not final authoritative rulings.
+- **Assisting Nature**: Confidence and abstention are calibrated to assist users. For high-stakes claims, this tool provides assistive analysis, not final authoritative rulings.
