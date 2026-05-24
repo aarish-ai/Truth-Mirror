@@ -1,0 +1,30 @@
+[
+  {
+    "claim": "The Eiffel Tower is located in Paris, France.",
+    "entities": []
+  },
+  {
+    "claim": "Water boils at 100 degrees Celsius at sea level.",
+    "entities": []
+  },
+  {
+    "claim": "William Shakespeare wrote the play Hamlet.",
+    "entities": []
+  },
+  {
+    "claim": "The Great Wall of China is visible from space with the naked eye.",
+    "entities": []
+  },
+  {
+    "claim": "Albert Einstein won the Nobel Prize for his theory of relativity.",
+    "entities": []
+  },
+  {
+    "claim": "There are 8 planets in the solar system.",
+    "entities": []
+  },
+  {
+    "claim": "Human DNA is 50% identical to bananas.",
+    "entities": []
+  }
+]

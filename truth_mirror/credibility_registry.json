@@ -1,0 +1,18 @@
+{
+  "source_type_defaults": {
+    "official": 0.95,
+    "database": 0.9,
+    "academic": 0.87,
+    "journalism": 0.78,
+    "other": 0.55
+  },
+  "publisher_overrides": {
+    "wikipedia": 0.58,
+    "wikinews": 0.62,
+    "crossref": 0.86,
+    "who": 0.97,
+    "cdc": 0.97,
+    "world bank": 0.96,
+    "united nations": 0.96
+  }
+}
