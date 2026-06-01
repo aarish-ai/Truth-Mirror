@@ -21,6 +21,7 @@ VerdictLabel = Literal[
     "Contradicted",
     "Unsupported",
     "Unclear",
+    "Disputed (geo-narrative divergence)",
 ]
 
 
@@ -41,6 +42,8 @@ class EvidenceItem:
     credibility_score: float = 0.0
     independence_key: str = ""
     stance: Stance = "insufficient"
+    perspective_label: str = "unknown"
+    is_hidden_story: bool = False
 
 
 @dataclass(slots=True)
@@ -67,6 +70,8 @@ class ClaimContext:
     entities: list[Entity] = field(default_factory=list)
     previous_claims: list[str] = field(default_factory=list)
     background_summary: str = ""
+    narrative_coherence_score: float = 1.0
+
 
 
 @dataclass(slots=True)
@@ -84,4 +89,11 @@ class VerificationResult:
     missing_information: list[str]
     warnings: list[str]
     context: ClaimContext = field(default_factory=ClaimContext)
+    narrative_perspectives: dict[str, str] = field(default_factory=dict)
+    geo_divergence_detected: bool = False
+    evidence_by_region: dict[str, list[EvidenceItem]] = field(default_factory=dict)
+    hidden_story_items: list[EvidenceItem] = field(default_factory=list)
+    narrative_coherence_score: float = 0.0
+    source_diversity_score: float = 0.0
+    human_review_recommended: bool = False
     generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())

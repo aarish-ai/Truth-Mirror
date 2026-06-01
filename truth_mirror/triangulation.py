@@ -19,10 +19,21 @@ class HostileSourceTriangulator:
         """
         Loads the source ideology map. Provides a mock if not specified or available.
         """
+        import os
+        if not ideology_map_path:
+            default_path = os.path.join(os.path.dirname(__file__), "perspective_registry.json")
+            if os.path.exists(default_path):
+                ideology_map_path = default_path
+
         if ideology_map_path:
             try:
                 with open(ideology_map_path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
+                    data = json.load(f)
+                
+                # Support both simple key-value and new structured registry
+                if data and isinstance(next(iter(data.values())), dict):
+                    return {k: v.get("perspective", "unknown") for k, v in data.items()}
+                return data
             except Exception as e:
                 logger.warning(f"Failed to load ideology map from {ideology_map_path}. Using mock map. Error: {e}")
         

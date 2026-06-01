@@ -18,6 +18,9 @@ from truth_mirror.context_tracker import ContextTracker
 from truth_mirror.triangulation import HostileSourceTriangulator
 from truth_mirror.temporal_validator import TemporalValidator
 from truth_mirror.gemini_analyzer import GeminiAnalyzer
+from truth_mirror.agent import ReActAgent
+from truth_mirror.llm_client import LLMClient
+import json
 
 
 class TruthMirrorPipeline:
@@ -29,6 +32,7 @@ class TruthMirrorPipeline:
         self.triangulator = HostileSourceTriangulator()
         self.temporal_validator = TemporalValidator()
         self.gemini_analyzer = GeminiAnalyzer()
+        self.llm_client = LLMClient()
 
     def verify(self, claim: str) -> VerificationResult:
         warnings: list[str] = []
@@ -57,40 +61,49 @@ class TruthMirrorPipeline:
         if normalized.is_time_sensitive:
             warnings.append("time-sensitive-claim-needs-fresh-sources")
 
-        decomposition = decompose_claim(normalized.normalized)
         claim_type = detect_claim_type(normalized.normalized)
-        
         entities = self.entity_resolver.resolve_entities(normalized.normalized)
         context = self.context_tracker.track_claim(normalized.normalized, entities)
 
         sub_results = []
-        verifier_cls = get_verifier_class(claim_type)
-        verifier = verifier_cls(self.retriever, self.stance_analyzer)
-
-        for sub_claim in decomposition.sub_claims:
-            sub_result = verifier.verify_subclaim(sub_claim, context={"context": context, "entities": entities})
-            ranked = sub_result.evidence
-            
-            supporting_sources = [e.url_or_id for e in ranked if e.stance == "supports" and e.url_or_id]
-            contradicting_sources = [e.url_or_id for e in ranked if e.stance == "contradicts" and e.url_or_id]
-            
-            is_hc, t_score, t_reason = self.triangulator.triangulate(sub_claim, supporting_sources, contradicting_sources)
-            sub_result.provenance.append(f"Triangulation: {t_reason}")
-            
-            _, _, abstain_warnings = compute_uncertainty(ranked, sub_result.confidence)
-            warnings.extend(f"{sub_claim}: {w}" for w in abstain_warnings)
-            
-            if not ranked:
-                missing_info.append(f"No evidence retrieved for: {sub_claim}")
-            
-            sub_results.append(sub_result)
-
-        if decomposition.interpretive_fragments:
-            warnings.append("contains-opinionated-language")
-        warnings.extend(
-            "hidden-premise: " + premise for premise in decomposition.hidden_premises
-        )
         
+        def tool_decompose(q: str) -> str:
+            """Decompose the claim into subclaims."""
+            dec = decompose_claim(q)
+            if dec.interpretive_fragments:
+                warnings.append("contains-opinionated-language")
+            warnings.extend("hidden-premise: " + p for p in dec.hidden_premises)
+            return json.dumps(dec.sub_claims)
+
+        def tool_verify_subclaim(subclaim: str) -> str:
+            """Verify a single subclaim and return a summary."""
+            verifier_cls = get_verifier_class(claim_type)
+            verifier = verifier_cls(self.retriever, self.stance_analyzer)
+            sr = verifier.verify_subclaim(subclaim, context={"context": context, "entities": entities})
+            
+            supporting = [e.url_or_id for e in sr.evidence if e.stance == "supports" and e.url_or_id]
+            contradicting = [e.url_or_id for e in sr.evidence if e.stance == "contradicts" and e.url_or_id]
+            
+            is_hc, t_score, t_reason = self.triangulator.triangulate(subclaim, supporting, contradicting)
+            sr.provenance.append(f"Triangulation: {t_reason}")
+            
+            _, _, abstain_warnings = compute_uncertainty(sr.evidence, sr.confidence)
+            warnings.extend(f"{subclaim}: {w}" for w in abstain_warnings)
+            
+            if not sr.evidence:
+                missing_info.append(f"No evidence retrieved for: {subclaim}")
+                
+            sub_results.append(sr)
+            return f"Status: {sr.status}, Confidence: {sr.confidence}. Sources: {len(sr.evidence)}."
+
+        tools = {
+            "decompose_claim": tool_decompose,
+            "verify_subclaim": tool_verify_subclaim
+        }
+        
+        agent = ReActAgent(self.llm_client, tools)
+        react_answer = agent.run(claim)
+
         all_evidence = []
         for sr in sub_results:
             all_evidence.extend(sr.evidence)
@@ -110,9 +123,13 @@ class TruthMirrorPipeline:
         
         if gemini_result:
             result.final_verdict = gemini_result["verdict"]
-            result.reasoning = f"Gemini Synthesis: {gemini_result['reasoning']}"
+            result.reasoning = f"Gemini Synthesis: {gemini_result['reasoning']}\nReAct Agent reasoning: {react_answer}"
+        else:
+            result.reasoning = f"ReAct Agent reasoning: {react_answer}"
 
         result.context = context
+        result.narrative_coherence_score = getattr(context, "narrative_coherence_score", 1.0)
+        self.context_tracker.record_verdict(normalized.normalized, result.final_verdict)
         return result
 
     @staticmethod

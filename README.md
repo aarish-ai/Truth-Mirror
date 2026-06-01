@@ -2,7 +2,7 @@
 
 Truth Mirror is an MVP claim-verification product that returns an evidence-based verdict with citations, confidence, and explicit uncertainty handling.
 
-## Architectural Evolution (Phases 1-7)
+## Architectural Evolution
 
 Truth Mirror has undergone significant architectural enhancements, transitioning from a basic MVP to a sophisticated verification pipeline:
 
@@ -13,6 +13,8 @@ Truth Mirror has undergone significant architectural enhancements, transitioning
 - **Tier 1 (Temporal Validation)**: Catches impossible historical or future dates immediately before wasting time on retrieval.
 - **Tier 2 (Lowered Abstention)**: Reduced the strictness of the heuristic fallback to provide verdicts more consistently when evidence is adequate.
 - **Tier 3 (Gemini Integration)**: Incorporates the Gemini LLM for intelligent, human-like evidence synthesis and reasoning (if enabled).
+- **Phase 8 (ReAct Agentic Architecture)**: Implements a ReAct (Reason, Act) agentic loop for dynamic, iterative evidence gathering and reasoning.
+- **Phase 9 (Perspective & Geo-Narrative Capabilities)**: Introduces geo-narrative divergence tracking and an expanded 300+ domain credibility registry for cross-cultural bias analysis.
 
 ## Core Features
 
@@ -79,9 +81,16 @@ python app.py
 
 Then open [http://127.0.0.1:8080](http://127.0.0.1:8080).
 
-## Optional NLI Model Setup
+## Core Technologies & Dependencies
 
-To enable stronger model-backed stance inference:
+Truth Mirror utilizes the following key machine learning and infrastructure libraries:
+- **Ollama**: For local LLM inference and agentic reasoning within the ReAct loop.
+- **ChromaDB**: Local vector database for semantic search and evidence caching.
+- **spaCy**: Advanced NLP for entity extraction, normalization, and linguistic analysis.
+- **sentence-transformers**: Dense vector embeddings for semantic similarity and retrieval.
+- **cross-encoders**: High-precision stance detection, NLI mapping, and evidence reranking.
+
+To install dependencies and enable stronger model-backed stance inference:
 
 ```bash
 pip install -r requirements.txt

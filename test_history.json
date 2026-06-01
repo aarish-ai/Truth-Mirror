@@ -1,0 +1,18 @@
+[
+  {
+    "claim": "Test claim 1",
+    "entities": [
+      "uri:a"
+    ],
+    "timestamp": 1780285615.0183134,
+    "verdict": "Supported"
+  },
+  {
+    "claim": "Test claim 1 slightly changed",
+    "entities": [
+      "uri:a"
+    ],
+    "timestamp": 1780285615.0200477,
+    "verdict": "Contradicted"
+  }
+]

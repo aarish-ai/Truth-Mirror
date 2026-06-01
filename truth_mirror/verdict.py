@@ -36,6 +36,7 @@ def aggregate_verdict(
     sub_claim_results: list[SubClaimResult],
     warnings: list[str],
     missing_information: list[str],
+    geo_divergence_detected: bool = False,
 ) -> VerificationResult:
     if not sub_claim_results:
         return VerificationResult(
@@ -69,6 +70,12 @@ def aggregate_verdict(
     else:
         verdict = "Unclear"
 
+    if geo_divergence_detected:
+        verdict = "Disputed (geo-narrative divergence)"
+        mean_conf = min(mean_conf, 0.7)
+        mean_lower = min(mean_lower, 0.7)
+        mean_upper = min(mean_upper, 0.7)
+
     reasoning = (
         f"Evaluated {len(sub_claim_results)} sub-claim(s). "
         f"Claim type route: {claim_type}. "
@@ -95,6 +102,7 @@ def aggregate_verdict(
         reasoning=reasoning,
         missing_information=missing_information,
         warnings=warnings,
+        geo_divergence_detected=geo_divergence_detected,
     )
 
 

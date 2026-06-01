@@ -153,7 +153,7 @@ class FREDConnector:
             {"date": "2023-02-01", "value": "101.5"}
         ]
 
-class WikidataConnector:
+class WikidataSPARQLConnector:
     """Connects to Wikidata SPARQL endpoint."""
     def __init__(self):
         self.endpoint_url = "https://query.wikidata.org/sparql"
@@ -172,3 +172,32 @@ class WikidataConnector:
         except Exception as e:
             logger.error(f"Error querying Wikidata: {e}")
             return []
+
+class GovInfoConnector:
+    """Connects to GovInfo API."""
+    def __init__(self, api_key: Optional[str] = None):
+        self.api_key = api_key or os.environ.get("GOVINFO_API_KEY")
+        self.base_url = "https://api.govinfo.gov"
+
+    def search_packages(self, query: str) -> List[Dict[str, Any]]:
+        if not self.api_key:
+            logger.warning("No GovInfo API key provided. Using mock fallback.")
+            return self._mock_fallback(query)
+            
+        url = f"{self.base_url}/search"
+        params = {
+            "query": query,
+            "api_key": self.api_key,
+            "pageSize": 5
+        }
+        try:
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            return response.json().get("results", [])
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error querying GovInfo: {e}")
+            return self._mock_fallback(query)
+
+    def _mock_fallback(self, query: str) -> List[Dict[str, Any]]:
+        return [{"title": f"GovInfo Mock Result for {query}", "packageId": "MOCK-123"}]
+

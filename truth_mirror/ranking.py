@@ -7,18 +7,22 @@ from pathlib import Path
 
 from truth_mirror.credibility import CredibilityRegistry
 from truth_mirror.models import EvidenceItem
+from sentence_transformers import SentenceTransformer, util
 
 REGISTRY = CredibilityRegistry.load(
     str(Path(__file__).with_name("credibility_registry.json"))
 )
 
+_encoder = SentenceTransformer("all-MiniLM-L6-v2")
 
-def _token_overlap(a: str, b: str) -> float:
-    a_tokens = {t for t in a.lower().split() if len(t) > 2}
-    b_tokens = {t for t in b.lower().split() if len(t) > 2}
-    if not a_tokens or not b_tokens:
+
+def _semantic_similarity(a: str, b: str) -> float:
+    if not a.strip() or not b.strip():
         return 0.0
-    return len(a_tokens & b_tokens) / len(a_tokens | b_tokens)
+    emb_a = _encoder.encode(a, convert_to_tensor=True)
+    emb_b = _encoder.encode(b, convert_to_tensor=True)
+    # Clamp between 0 and 1
+    return max(0.0, float(util.cos_sim(emb_a, emb_b)[0][0]))
 
 
 def _recency_score(date_text: str) -> float:
@@ -51,7 +55,7 @@ def rank_evidence(claim: str, evidence: list[EvidenceItem]) -> list[EvidenceItem
     
     scored_items = []
     for item in evidence:
-        relevance_score = _token_overlap(claim, f"{item.source_title} {item.excerpt}")
+        relevance_score = _semantic_similarity(claim, f"{item.source_title} {item.excerpt}")
         source_credibility = REGISTRY.score(item)
         recency_weight = _recency_score(item.date)
         

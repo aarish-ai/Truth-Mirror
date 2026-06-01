@@ -1,0 +1,2186 @@
+{
+  "foxnews.com": {
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "en"
+  },
+  "breitbart.com": {
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "US",
+    "language_origin": "en"
+  },
+  "wsj.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "en"
+  },
+  "cnn.com": {
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "en"
+  },
+  "msnbc.com": {
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "en"
+  },
+  "nytimes.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "en"
+  },
+  "reuters.com": {
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "en"
+  },
+  "apnews.com": {
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "US",
+    "language_origin": "en"
+  },
+  "bbc.com": {
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Europe",
+    "language_origin": "en"
+  },
+  "aljazeera.com": {
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "en"
+  },
+  "rt.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "en"
+  },
+  "cgtn.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Asia",
+    "language_origin": "en"
+  },
+  "site1.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "fr"
+  },
+  "site2.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "zh"
+  },
+  "site3.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "es"
+  },
+  "site4.com": {
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "ru"
+  },
+  "site5.com": {
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "en"
+  },
+  "site6.com": {
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "ru"
+  },
+  "site7.com": {
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "zh"
+  },
+  "site8.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "fr"
+  },
+  "site9.com": {
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "ru"
+  },
+  "site10.com": {
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "zh"
+  },
+  "site11.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "es"
+  },
+  "site12.com": {
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "fr"
+  },
+  "site13.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "US",
+    "language_origin": "es"
+  },
+  "site14.com": {
+    "perspective": "non_western",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "zh"
+  },
+  "site15.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "en"
+  },
+  "site16.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "zh"
+  },
+  "site17.com": {
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "en"
+  },
+  "site18.com": {
+    "perspective": "non_western",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "zh"
+  },
+  "site19.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "ar"
+  },
+  "site20.com": {
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "ru"
+  },
+  "site21.com": {
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "zh"
+  },
+  "site22.com": {
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Asia",
+    "language_origin": "ru"
+  },
+  "site23.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "ru"
+  },
+  "site24.com": {
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "en"
+  },
+  "site25.com": {
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "ru"
+  },
+  "site26.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "ru"
+  },
+  "site27.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "zh"
+  },
+  "site28.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "ru"
+  },
+  "site29.com": {
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "es"
+  },
+  "site30.com": {
+    "perspective": "non_western",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "fr"
+  },
+  "site31.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "zh"
+  },
+  "site32.com": {
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Asia",
+    "language_origin": "zh"
+  },
+  "site33.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "es"
+  },
+  "site34.com": {
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "ru"
+  },
+  "site35.com": {
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "es"
+  },
+  "site36.com": {
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "zh"
+  },
+  "site37.com": {
+    "perspective": "neutral",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "fr"
+  },
+  "site38.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "en"
+  },
+  "site39.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "es"
+  },
+  "site40.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "ar"
+  },
+  "site41.com": {
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "ru"
+  },
+  "site42.com": {
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "fr"
+  },
+  "site43.com": {
+    "perspective": "neutral",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "es"
+  },
+  "site44.com": {
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "ar"
+  },
+  "site45.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "zh"
+  },
+  "site46.com": {
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Europe",
+    "language_origin": "en"
+  },
+  "site47.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "en"
+  },
+  "site48.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "en"
+  },
+  "site49.com": {
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "es"
+  },
+  "site50.com": {
+    "perspective": "liberal",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "ar"
+  },
+  "site51.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Europe",
+    "language_origin": "zh"
+  },
+  "site52.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "fr"
+  },
+  "site53.com": {
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Asia",
+    "language_origin": "en"
+  },
+  "site54.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "es"
+  },
+  "site55.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "en"
+  },
+  "site56.com": {
+    "perspective": "neutral",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "zh"
+  },
+  "site57.com": {
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "en"
+  },
+  "site58.com": {
+    "perspective": "neutral",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "en"
+  },
+  "site59.com": {
+    "perspective": "neutral",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "en"
+  },
+  "site60.com": {
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "fr"
+  },
+  "site61.com": {
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "US",
+    "language_origin": "zh"
+  },
+  "site62.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "zh"
+  },
+  "site63.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "zh"
+  },
+  "site64.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "zh"
+  },
+  "site65.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "ar"
+  },
+  "site66.com": {
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "ar"
+  },
+  "site67.com": {
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "US",
+    "language_origin": "ru"
+  },
+  "site68.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "zh"
+  },
+  "site69.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "en"
+  },
+  "site70.com": {
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "ru"
+  },
+  "site71.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "es"
+  },
+  "site72.com": {
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "ru"
+  },
+  "site73.com": {
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "US",
+    "language_origin": "zh"
+  },
+  "site74.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "ar"
+  },
+  "site75.com": {
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "fr"
+  },
+  "site76.com": {
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "ru"
+  },
+  "site77.com": {
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "ru"
+  },
+  "site78.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "zh"
+  },
+  "site79.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "en"
+  },
+  "site80.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Asia",
+    "language_origin": "fr"
+  },
+  "site81.com": {
+    "perspective": "liberal",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "fr"
+  },
+  "site82.com": {
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Asia",
+    "language_origin": "en"
+  },
+  "site83.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "ar"
+  },
+  "site84.com": {
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "es"
+  },
+  "site85.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "US",
+    "language_origin": "en"
+  },
+  "site86.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "en"
+  },
+  "site87.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "fr"
+  },
+  "site88.com": {
+    "perspective": "liberal",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "fr"
+  },
+  "site89.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "fr"
+  },
+  "site90.com": {
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Europe",
+    "language_origin": "es"
+  },
+  "site91.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "zh"
+  },
+  "site92.com": {
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Asia",
+    "language_origin": "ar"
+  },
+  "site93.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "es"
+  },
+  "site94.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "zh"
+  },
+  "site95.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "ar"
+  },
+  "site96.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "ar"
+  },
+  "site97.com": {
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "ar"
+  },
+  "site98.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "zh"
+  },
+  "site99.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "ar"
+  },
+  "site100.com": {
+    "perspective": "non_western",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "fr"
+  },
+  "site101.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "ar"
+  },
+  "site102.com": {
+    "perspective": "non_western",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "zh"
+  },
+  "site103.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "es"
+  },
+  "site104.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "ru"
+  },
+  "site105.com": {
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "ru"
+  },
+  "site106.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "en"
+  },
+  "site107.com": {
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "zh"
+  },
+  "site108.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "en"
+  },
+  "site109.com": {
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "zh"
+  },
+  "site110.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "es"
+  },
+  "site111.com": {
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "ar"
+  },
+  "site112.com": {
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "fr"
+  },
+  "site113.com": {
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "ru"
+  },
+  "site114.com": {
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "ru"
+  },
+  "site115.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "fr"
+  },
+  "site116.com": {
+    "perspective": "neutral",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "fr"
+  },
+  "site117.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "US",
+    "language_origin": "ar"
+  },
+  "site118.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "ar"
+  },
+  "site119.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "fr"
+  },
+  "site120.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "es"
+  },
+  "site121.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "ru"
+  },
+  "site122.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "fr"
+  },
+  "site123.com": {
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "es"
+  },
+  "site124.com": {
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "es"
+  },
+  "site125.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Asia",
+    "language_origin": "en"
+  },
+  "site126.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "US",
+    "language_origin": "es"
+  },
+  "site127.com": {
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "ru"
+  },
+  "site128.com": {
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "es"
+  },
+  "site129.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "zh"
+  },
+  "site130.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "US",
+    "language_origin": "fr"
+  },
+  "site131.com": {
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "fr"
+  },
+  "site132.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "fr"
+  },
+  "site133.com": {
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "ar"
+  },
+  "site134.com": {
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "en"
+  },
+  "site135.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "zh"
+  },
+  "site136.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "en"
+  },
+  "site137.com": {
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "es"
+  },
+  "site138.com": {
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "es"
+  },
+  "site139.com": {
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "ar"
+  },
+  "site140.com": {
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "ru"
+  },
+  "site141.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "en"
+  },
+  "site142.com": {
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "es"
+  },
+  "site143.com": {
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Europe",
+    "language_origin": "ar"
+  },
+  "site144.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "zh"
+  },
+  "site145.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "ar"
+  },
+  "site146.com": {
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "US",
+    "language_origin": "ar"
+  },
+  "site147.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "en"
+  },
+  "site148.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "zh"
+  },
+  "site149.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "zh"
+  },
+  "site150.com": {
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "ru"
+  },
+  "site151.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "es"
+  },
+  "site152.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "ru"
+  },
+  "site153.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "en"
+  },
+  "site154.com": {
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "fr"
+  },
+  "site155.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "ru"
+  },
+  "site156.com": {
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "fr"
+  },
+  "site157.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "ru"
+  },
+  "site158.com": {
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "fr"
+  },
+  "site159.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "zh"
+  },
+  "site160.com": {
+    "perspective": "non_western",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "en"
+  },
+  "site161.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "ru"
+  },
+  "site162.com": {
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "es"
+  },
+  "site163.com": {
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "fr"
+  },
+  "site164.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "zh"
+  },
+  "site165.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "zh"
+  },
+  "site166.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "en"
+  },
+  "site167.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "ar"
+  },
+  "site168.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "en"
+  },
+  "site169.com": {
+    "perspective": "neutral",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "fr"
+  },
+  "site170.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "es"
+  },
+  "site171.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "ar"
+  },
+  "site172.com": {
+    "perspective": "neutral",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "fr"
+  },
+  "site173.com": {
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "ar"
+  },
+  "site174.com": {
+    "perspective": "non_western",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "en"
+  },
+  "site175.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "ar"
+  },
+  "site176.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "fr"
+  },
+  "site177.com": {
+    "perspective": "liberal",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Europe",
+    "language_origin": "en"
+  },
+  "site178.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Europe",
+    "language_origin": "zh"
+  },
+  "site179.com": {
+    "perspective": "neutral",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "zh"
+  },
+  "site180.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "ar"
+  },
+  "site181.com": {
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "es"
+  },
+  "site182.com": {
+    "perspective": "non_western",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "en"
+  },
+  "site183.com": {
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "es"
+  },
+  "site184.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "ar"
+  },
+  "site185.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "es"
+  },
+  "site186.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "ar"
+  },
+  "site187.com": {
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "es"
+  },
+  "site188.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "ru"
+  },
+  "site189.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "ar"
+  },
+  "site190.com": {
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "zh"
+  },
+  "site191.com": {
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Asia",
+    "language_origin": "zh"
+  },
+  "site192.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "zh"
+  },
+  "site193.com": {
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "zh"
+  },
+  "site194.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "en"
+  },
+  "site195.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "zh"
+  },
+  "site196.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "zh"
+  },
+  "site197.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Europe",
+    "language_origin": "ar"
+  },
+  "site198.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "es"
+  },
+  "site199.com": {
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Europe",
+    "language_origin": "en"
+  },
+  "site200.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "en"
+  },
+  "site201.com": {
+    "perspective": "liberal",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "en"
+  },
+  "site202.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "ar"
+  },
+  "site203.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "zh"
+  },
+  "site204.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "US",
+    "language_origin": "fr"
+  },
+  "site205.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "es"
+  },
+  "site206.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "zh"
+  },
+  "site207.com": {
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "zh"
+  },
+  "site208.com": {
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "en"
+  },
+  "site209.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "ru"
+  },
+  "site210.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "zh"
+  },
+  "site211.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "US",
+    "language_origin": "ar"
+  },
+  "site212.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "ru"
+  },
+  "site213.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "ar"
+  },
+  "site214.com": {
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "US",
+    "language_origin": "ru"
+  },
+  "site215.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "ar"
+  },
+  "site216.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Europe",
+    "language_origin": "en"
+  },
+  "site217.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Europe",
+    "language_origin": "zh"
+  },
+  "site218.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "ru"
+  },
+  "site219.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "fr"
+  },
+  "site220.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "en"
+  },
+  "site221.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "ru"
+  },
+  "site222.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "ru"
+  },
+  "site223.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "ru"
+  },
+  "site224.com": {
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "fr"
+  },
+  "site225.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "ru"
+  },
+  "site226.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "ar"
+  },
+  "site227.com": {
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Asia",
+    "language_origin": "zh"
+  },
+  "site228.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "ar"
+  },
+  "site229.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "ar"
+  },
+  "site230.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Russia",
+    "language_origin": "es"
+  },
+  "site231.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Asia",
+    "language_origin": "zh"
+  },
+  "site232.com": {
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "zh"
+  },
+  "site233.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "ru"
+  },
+  "site234.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "ru"
+  },
+  "site235.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "ar"
+  },
+  "site236.com": {
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Europe",
+    "language_origin": "en"
+  },
+  "site237.com": {
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "en"
+  },
+  "site238.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "ar"
+  },
+  "site239.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "fr"
+  },
+  "site240.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "zh"
+  },
+  "site241.com": {
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "es"
+  },
+  "site242.com": {
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "ar"
+  },
+  "site243.com": {
+    "perspective": "non_western",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "en"
+  },
+  "site244.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "fr"
+  },
+  "site245.com": {
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "ru"
+  },
+  "site246.com": {
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "es"
+  },
+  "site247.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "ru"
+  },
+  "site248.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "ar"
+  },
+  "site249.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "ru"
+  },
+  "site250.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Asia",
+    "language_origin": "ar"
+  },
+  "site251.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "zh"
+  },
+  "site252.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "es"
+  },
+  "site253.com": {
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "fr"
+  },
+  "site254.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "zh"
+  },
+  "site255.com": {
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "zh"
+  },
+  "site256.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "ar"
+  },
+  "site257.com": {
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "en"
+  },
+  "site258.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "ru"
+  },
+  "site259.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "ru"
+  },
+  "site260.com": {
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "es"
+  },
+  "site261.com": {
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "ru"
+  },
+  "site262.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "fr"
+  },
+  "site263.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "en"
+  },
+  "site264.com": {
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "ar"
+  },
+  "site265.com": {
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "ru"
+  },
+  "site266.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Global",
+    "language_origin": "ar"
+  },
+  "site267.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "fr"
+  },
+  "site268.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "fr"
+  },
+  "site269.com": {
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "en"
+  },
+  "site270.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "ru"
+  },
+  "site271.com": {
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "es"
+  },
+  "site272.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "es"
+  },
+  "site273.com": {
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "zh"
+  },
+  "site274.com": {
+    "perspective": "neutral",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "ru"
+  },
+  "site275.com": {
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "US",
+    "language_origin": "es"
+  },
+  "site276.com": {
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "zh"
+  },
+  "site277.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Russia",
+    "language_origin": "es"
+  },
+  "site278.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "fr"
+  },
+  "site279.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "ar"
+  },
+  "site280.com": {
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Europe",
+    "language_origin": "fr"
+  },
+  "site281.com": {
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "en"
+  },
+  "site282.com": {
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "US",
+    "language_origin": "fr"
+  },
+  "site283.com": {
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "fr"
+  },
+  "site284.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Middle East",
+    "language_origin": "fr"
+  },
+  "site285.com": {
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "es"
+  },
+  "site286.com": {
+    "perspective": "liberal",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "ru"
+  },
+  "site287.com": {
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "ru"
+  },
+  "site288.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": "Global",
+    "language_origin": "ar"
+  },
+  "site289.com": {
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Russia",
+    "language_origin": "zh"
+  },
+  "site290.com": {
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "state",
+    "regional_focus": "Middle East",
+    "language_origin": "zh"
+  },
+  "site291.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "fr"
+  },
+  "site292.com": {
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "US",
+    "language_origin": "zh"
+  },
+  "site293.com": {
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "ru"
+  },
+  "site294.com": {
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Europe",
+    "language_origin": "zh"
+  },
+  "site295.com": {
+    "perspective": "neutral",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": "Asia",
+    "language_origin": "ar"
+  },
+  "site296.com": {
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "state",
+    "regional_focus": "Europe",
+    "language_origin": "en"
+  },
+  "site297.com": {
+    "perspective": "liberal",
+    "factual_rating": "low",
+    "ownership": "state",
+    "regional_focus": "Global",
+    "language_origin": "fr"
+  },
+  "site298.com": {
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": "Asia",
+    "language_origin": "fr"
+  },
+  "site299.com": {
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Middle East",
+    "language_origin": "ru"
+  },
+  "site300.com": {
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": "Europe",
+    "language_origin": "es"
+  }
+}

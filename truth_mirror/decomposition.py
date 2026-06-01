@@ -3,7 +3,19 @@
 from __future__ import annotations
 
 import re
+import json
+import os
+import logging
 from dataclasses import dataclass, field
+
+try:
+    import google.generativeai as genai
+    from dotenv import load_dotenv
+    LLM_AVAILABLE = True
+except ImportError:
+    LLM_AVAILABLE = False
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -38,7 +50,7 @@ def _mock_dependency_parse(text: str) -> list[tuple[str, str, str]]:
     return deps
 
 
-def decompose_claim(claim: str) -> DecompositionResult:
+def _decompose_claim_regex(claim: str) -> DecompositionResult:
     joiners = re.findall(r"\b(and|or|but|if|unless)\b", claim, flags=re.IGNORECASE)
     parts = re.split(r"\b(?:and|or|but|if|unless)\b", claim, flags=re.IGNORECASE)
     sub_claims = [p.strip(" ,.;") for p in parts if p.strip(" ,.;")]
@@ -83,4 +95,64 @@ def decompose_claim(claim: str) -> DecompositionResult:
         statistical_claims=statistical_claims,
         dependencies=dependencies
     )
+
+
+def decompose_claim(claim: str) -> DecompositionResult:
+    if LLM_AVAILABLE:
+        try:
+            load_dotenv()
+            api_key = os.getenv("GEMINI_API_KEY")
+            if api_key:
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel('gemini-2.5-flash')
+                
+                prompt = f"""
+You are an expert at breaking down complex claims into verifiable sub-claims. 
+Decompose the following claim into its constituent parts.
+
+Claim: "{claim}"
+
+Respond ONLY with a valid JSON object matching this schema. Ensure dependencies is a list of [string, string, string] lists:
+{{
+  "sub_claims": ["claim 1", "claim 2"],
+  "logical_joiners": ["and", "or"],
+  "interpretive_fragments": ["fragment 1"],
+  "hidden_premises": ["premise 1"],
+  "temporal_claims": [],
+  "causal_claims": [],
+  "conditional_claims": [],
+  "statistical_claims": [],
+  "dependencies": [["word1", "dep", "word2"]]
+}}
+"""
+                response = model.generate_content(
+                    prompt,
+                    generation_config=genai.GenerationConfig(
+                        response_mime_type="application/json",
+                        temperature=0.1
+                    )
+                )
+                
+                result = json.loads(response.text)
+                
+                deps = []
+                for d in result.get("dependencies", []):
+                    if isinstance(d, list) and len(d) == 3:
+                        deps.append((str(d[0]), str(d[1]), str(d[2])))
+                
+                return DecompositionResult(
+                    sub_claims=result.get("sub_claims", [claim]),
+                    logical_joiners=result.get("logical_joiners", []),
+                    interpretive_fragments=result.get("interpretive_fragments", []),
+                    hidden_premises=result.get("hidden_premises", []),
+                    temporal_claims=result.get("temporal_claims", []),
+                    causal_claims=result.get("causal_claims", []),
+                    conditional_claims=result.get("conditional_claims", []),
+                    statistical_claims=result.get("statistical_claims", []),
+                    dependencies=deps
+                )
+        except Exception as e:
+            logger.warning(f"LLM decomposition failed: {e}. Falling back to regex.")
+
+    return _decompose_claim_regex(claim)
 
