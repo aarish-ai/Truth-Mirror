@@ -86,5 +86,203 @@
   {
     "claim": "COVID-19 pandemic started in 1850",
     "entities": []
+  },
+  {
+    "claim": "Imran Khan won the 2018 elections to in Pakistan",
+    "entities": []
+  },
+  {
+    "claim": "Imran Khan won the 2017 elections to in Pakistan",
+    "entities": []
+  },
+  {
+    "claim": "Imran Khan won the 2016 elections to in Pakistan",
+    "entities": []
+  },
+  {
+    "claim": "Imran Khan won the 2015 elections to in Pakistan",
+    "entities": []
+  },
+  {
+    "claim": "Imran Khan won the 1997 elections to in Pakistan",
+    "entities": []
+  },
+  {
+    "claim": "Imran Khan won the 1997 elections in Pakistan",
+    "entities": []
+  },
+  {
+    "claim": "Trump is Dead",
+    "entities": [
+      "http://www.wikidata.org/entity/Q136007749"
+    ]
+  },
+  {
+    "claim": "Donald Trump is Alive",
+    "entities": []
+  },
+  {
+    "claim": "Donald Trump is Dead",
+    "entities": []
+  },
+  {
+    "claim": "Biden won the Elections in 2020 in USA",
+    "entities": []
+  },
+  {
+    "claim": "Trump won the 2020 election",
+    "entities": []
+  },
+  {
+    "claim": "The moon landing happened in 1969",
+    "entities": []
+  },
+  {
+    "claim": "The Earth is flat",
+    "entities": [
+      "http://www.wikidata.org/entity/Q115640629",
+      "http://www.wikidata.org/entity/Q135052350",
+      "http://www.wikidata.org/entity/Q122698146"
+    ]
+  },
+  {
+    "claim": "COVID-19 pandemic started in 2019",
+    "entities": []
+  },
+  {
+    "claim": "COVID-19 pandemic started in 1850",
+    "entities": []
+  },
+  {
+    "claim": "Biden won the Elections in 2020 in USA",
+    "entities": []
+  },
+  {
+    "claim": "Trump won the 2020 election",
+    "entities": []
+  },
+  {
+    "claim": "The moon landing happened in 1969",
+    "entities": []
+  },
+  {
+    "claim": "The Earth is flat",
+    "entities": [
+      "http://www.wikidata.org/entity/Q122698146",
+      "http://www.wikidata.org/entity/Q135052350",
+      "http://www.wikidata.org/entity/Q115640629"
+    ]
+  },
+  {
+    "claim": "COVID-19 pandemic started in 2019",
+    "entities": []
+  },
+  {
+    "claim": "COVID-19 pandemic started in 1850",
+    "entities": []
+  },
+  {
+    "claim": "Biden won the Elections in 2020 in USA",
+    "entities": []
+  },
+  {
+    "claim": "Trump won the 2020 election",
+    "entities": []
+  },
+  {
+    "claim": "The moon landing happened in 1969",
+    "entities": []
+  },
+  {
+    "claim": "The Earth is flat",
+    "entities": [
+      "http://www.wikidata.org/entity/Q135052350",
+      "http://www.wikidata.org/entity/Q115640629",
+      "http://www.wikidata.org/entity/Q122698146"
+    ]
+  },
+  {
+    "claim": "COVID-19 pandemic started in 2019",
+    "entities": []
+  },
+  {
+    "claim": "COVID-19 pandemic started in 1850",
+    "entities": []
+  },
+  {
+    "claim": "Biden won the Elections in 2020 in USA",
+    "entities": []
+  },
+  {
+    "claim": "Trump won the 2020 election",
+    "entities": []
+  },
+  {
+    "claim": "The moon landing happened in 1969",
+    "entities": []
+  },
+  {
+    "claim": "The Earth is flat",
+    "entities": [
+      "http://www.wikidata.org/entity/Q122698146",
+      "http://www.wikidata.org/entity/Q115640629",
+      "http://www.wikidata.org/entity/Q135052350"
+    ]
+  },
+  {
+    "claim": "COVID-19 pandemic started in 2019",
+    "entities": []
+  },
+  {
+    "claim": "COVID-19 pandemic started in 1850",
+    "entities": []
+  },
+  {
+    "claim": "Biden won the Elections in 2020 in USA",
+    "entities": []
+  },
+  {
+    "claim": "Trump won the 2020 election",
+    "entities": []
+  },
+  {
+    "claim": "The moon landing happened in 1969",
+    "entities": []
+  },
+  {
+    "claim": "The Earth is flat",
+    "entities": [
+      "http://www.wikidata.org/entity/Q122698146",
+      "http://www.wikidata.org/entity/Q115640629",
+      "http://www.wikidata.org/entity/Q135052350"
+    ]
+  },
+  {
+    "claim": "Biden won the Elections in 2020 in USA",
+    "entities": []
+  },
+  {
+    "claim": "Trump won the 2020 election",
+    "entities": []
+  },
+  {
+    "claim": "The moon landing happened in 1969",
+    "entities": []
+  },
+  {
+    "claim": "The Earth is flat",
+    "entities": [
+      "http://www.wikidata.org/entity/Q115640629",
+      "http://www.wikidata.org/entity/Q135052350",
+      "http://www.wikidata.org/entity/Q122698146"
+    ]
+  },
+  {
+    "claim": "COVID-19 pandemic started in 2019",
+    "entities": []
+  },
+  {
+    "claim": "COVID-19 pandemic started in 1850",
+    "entities": []
   }
 ]
