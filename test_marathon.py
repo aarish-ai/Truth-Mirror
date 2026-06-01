@@ -50,7 +50,11 @@ class TestMarathon(unittest.TestCase):
         ]
         
         client = LLMClient()
-        tools = {"fake_tool": lambda x: f"Tool executed with {x}"}
+        def fake_tool(x):
+            """A fake tool for testing."""
+            return f"Tool executed with {x}"
+        
+        tools = {"fake_tool": fake_tool}
         
         agent = ReActAgent(client, tools, max_iterations=3)
         result = agent.run("What is the test result?")
