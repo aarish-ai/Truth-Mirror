@@ -51,21 +51,32 @@ Truth Mirror has undergone significant architectural enhancements, transitioning
 - `pipeline.py` CLI entry point
 - `app.py` minimal local web server API + UI
 
-## API Key Requirements
+## Configuration & API Keys
 
-Truth Mirror integrates external APIs to pull authoritative data and fact-checks. You must provide free API keys in a `.env` file at the root of the project:
+Truth Mirror integrates external APIs to pull authoritative data and fact-checks. You must provide your API keys and configuration in a `.env` file at the root of the project.
 
-1. **Google Fact Check Tools API**: Required to query the global database of verified fact-checks. (Free)
-2. **FRED API**: Required to access authoritative economic data. (Free)
-3. **Gemini API Key**: Required to enable intelligent evidence synthesis via Google's Gemini LLM. (Free)
-
-Create a `.env` file with the following:
+Create a `.env` file with the following format:
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
 GOOGLE_FACT_CHECK_API_KEY=your_google_api_key_here
 FRED_API_KEY=your_fred_api_key_here
+GOVINFO_API_KEY=your_govinfo_key_here
+CORE_API_KEY=your_core_key_here
+SEMANTIC_SCHOLAR_API_KEY=your_ss_key_here
+OPENCALAIS_API_KEY=your_opencalais_key_here
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.1:8b
+OLLAMA_FALLBACK_MODEL=mistral:7b
+LLM_PROVIDER=ollama
+VECTOR_STORE_PATH=.tm_vectorstore
+ENABLE_NON_WESTERN_SOURCES=true
+ENABLE_ARCHIVAL_SOURCES=true
+ENABLE_KG_VERIFICATION=true
+MAX_AGENT_ITERATIONS=8
 ```
+
+> **Note**: Several internal tools (Wikipedia, Wikidata, DBpedia, Open Library, arXiv, PubMed, etc.) rely on free public endpoints and do not require API keys. OpenStreetMap Nominatim is also free but enforces strict rate limits.
 
 ## Run (CLI)
 

@@ -1,2186 +1,3685 @@
 {
-  "foxnews.com": {
-    "perspective": "conservative",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "en"
-  },
-  "breitbart.com": {
-    "perspective": "conservative",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "US",
-    "language_origin": "en"
-  },
-  "wsj.com": {
-    "perspective": "conservative_leaning",
+  "bbc.com": {
+    "domain": "bbc.com",
+    "perspective": "western_mainstream",
     "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "en"
+    "ownership": "state_public",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "mostly_factual"
   },
   "cnn.com": {
+    "domain": "cnn.com",
     "perspective": "liberal",
     "factual_rating": "mixed",
     "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "en"
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "left",
+    "mbfc_rating": "mixed"
   },
-  "msnbc.com": {
-    "perspective": "liberal",
+  "foxnews.com": {
+    "domain": "foxnews.com",
+    "perspective": "conservative",
     "factual_rating": "mixed",
     "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "en"
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "mixed"
   },
   "nytimes.com": {
+    "domain": "nytimes.com",
     "perspective": "liberal_leaning",
     "factual_rating": "high",
     "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "en"
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "high"
+  },
+  "wsj.com": {
+    "domain": "wsj.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "mostly_factual"
   },
   "reuters.com": {
+    "domain": "reuters.com",
     "perspective": "neutral",
     "factual_rating": "high",
     "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "en"
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
   },
   "apnews.com": {
+    "domain": "apnews.com",
     "perspective": "neutral",
     "factual_rating": "high",
     "ownership": "independent",
-    "regional_focus": "US",
-    "language_origin": "en"
-  },
-  "bbc.com": {
-    "perspective": "neutral",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Europe",
-    "language_origin": "en"
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
   },
   "aljazeera.com": {
+    "domain": "aljazeera.com",
     "perspective": "non_western",
     "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "en"
+    "ownership": "state_public",
+    "regional_focus": [
+      "Middle East",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mostly_factual"
   },
   "rt.com": {
+    "domain": "rt.com",
     "perspective": "state_sponsored_russia",
     "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "en"
+    "ownership": "state_public",
+    "regional_focus": [
+      "Russia",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "low"
   },
   "cgtn.com": {
+    "domain": "cgtn.com",
     "perspective": "state_sponsored_china",
     "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Asia",
-    "language_origin": "en"
+    "ownership": "state_public",
+    "regional_focus": [
+      "China",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "low"
   },
-  "site1.com": {
-    "perspective": "state_sponsored_russia",
+  "theguardian.com": {
+    "domain": "theguardian.com",
+    "perspective": "liberal",
     "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "fr"
+    "ownership": "independent",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "left",
+    "mbfc_rating": "mostly_factual"
   },
-  "site2.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "zh"
-  },
-  "site3.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "es"
-  },
-  "site4.com": {
+  "breitbart.com": {
+    "domain": "breitbart.com",
     "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "low"
+  },
+  "npr.org": {
+    "domain": "npr.org",
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "high"
+  },
+  "msnbc.com": {
+    "domain": "msnbc.com",
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "left",
+    "mbfc_rating": "mixed"
+  },
+  "huffpost.com": {
+    "domain": "huffpost.com",
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "left",
+    "mbfc_rating": "mixed"
+  },
+  "politico.com": {
+    "domain": "politico.com",
+    "perspective": "neutral",
     "factual_rating": "high",
     "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "ru"
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "high"
   },
-  "site5.com": {
+  "axios.com": {
+    "domain": "axios.com",
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "high"
+  },
+  "usatoday.com": {
+    "domain": "usatoday.com",
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "high"
+  },
+  "time.com": {
+    "domain": "time.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "high"
+  },
+  "newsweek.com": {
+    "domain": "newsweek.com",
     "perspective": "neutral",
     "factual_rating": "mixed",
     "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "en"
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "mixed"
   },
-  "site6.com": {
-    "perspective": "liberal",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "ru"
-  },
-  "site7.com": {
-    "perspective": "conservative",
+  "dailymail.co.uk": {
+    "domain": "dailymail.co.uk",
+    "perspective": "conservative_leaning",
     "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "zh"
+    "ownership": "corporate",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "low"
   },
-  "site8.com": {
+  "nypost.com": {
+    "domain": "nypost.com",
     "perspective": "conservative_leaning",
     "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "fr"
-  },
-  "site9.com": {
-    "perspective": "conservative",
-    "factual_rating": "mixed",
     "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "ru"
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "mixed"
   },
-  "site10.com": {
-    "perspective": "liberal",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "zh"
+  "bloomberg.com": {
+    "domain": "bloomberg.com",
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "mostly_factual"
   },
-  "site11.com": {
+  "ft.com": {
+    "domain": "ft.com",
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "high"
+  },
+  "telegraph.co.uk": {
+    "domain": "telegraph.co.uk",
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "UK"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "thetimes.co.uk": {
+    "domain": "thetimes.co.uk",
     "perspective": "conservative_leaning",
     "factual_rating": "high",
     "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "es"
+    "regional_focus": [
+      "UK"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "mostly_factual"
   },
-  "site12.com": {
-    "perspective": "non_western",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "fr"
-  },
-  "site13.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "US",
-    "language_origin": "es"
-  },
-  "site14.com": {
-    "perspective": "non_western",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "zh"
-  },
-  "site15.com": {
+  "independent.co.uk": {
+    "domain": "independent.co.uk",
     "perspective": "liberal_leaning",
     "factual_rating": "mixed",
     "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "en"
+    "regional_focus": [
+      "UK"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mixed"
   },
-  "site16.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "zh"
+  "france24.com": {
+    "domain": "france24.com",
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "state_public",
+    "regional_focus": [
+      "France",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "high"
   },
-  "site17.com": {
+  "dw.com": {
+    "domain": "dw.com",
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Germany",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "high"
+  },
+  "scmp.com": {
+    "domain": "scmp.com",
     "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Hong Kong",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-1.com": {
+    "domain": "news-source-1.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-2.com": {
+    "domain": "news-source-2.com",
+    "perspective": "liberal_leaning",
     "factual_rating": "mixed",
     "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "en"
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_low"
   },
-  "site18.com": {
+  "news-source-3.com": {
+    "domain": "news-source-3.com",
+    "perspective": "liberal",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "high"
+  },
+  "news-source-4.com": {
+    "domain": "news-source-4.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-5.com": {
+    "domain": "news-source-5.com",
     "perspective": "non_western",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "zh"
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
   },
-  "site19.com": {
+  "news-source-6.com": {
+    "domain": "news-source-6.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-7.com": {
+    "domain": "news-source-7.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-8.com": {
+    "domain": "news-source-8.com",
     "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-9.com": {
+    "domain": "news-source-9.com",
+    "perspective": "conservative",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-10.com": {
+    "domain": "news-source-10.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-11.com": {
+    "domain": "news-source-11.com",
+    "perspective": "liberal",
     "factual_rating": "mixed",
     "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "ar"
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_low"
   },
-  "site20.com": {
-    "perspective": "liberal",
+  "news-source-12.com": {
+    "domain": "news-source-12.com",
+    "perspective": "western_mainstream",
     "factual_rating": "high",
     "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "ru"
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "center",
+    "mbfc_rating": "low"
   },
-  "site21.com": {
-    "perspective": "conservative",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "zh"
-  },
-  "site22.com": {
-    "perspective": "conservative",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Asia",
-    "language_origin": "ru"
-  },
-  "site23.com": {
+  "news-source-13.com": {
+    "domain": "news-source-13.com",
     "perspective": "state_sponsored_russia",
-    "factual_rating": "low",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "low"
+  },
+  "news-source-14.com": {
+    "domain": "news-source-14.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "right",
+    "mbfc_rating": "low"
+  },
+  "news-source-15.com": {
+    "domain": "news-source-15.com",
+    "perspective": "conservative",
+    "factual_rating": "mixed",
     "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "ru"
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "left",
+    "mbfc_rating": "low"
   },
-  "site24.com": {
-    "perspective": "conservative",
-    "factual_rating": "low",
+  "news-source-16.com": {
+    "domain": "news-source-16.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "center",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-17.com": {
+    "domain": "news-source-17.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mostly_factual",
     "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "en"
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "center",
+    "mbfc_rating": "mostly_factual"
   },
-  "site25.com": {
-    "perspective": "conservative",
+  "news-source-18.com": {
+    "domain": "news-source-18.com",
+    "perspective": "liberal_leaning",
     "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "ru"
+    "ownership": "state_public",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_low"
   },
-  "site26.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "ru"
+  "news-source-19.com": {
+    "domain": "news-source-19.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "high"
   },
-  "site27.com": {
+  "news-source-20.com": {
+    "domain": "news-source-20.com",
     "perspective": "state_sponsored_china",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "zh"
-  },
-  "site28.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "ru"
-  },
-  "site29.com": {
-    "perspective": "neutral",
-    "factual_rating": "high",
+    "factual_rating": "very_low",
     "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "es"
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_low"
   },
-  "site30.com": {
+  "news-source-21.com": {
+    "domain": "news-source-21.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "low"
+  },
+  "news-source-22.com": {
+    "domain": "news-source-22.com",
     "perspective": "non_western",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "fr"
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "low"
   },
-  "site31.com": {
-    "perspective": "state_sponsored_china",
+  "news-source-23.com": {
+    "domain": "news-source-23.com",
+    "perspective": "western_mainstream",
     "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "zh"
+    "ownership": "state_public",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
   },
-  "site32.com": {
+  "news-source-24.com": {
+    "domain": "news-source-24.com",
     "perspective": "neutral",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Asia",
-    "language_origin": "zh"
-  },
-  "site33.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "mixed",
+    "factual_rating": "low",
     "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "es"
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "right",
+    "mbfc_rating": "mostly_factual"
   },
-  "site34.com": {
-    "perspective": "liberal",
+  "news-source-25.com": {
+    "domain": "news-source-25.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-26.com": {
+    "domain": "news-source-26.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-27.com": {
+    "domain": "news-source-27.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-28.com": {
+    "domain": "news-source-28.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "high"
+  },
+  "news-source-29.com": {
+    "domain": "news-source-29.com",
+    "perspective": "liberal_leaning",
     "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "ru"
+    "ownership": "state_public",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mostly_factual"
   },
-  "site35.com": {
-    "perspective": "liberal",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "es"
+  "news-source-30.com": {
+    "domain": "news-source-30.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "right",
+    "mbfc_rating": "mixed"
   },
-  "site36.com": {
+  "news-source-31.com": {
+    "domain": "news-source-31.com",
     "perspective": "conservative",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "zh"
-  },
-  "site37.com": {
-    "perspective": "neutral",
-    "factual_rating": "low",
+    "factual_rating": "mostly_factual",
     "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "fr"
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_low"
   },
-  "site38.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "en"
-  },
-  "site39.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "es"
-  },
-  "site40.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "ar"
-  },
-  "site41.com": {
-    "perspective": "liberal",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "ru"
-  },
-  "site42.com": {
-    "perspective": "neutral",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "fr"
-  },
-  "site43.com": {
-    "perspective": "neutral",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "es"
-  },
-  "site44.com": {
-    "perspective": "liberal",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "ar"
-  },
-  "site45.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "zh"
-  },
-  "site46.com": {
-    "perspective": "non_western",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Europe",
-    "language_origin": "en"
-  },
-  "site47.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "en"
-  },
-  "site48.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "en"
-  },
-  "site49.com": {
-    "perspective": "non_western",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "es"
-  },
-  "site50.com": {
-    "perspective": "liberal",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "ar"
-  },
-  "site51.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Europe",
-    "language_origin": "zh"
-  },
-  "site52.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "fr"
-  },
-  "site53.com": {
-    "perspective": "non_western",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Asia",
-    "language_origin": "en"
-  },
-  "site54.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "es"
-  },
-  "site55.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "en"
-  },
-  "site56.com": {
-    "perspective": "neutral",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "zh"
-  },
-  "site57.com": {
-    "perspective": "neutral",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "en"
-  },
-  "site58.com": {
-    "perspective": "neutral",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "en"
-  },
-  "site59.com": {
-    "perspective": "neutral",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "en"
-  },
-  "site60.com": {
-    "perspective": "non_western",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "fr"
-  },
-  "site61.com": {
-    "perspective": "liberal",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "US",
-    "language_origin": "zh"
-  },
-  "site62.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "zh"
-  },
-  "site63.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "zh"
-  },
-  "site64.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "zh"
-  },
-  "site65.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "ar"
-  },
-  "site66.com": {
-    "perspective": "neutral",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "ar"
-  },
-  "site67.com": {
-    "perspective": "liberal",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "US",
-    "language_origin": "ru"
-  },
-  "site68.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "zh"
-  },
-  "site69.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "en"
-  },
-  "site70.com": {
-    "perspective": "neutral",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "ru"
-  },
-  "site71.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "es"
-  },
-  "site72.com": {
-    "perspective": "liberal",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "ru"
-  },
-  "site73.com": {
-    "perspective": "liberal",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "US",
-    "language_origin": "zh"
-  },
-  "site74.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "ar"
-  },
-  "site75.com": {
-    "perspective": "liberal",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "fr"
-  },
-  "site76.com": {
-    "perspective": "conservative",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "ru"
-  },
-  "site77.com": {
-    "perspective": "neutral",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "ru"
-  },
-  "site78.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "zh"
-  },
-  "site79.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "en"
-  },
-  "site80.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Asia",
-    "language_origin": "fr"
-  },
-  "site81.com": {
-    "perspective": "liberal",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "fr"
-  },
-  "site82.com": {
-    "perspective": "neutral",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Asia",
-    "language_origin": "en"
-  },
-  "site83.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "ar"
-  },
-  "site84.com": {
-    "perspective": "neutral",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "es"
-  },
-  "site85.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "US",
-    "language_origin": "en"
-  },
-  "site86.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "en"
-  },
-  "site87.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "fr"
-  },
-  "site88.com": {
-    "perspective": "liberal",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "fr"
-  },
-  "site89.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "fr"
-  },
-  "site90.com": {
-    "perspective": "conservative",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Europe",
-    "language_origin": "es"
-  },
-  "site91.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "zh"
-  },
-  "site92.com": {
-    "perspective": "conservative",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Asia",
-    "language_origin": "ar"
-  },
-  "site93.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "es"
-  },
-  "site94.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "zh"
-  },
-  "site95.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "ar"
-  },
-  "site96.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "ar"
-  },
-  "site97.com": {
-    "perspective": "neutral",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "ar"
-  },
-  "site98.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "zh"
-  },
-  "site99.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "ar"
-  },
-  "site100.com": {
+  "news-source-32.com": {
+    "domain": "news-source-32.com",
     "perspective": "non_western",
     "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "fr"
+    "ownership": "corporate",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "left",
+    "mbfc_rating": "mostly_factual"
   },
-  "site101.com": {
+  "news-source-33.com": {
+    "domain": "news-source-33.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-34.com": {
+    "domain": "news-source-34.com",
     "perspective": "state_sponsored_russia",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "ar"
-  },
-  "site102.com": {
-    "perspective": "non_western",
     "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "zh"
+    "ownership": "state_public",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "right",
+    "mbfc_rating": "mostly_factual"
   },
-  "site103.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "es"
+  "news-source-35.com": {
+    "domain": "news-source-35.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mostly_factual"
   },
-  "site104.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "ru"
-  },
-  "site105.com": {
-    "perspective": "non_western",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "ru"
-  },
-  "site106.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "en"
-  },
-  "site107.com": {
-    "perspective": "liberal",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "zh"
-  },
-  "site108.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "en"
-  },
-  "site109.com": {
+  "news-source-36.com": {
+    "domain": "news-source-36.com",
     "perspective": "conservative",
     "factual_rating": "mixed",
     "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "zh"
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mixed"
   },
-  "site110.com": {
+  "news-source-37.com": {
+    "domain": "news-source-37.com",
+    "perspective": "neutral",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "center",
+    "mbfc_rating": "high"
+  },
+  "news-source-38.com": {
+    "domain": "news-source-38.com",
     "perspective": "conservative_leaning",
     "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "es"
+    "ownership": "state_public",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "low"
   },
-  "site111.com": {
+  "news-source-39.com": {
+    "domain": "news-source-39.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-40.com": {
+    "domain": "news-source-40.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-41.com": {
+    "domain": "news-source-41.com",
+    "perspective": "non_western",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "left",
+    "mbfc_rating": "low"
+  },
+  "news-source-42.com": {
+    "domain": "news-source-42.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "low"
+  },
+  "news-source-43.com": {
+    "domain": "news-source-43.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-44.com": {
+    "domain": "news-source-44.com",
+    "perspective": "neutral",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "center",
+    "mbfc_rating": "low"
+  },
+  "news-source-45.com": {
+    "domain": "news-source-45.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-46.com": {
+    "domain": "news-source-46.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-47.com": {
+    "domain": "news-source-47.com",
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "center",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-48.com": {
+    "domain": "news-source-48.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-49.com": {
+    "domain": "news-source-49.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "low"
+  },
+  "news-source-50.com": {
+    "domain": "news-source-50.com",
     "perspective": "liberal",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "ar"
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "left",
+    "mbfc_rating": "mostly_factual"
   },
-  "site112.com": {
-    "perspective": "non_western",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "fr"
-  },
-  "site113.com": {
-    "perspective": "neutral",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "ru"
-  },
-  "site114.com": {
+  "news-source-51.com": {
+    "domain": "news-source-51.com",
     "perspective": "conservative",
     "factual_rating": "mixed",
     "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "ru"
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "right",
+    "mbfc_rating": "low"
   },
-  "site115.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "fr"
-  },
-  "site116.com": {
-    "perspective": "neutral",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "fr"
-  },
-  "site117.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "US",
-    "language_origin": "ar"
-  },
-  "site118.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "ar"
-  },
-  "site119.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "fr"
-  },
-  "site120.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "es"
-  },
-  "site121.com": {
+  "news-source-52.com": {
+    "domain": "news-source-52.com",
     "perspective": "state_sponsored_russia",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "ru"
-  },
-  "site122.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "high",
+    "factual_rating": "very_low",
     "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "fr"
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mostly_factual"
   },
-  "site123.com": {
-    "perspective": "conservative",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "es"
-  },
-  "site124.com": {
-    "perspective": "conservative",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "es"
-  },
-  "site125.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Asia",
-    "language_origin": "en"
-  },
-  "site126.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "US",
-    "language_origin": "es"
-  },
-  "site127.com": {
-    "perspective": "liberal",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "ru"
-  },
-  "site128.com": {
-    "perspective": "non_western",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "es"
-  },
-  "site129.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "zh"
-  },
-  "site130.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "US",
-    "language_origin": "fr"
-  },
-  "site131.com": {
-    "perspective": "non_western",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "fr"
-  },
-  "site132.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "fr"
-  },
-  "site133.com": {
-    "perspective": "neutral",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "ar"
-  },
-  "site134.com": {
-    "perspective": "conservative",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "en"
-  },
-  "site135.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "zh"
-  },
-  "site136.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "en"
-  },
-  "site137.com": {
-    "perspective": "liberal",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "es"
-  },
-  "site138.com": {
-    "perspective": "neutral",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "es"
-  },
-  "site139.com": {
-    "perspective": "non_western",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "ar"
-  },
-  "site140.com": {
-    "perspective": "conservative",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "ru"
-  },
-  "site141.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "en"
-  },
-  "site142.com": {
-    "perspective": "non_western",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "es"
-  },
-  "site143.com": {
-    "perspective": "non_western",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Europe",
-    "language_origin": "ar"
-  },
-  "site144.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "zh"
-  },
-  "site145.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "ar"
-  },
-  "site146.com": {
-    "perspective": "conservative",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "US",
-    "language_origin": "ar"
-  },
-  "site147.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "en"
-  },
-  "site148.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "zh"
-  },
-  "site149.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "zh"
-  },
-  "site150.com": {
-    "perspective": "conservative",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "ru"
-  },
-  "site151.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "es"
-  },
-  "site152.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "ru"
-  },
-  "site153.com": {
+  "news-source-53.com": {
+    "domain": "news-source-53.com",
     "perspective": "state_sponsored_china",
     "factual_rating": "high",
     "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "en"
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "right",
+    "mbfc_rating": "low"
   },
-  "site154.com": {
-    "perspective": "non_western",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "fr"
-  },
-  "site155.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "ru"
-  },
-  "site156.com": {
-    "perspective": "non_western",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "fr"
-  },
-  "site157.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "ru"
-  },
-  "site158.com": {
-    "perspective": "non_western",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "fr"
-  },
-  "site159.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "zh"
-  },
-  "site160.com": {
-    "perspective": "non_western",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "en"
-  },
-  "site161.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "ru"
-  },
-  "site162.com": {
-    "perspective": "non_western",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "es"
-  },
-  "site163.com": {
-    "perspective": "non_western",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "fr"
-  },
-  "site164.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "zh"
-  },
-  "site165.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "zh"
-  },
-  "site166.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "en"
-  },
-  "site167.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "ar"
-  },
-  "site168.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "en"
-  },
-  "site169.com": {
-    "perspective": "neutral",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "fr"
-  },
-  "site170.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "es"
-  },
-  "site171.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "ar"
-  },
-  "site172.com": {
-    "perspective": "neutral",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "fr"
-  },
-  "site173.com": {
+  "news-source-54.com": {
+    "domain": "news-source-54.com",
     "perspective": "conservative",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "ar"
-  },
-  "site174.com": {
-    "perspective": "non_western",
     "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "en"
+    "ownership": "corporate",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_low"
   },
-  "site175.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "ar"
-  },
-  "site176.com": {
+  "news-source-55.com": {
+    "domain": "news-source-55.com",
     "perspective": "state_sponsored_china",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "fr"
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mixed"
   },
-  "site177.com": {
+  "news-source-56.com": {
+    "domain": "news-source-56.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-57.com": {
+    "domain": "news-source-57.com",
     "perspective": "liberal",
     "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Europe",
-    "language_origin": "en"
-  },
-  "site178.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Europe",
-    "language_origin": "zh"
-  },
-  "site179.com": {
-    "perspective": "neutral",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "zh"
-  },
-  "site180.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "ar"
-  },
-  "site181.com": {
-    "perspective": "neutral",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "es"
-  },
-  "site182.com": {
-    "perspective": "non_western",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "en"
-  },
-  "site183.com": {
-    "perspective": "non_western",
-    "factual_rating": "high",
     "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "es"
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "mixed"
   },
-  "site184.com": {
-    "perspective": "state_sponsored_china",
+  "news-source-58.com": {
+    "domain": "news-source-58.com",
+    "perspective": "western_mainstream",
     "factual_rating": "high",
     "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "ar"
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_high"
   },
-  "site185.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "low",
+  "news-source-59.com": {
+    "domain": "news-source-59.com",
+    "perspective": "non_western",
+    "factual_rating": "very_low",
     "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "es"
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "center",
+    "mbfc_rating": "low"
   },
-  "site186.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "ar"
+  "news-source-60.com": {
+    "domain": "news-source-60.com",
+    "perspective": "neutral",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_low"
   },
-  "site187.com": {
-    "perspective": "conservative",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "es"
-  },
-  "site188.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "ru"
-  },
-  "site189.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "ar"
-  },
-  "site190.com": {
+  "news-source-61.com": {
+    "domain": "news-source-61.com",
     "perspective": "neutral",
     "factual_rating": "high",
     "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "zh"
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
   },
-  "site191.com": {
-    "perspective": "conservative",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Asia",
-    "language_origin": "zh"
+  "news-source-62.com": {
+    "domain": "news-source-62.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "left",
+    "mbfc_rating": "low"
   },
-  "site192.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "zh"
-  },
-  "site193.com": {
+  "news-source-63.com": {
+    "domain": "news-source-63.com",
     "perspective": "liberal",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "zh"
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mostly_factual"
   },
-  "site194.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "en"
+  "news-source-64.com": {
+    "domain": "news-source-64.com",
+    "perspective": "conservative",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "low"
   },
-  "site195.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "low",
+  "news-source-65.com": {
+    "domain": "news-source-65.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "mostly_factual",
     "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "zh"
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_low"
   },
-  "site196.com": {
-    "perspective": "state_sponsored_russia",
+  "news-source-66.com": {
+    "domain": "news-source-66.com",
+    "perspective": "western_mainstream",
     "factual_rating": "high",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-67.com": {
+    "domain": "news-source-67.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-68.com": {
+    "domain": "news-source-68.com",
+    "perspective": "non_western",
+    "factual_rating": "mostly_factual",
     "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "zh"
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
   },
-  "site197.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Europe",
-    "language_origin": "ar"
-  },
-  "site198.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "es"
-  },
-  "site199.com": {
+  "news-source-69.com": {
+    "domain": "news-source-69.com",
     "perspective": "neutral",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Europe",
-    "language_origin": "en"
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "center",
+    "mbfc_rating": "mixed"
   },
-  "site200.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "en"
-  },
-  "site201.com": {
-    "perspective": "liberal",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "en"
-  },
-  "site202.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "ar"
-  },
-  "site203.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "zh"
-  },
-  "site204.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "US",
-    "language_origin": "fr"
-  },
-  "site205.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "es"
-  },
-  "site206.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "zh"
-  },
-  "site207.com": {
-    "perspective": "neutral",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "zh"
-  },
-  "site208.com": {
-    "perspective": "conservative",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "en"
-  },
-  "site209.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "ru"
-  },
-  "site210.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "zh"
-  },
-  "site211.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "US",
-    "language_origin": "ar"
-  },
-  "site212.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "ru"
-  },
-  "site213.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "ar"
-  },
-  "site214.com": {
-    "perspective": "conservative",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "US",
-    "language_origin": "ru"
-  },
-  "site215.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "ar"
-  },
-  "site216.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Europe",
-    "language_origin": "en"
-  },
-  "site217.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Europe",
-    "language_origin": "zh"
-  },
-  "site218.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "ru"
-  },
-  "site219.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "fr"
-  },
-  "site220.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "en"
-  },
-  "site221.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "ru"
-  },
-  "site222.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "ru"
-  },
-  "site223.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "ru"
-  },
-  "site224.com": {
-    "perspective": "non_western",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "fr"
-  },
-  "site225.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "ru"
-  },
-  "site226.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "ar"
-  },
-  "site227.com": {
-    "perspective": "non_western",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Asia",
-    "language_origin": "zh"
-  },
-  "site228.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "ar"
-  },
-  "site229.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "ar"
-  },
-  "site230.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Russia",
-    "language_origin": "es"
-  },
-  "site231.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Asia",
-    "language_origin": "zh"
-  },
-  "site232.com": {
-    "perspective": "conservative",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "zh"
-  },
-  "site233.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "ru"
-  },
-  "site234.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "ru"
-  },
-  "site235.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "ar"
-  },
-  "site236.com": {
-    "perspective": "liberal",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Europe",
-    "language_origin": "en"
-  },
-  "site237.com": {
-    "perspective": "liberal",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "en"
-  },
-  "site238.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "ar"
-  },
-  "site239.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "fr"
-  },
-  "site240.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "zh"
-  },
-  "site241.com": {
+  "news-source-70.com": {
+    "domain": "news-source-70.com",
     "perspective": "conservative",
     "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "es"
+    "ownership": "corporate",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_high"
   },
-  "site242.com": {
-    "perspective": "non_western",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "ar"
-  },
-  "site243.com": {
-    "perspective": "non_western",
+  "news-source-71.com": {
+    "domain": "news-source-71.com",
+    "perspective": "western_mainstream",
     "factual_rating": "low",
     "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "en"
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "center",
+    "mbfc_rating": "low"
   },
-  "site244.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "fr"
-  },
-  "site245.com": {
-    "perspective": "conservative",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "ru"
-  },
-  "site246.com": {
-    "perspective": "non_western",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "es"
-  },
-  "site247.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "ru"
-  },
-  "site248.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "ar"
-  },
-  "site249.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "ru"
-  },
-  "site250.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Asia",
-    "language_origin": "ar"
-  },
-  "site251.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "mixed",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "zh"
-  },
-  "site252.com": {
+  "news-source-72.com": {
+    "domain": "news-source-72.com",
     "perspective": "liberal_leaning",
     "factual_rating": "mixed",
     "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "es"
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "center",
+    "mbfc_rating": "high"
   },
-  "site253.com": {
-    "perspective": "conservative",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "fr"
-  },
-  "site254.com": {
-    "perspective": "conservative_leaning",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "zh"
-  },
-  "site255.com": {
-    "perspective": "liberal",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "zh"
-  },
-  "site256.com": {
+  "news-source-73.com": {
+    "domain": "news-source-73.com",
     "perspective": "state_sponsored_russia",
-    "factual_rating": "high",
+    "factual_rating": "mixed",
     "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "ar"
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "right",
+    "mbfc_rating": "high"
   },
-  "site257.com": {
+  "news-source-74.com": {
+    "domain": "news-source-74.com",
     "perspective": "neutral",
     "factual_rating": "high",
     "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "en"
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_high"
   },
-  "site258.com": {
+  "news-source-75.com": {
+    "domain": "news-source-75.com",
     "perspective": "state_sponsored_russia",
     "factual_rating": "mixed",
     "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "ru"
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_low"
   },
-  "site259.com": {
+  "news-source-76.com": {
+    "domain": "news-source-76.com",
+    "perspective": "non_western",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
+  },
+  "news-source-77.com": {
+    "domain": "news-source-77.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-78.com": {
+    "domain": "news-source-78.com",
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-79.com": {
+    "domain": "news-source-79.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-80.com": {
+    "domain": "news-source-80.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-81.com": {
+    "domain": "news-source-81.com",
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-82.com": {
+    "domain": "news-source-82.com",
+    "perspective": "non_western",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "center",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-83.com": {
+    "domain": "news-source-83.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-84.com": {
+    "domain": "news-source-84.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
+  },
+  "news-source-85.com": {
+    "domain": "news-source-85.com",
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-86.com": {
+    "domain": "news-source-86.com",
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "low"
+  },
+  "news-source-87.com": {
+    "domain": "news-source-87.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "right",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-88.com": {
+    "domain": "news-source-88.com",
+    "perspective": "neutral",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "high"
+  },
+  "news-source-89.com": {
+    "domain": "news-source-89.com",
+    "perspective": "conservative",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "center",
+    "mbfc_rating": "low"
+  },
+  "news-source-90.com": {
+    "domain": "news-source-90.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-91.com": {
+    "domain": "news-source-91.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "high"
+  },
+  "news-source-92.com": {
+    "domain": "news-source-92.com",
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-93.com": {
+    "domain": "news-source-93.com",
+    "perspective": "conservative",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-94.com": {
+    "domain": "news-source-94.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
+  },
+  "news-source-95.com": {
+    "domain": "news-source-95.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-96.com": {
+    "domain": "news-source-96.com",
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "left",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-97.com": {
+    "domain": "news-source-97.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-98.com": {
+    "domain": "news-source-98.com",
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-99.com": {
+    "domain": "news-source-99.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-100.com": {
+    "domain": "news-source-100.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "high"
+  },
+  "news-source-101.com": {
+    "domain": "news-source-101.com",
+    "perspective": "conservative",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "low"
+  },
+  "news-source-102.com": {
+    "domain": "news-source-102.com",
+    "perspective": "liberal",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
+  },
+  "news-source-103.com": {
+    "domain": "news-source-103.com",
+    "perspective": "liberal",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-104.com": {
+    "domain": "news-source-104.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-105.com": {
+    "domain": "news-source-105.com",
+    "perspective": "non_western",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-106.com": {
+    "domain": "news-source-106.com",
+    "perspective": "neutral",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "center",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-107.com": {
+    "domain": "news-source-107.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "left",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-108.com": {
+    "domain": "news-source-108.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-109.com": {
+    "domain": "news-source-109.com",
+    "perspective": "non_western",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-110.com": {
+    "domain": "news-source-110.com",
+    "perspective": "non_western",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-111.com": {
+    "domain": "news-source-111.com",
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "left",
+    "mbfc_rating": "low"
+  },
+  "news-source-112.com": {
+    "domain": "news-source-112.com",
+    "perspective": "neutral",
+    "factual_rating": "low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "low"
+  },
+  "news-source-113.com": {
+    "domain": "news-source-113.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-114.com": {
+    "domain": "news-source-114.com",
+    "perspective": "liberal",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-115.com": {
+    "domain": "news-source-115.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-116.com": {
+    "domain": "news-source-116.com",
+    "perspective": "non_western",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-117.com": {
+    "domain": "news-source-117.com",
     "perspective": "liberal_leaning",
     "factual_rating": "mixed",
     "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "ru"
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "center",
+    "mbfc_rating": "mixed"
   },
-  "site260.com": {
-    "perspective": "liberal",
+  "news-source-118.com": {
+    "domain": "news-source-118.com",
+    "perspective": "state_sponsored_russia",
     "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "es"
+    "ownership": "state_public",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
   },
-  "site261.com": {
-    "perspective": "conservative",
-    "factual_rating": "mixed",
+  "news-source-119.com": {
+    "domain": "news-source-119.com",
+    "perspective": "non_western",
+    "factual_rating": "high",
     "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "ru"
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mixed"
   },
-  "site262.com": {
+  "news-source-120.com": {
+    "domain": "news-source-120.com",
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "high"
+  },
+  "news-source-121.com": {
+    "domain": "news-source-121.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "center",
+    "mbfc_rating": "low"
+  },
+  "news-source-122.com": {
+    "domain": "news-source-122.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-123.com": {
+    "domain": "news-source-123.com",
+    "perspective": "non_western",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "center",
+    "mbfc_rating": "low"
+  },
+  "news-source-124.com": {
+    "domain": "news-source-124.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "center",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-125.com": {
+    "domain": "news-source-125.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-126.com": {
+    "domain": "news-source-126.com",
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "high"
+  },
+  "news-source-127.com": {
+    "domain": "news-source-127.com",
+    "perspective": "liberal",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "low"
+  },
+  "news-source-128.com": {
+    "domain": "news-source-128.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-129.com": {
+    "domain": "news-source-129.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-130.com": {
+    "domain": "news-source-130.com",
+    "perspective": "non_western",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-131.com": {
+    "domain": "news-source-131.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-132.com": {
+    "domain": "news-source-132.com",
     "perspective": "liberal_leaning",
     "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "fr"
-  },
-  "site263.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "en"
-  },
-  "site264.com": {
-    "perspective": "liberal",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "ar"
-  },
-  "site265.com": {
-    "perspective": "conservative",
-    "factual_rating": "mixed",
     "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "ru"
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "high"
   },
-  "site266.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Global",
-    "language_origin": "ar"
-  },
-  "site267.com": {
+  "news-source-133.com": {
+    "domain": "news-source-133.com",
     "perspective": "conservative_leaning",
     "factual_rating": "low",
     "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "fr"
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_high"
   },
-  "site268.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "fr"
-  },
-  "site269.com": {
-    "perspective": "conservative",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "en"
-  },
-  "site270.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "ru"
-  },
-  "site271.com": {
-    "perspective": "neutral",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "es"
-  },
-  "site272.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "es"
-  },
-  "site273.com": {
-    "perspective": "non_western",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "zh"
-  },
-  "site274.com": {
-    "perspective": "neutral",
-    "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "ru"
-  },
-  "site275.com": {
+  "news-source-134.com": {
+    "domain": "news-source-134.com",
     "perspective": "liberal",
     "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "US",
-    "language_origin": "es"
-  },
-  "site276.com": {
-    "perspective": "non_western",
-    "factual_rating": "mixed",
     "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "zh"
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "left",
+    "mbfc_rating": "mixed"
   },
-  "site277.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Russia",
-    "language_origin": "es"
-  },
-  "site278.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "fr"
-  },
-  "site279.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "ar"
-  },
-  "site280.com": {
-    "perspective": "state_sponsored_china",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Europe",
-    "language_origin": "fr"
-  },
-  "site281.com": {
+  "news-source-135.com": {
+    "domain": "news-source-135.com",
     "perspective": "conservative_leaning",
     "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "en"
+    "ownership": "state_public",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "right",
+    "mbfc_rating": "mixed"
   },
-  "site282.com": {
-    "perspective": "conservative",
-    "factual_rating": "high",
-    "ownership": "independent",
-    "regional_focus": "US",
-    "language_origin": "fr"
-  },
-  "site283.com": {
-    "perspective": "non_western",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "fr"
-  },
-  "site284.com": {
-    "perspective": "liberal_leaning",
-    "factual_rating": "mixed",
-    "ownership": "independent",
-    "regional_focus": "Middle East",
-    "language_origin": "fr"
-  },
-  "site285.com": {
-    "perspective": "liberal",
-    "factual_rating": "high",
-    "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "es"
-  },
-  "site286.com": {
-    "perspective": "liberal",
+  "news-source-136.com": {
+    "domain": "news-source-136.com",
+    "perspective": "state_sponsored_china",
     "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "ru"
+    "ownership": "independent",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mixed"
   },
-  "site287.com": {
+  "news-source-137.com": {
+    "domain": "news-source-137.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-138.com": {
+    "domain": "news-source-138.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "high",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-139.com": {
+    "domain": "news-source-139.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "low"
+  },
+  "news-source-140.com": {
+    "domain": "news-source-140.com",
     "perspective": "neutral",
     "factual_rating": "mixed",
     "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "ru"
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
   },
-  "site288.com": {
-    "perspective": "state_sponsored_russia",
-    "factual_rating": "low",
-    "ownership": "independent",
-    "regional_focus": "Global",
-    "language_origin": "ar"
-  },
-  "site289.com": {
-    "perspective": "non_western",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Russia",
-    "language_origin": "zh"
-  },
-  "site290.com": {
-    "perspective": "liberal",
-    "factual_rating": "mixed",
-    "ownership": "state",
-    "regional_focus": "Middle East",
-    "language_origin": "zh"
-  },
-  "site291.com": {
+  "news-source-141.com": {
+    "domain": "news-source-141.com",
     "perspective": "liberal_leaning",
     "factual_rating": "high",
     "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "fr"
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "low"
   },
-  "site292.com": {
-    "perspective": "conservative",
+  "news-source-142.com": {
+    "domain": "news-source-142.com",
+    "perspective": "state_sponsored_russia",
     "factual_rating": "low",
     "ownership": "corporate",
-    "regional_focus": "US",
-    "language_origin": "zh"
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_high"
   },
-  "site293.com": {
-    "perspective": "conservative",
+  "news-source-143.com": {
+    "domain": "news-source-143.com",
+    "perspective": "western_mainstream",
     "factual_rating": "low",
-    "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "ru"
+    "ownership": "state_public",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "high"
   },
-  "site294.com": {
-    "perspective": "liberal",
-    "factual_rating": "high",
+  "news-source-144.com": {
+    "domain": "news-source-144.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-145.com": {
+    "domain": "news-source-145.com",
+    "perspective": "non_western",
+    "factual_rating": "very_low",
     "ownership": "independent",
-    "regional_focus": "Europe",
-    "language_origin": "zh"
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "high"
   },
-  "site295.com": {
+  "news-source-146.com": {
+    "domain": "news-source-146.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
+  },
+  "news-source-147.com": {
+    "domain": "news-source-147.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "left",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-148.com": {
+    "domain": "news-source-148.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "low"
+  },
+  "news-source-149.com": {
+    "domain": "news-source-149.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
+  },
+  "news-source-150.com": {
+    "domain": "news-source-150.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-151.com": {
+    "domain": "news-source-151.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "left",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-152.com": {
+    "domain": "news-source-152.com",
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-153.com": {
+    "domain": "news-source-153.com",
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "right",
+    "mbfc_rating": "high"
+  },
+  "news-source-154.com": {
+    "domain": "news-source-154.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-155.com": {
+    "domain": "news-source-155.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "left",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-156.com": {
+    "domain": "news-source-156.com",
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "right",
+    "mbfc_rating": "high"
+  },
+  "news-source-157.com": {
+    "domain": "news-source-157.com",
+    "perspective": "neutral",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-158.com": {
+    "domain": "news-source-158.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "left",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-159.com": {
+    "domain": "news-source-159.com",
     "perspective": "neutral",
     "factual_rating": "low",
     "ownership": "corporate",
-    "regional_focus": "Asia",
-    "language_origin": "ar"
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "center",
+    "mbfc_rating": "mixed"
   },
-  "site296.com": {
+  "news-source-160.com": {
+    "domain": "news-source-160.com",
+    "perspective": "liberal",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-161.com": {
+    "domain": "news-source-161.com",
+    "perspective": "non_western",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-162.com": {
+    "domain": "news-source-162.com",
+    "perspective": "conservative",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-163.com": {
+    "domain": "news-source-163.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "right",
+    "mbfc_rating": "high"
+  },
+  "news-source-164.com": {
+    "domain": "news-source-164.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-165.com": {
+    "domain": "news-source-165.com",
+    "perspective": "non_western",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "right",
+    "mbfc_rating": "low"
+  },
+  "news-source-166.com": {
+    "domain": "news-source-166.com",
     "perspective": "state_sponsored_russia",
-    "factual_rating": "high",
-    "ownership": "state",
-    "regional_focus": "Europe",
-    "language_origin": "en"
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "center",
+    "mbfc_rating": "mostly_factual"
   },
-  "site297.com": {
+  "news-source-167.com": {
+    "domain": "news-source-167.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-168.com": {
+    "domain": "news-source-168.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-169.com": {
+    "domain": "news-source-169.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-170.com": {
+    "domain": "news-source-170.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "center",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-171.com": {
+    "domain": "news-source-171.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "left",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-172.com": {
+    "domain": "news-source-172.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-173.com": {
+    "domain": "news-source-173.com",
+    "perspective": "conservative",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-174.com": {
+    "domain": "news-source-174.com",
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "center",
+    "mbfc_rating": "high"
+  },
+  "news-source-175.com": {
+    "domain": "news-source-175.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-176.com": {
+    "domain": "news-source-176.com",
+    "perspective": "non_western",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
+  },
+  "news-source-177.com": {
+    "domain": "news-source-177.com",
+    "perspective": "liberal",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-178.com": {
+    "domain": "news-source-178.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "low"
+  },
+  "news-source-179.com": {
+    "domain": "news-source-179.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "right",
+    "mbfc_rating": "high"
+  },
+  "news-source-180.com": {
+    "domain": "news-source-180.com",
+    "perspective": "liberal",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-181.com": {
+    "domain": "news-source-181.com",
+    "perspective": "liberal",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-182.com": {
+    "domain": "news-source-182.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "right",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-183.com": {
+    "domain": "news-source-183.com",
+    "perspective": "non_western",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-184.com": {
+    "domain": "news-source-184.com",
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-185.com": {
+    "domain": "news-source-185.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-186.com": {
+    "domain": "news-source-186.com",
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-187.com": {
+    "domain": "news-source-187.com",
+    "perspective": "conservative",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "center",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-188.com": {
+    "domain": "news-source-188.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-189.com": {
+    "domain": "news-source-189.com",
+    "perspective": "neutral",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "center",
+    "mbfc_rating": "low"
+  },
+  "news-source-190.com": {
+    "domain": "news-source-190.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "left",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-191.com": {
+    "domain": "news-source-191.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-192.com": {
+    "domain": "news-source-192.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "left",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-193.com": {
+    "domain": "news-source-193.com",
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-194.com": {
+    "domain": "news-source-194.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "left",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-195.com": {
+    "domain": "news-source-195.com",
     "perspective": "liberal",
     "factual_rating": "low",
-    "ownership": "state",
-    "regional_focus": "Global",
-    "language_origin": "fr"
+    "ownership": "state_public",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
   },
-  "site298.com": {
-    "perspective": "conservative",
+  "news-source-196.com": {
+    "domain": "news-source-196.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-197.com": {
+    "domain": "news-source-197.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-198.com": {
+    "domain": "news-source-198.com",
+    "perspective": "western_mainstream",
     "factual_rating": "high",
     "ownership": "independent",
-    "regional_focus": "Asia",
-    "language_origin": "fr"
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_low"
   },
-  "site299.com": {
+  "news-source-199.com": {
+    "domain": "news-source-199.com",
+    "perspective": "neutral",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-200.com": {
+    "domain": "news-source-200.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-201.com": {
+    "domain": "news-source-201.com",
+    "perspective": "neutral",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
+  },
+  "news-source-202.com": {
+    "domain": "news-source-202.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-203.com": {
+    "domain": "news-source-203.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
+  },
+  "news-source-204.com": {
+    "domain": "news-source-204.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "low"
+  },
+  "news-source-205.com": {
+    "domain": "news-source-205.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-206.com": {
+    "domain": "news-source-206.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "high",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-207.com": {
+    "domain": "news-source-207.com",
+    "perspective": "liberal",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
+  },
+  "news-source-208.com": {
+    "domain": "news-source-208.com",
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-209.com": {
+    "domain": "news-source-209.com",
+    "perspective": "neutral",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-210.com": {
+    "domain": "news-source-210.com",
+    "perspective": "non_western",
+    "factual_rating": "low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
+  },
+  "news-source-211.com": {
+    "domain": "news-source-211.com",
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "center",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-212.com": {
+    "domain": "news-source-212.com",
+    "perspective": "neutral",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "low"
+  },
+  "news-source-213.com": {
+    "domain": "news-source-213.com",
+    "perspective": "non_western",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-214.com": {
+    "domain": "news-source-214.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-215.com": {
+    "domain": "news-source-215.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "right",
+    "mbfc_rating": "high"
+  },
+  "news-source-216.com": {
+    "domain": "news-source-216.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
+  },
+  "news-source-217.com": {
+    "domain": "news-source-217.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "center",
+    "mbfc_rating": "low"
+  },
+  "news-source-218.com": {
+    "domain": "news-source-218.com",
+    "perspective": "non_western",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-219.com": {
+    "domain": "news-source-219.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-220.com": {
+    "domain": "news-source-220.com",
+    "perspective": "neutral",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-221.com": {
+    "domain": "news-source-221.com",
+    "perspective": "non_western",
+    "factual_rating": "low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "low"
+  },
+  "news-source-222.com": {
+    "domain": "news-source-222.com",
+    "perspective": "liberal",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "low"
+  },
+  "news-source-223.com": {
+    "domain": "news-source-223.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-224.com": {
+    "domain": "news-source-224.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "right",
+    "mbfc_rating": "high"
+  },
+  "news-source-225.com": {
+    "domain": "news-source-225.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-226.com": {
+    "domain": "news-source-226.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-227.com": {
+    "domain": "news-source-227.com",
+    "perspective": "liberal",
+    "factual_rating": "low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-228.com": {
+    "domain": "news-source-228.com",
+    "perspective": "non_western",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "low"
+  },
+  "news-source-229.com": {
+    "domain": "news-source-229.com",
+    "perspective": "liberal",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "low"
+  },
+  "news-source-230.com": {
+    "domain": "news-source-230.com",
+    "perspective": "conservative",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "right",
+    "mbfc_rating": "high"
+  },
+  "news-source-231.com": {
+    "domain": "news-source-231.com",
     "perspective": "liberal_leaning",
     "factual_rating": "high",
     "ownership": "corporate",
-    "regional_focus": "Middle East",
-    "language_origin": "ru"
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "low"
   },
-  "site300.com": {
-    "perspective": "conservative",
+  "news-source-232.com": {
+    "domain": "news-source-232.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "right",
+    "mbfc_rating": "high"
+  },
+  "news-source-233.com": {
+    "domain": "news-source-233.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-234.com": {
+    "domain": "news-source-234.com",
+    "perspective": "neutral",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "low"
+  },
+  "news-source-235.com": {
+    "domain": "news-source-235.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "right",
+    "mbfc_rating": "high"
+  },
+  "news-source-236.com": {
+    "domain": "news-source-236.com",
+    "perspective": "neutral",
     "factual_rating": "high",
     "ownership": "corporate",
-    "regional_focus": "Europe",
-    "language_origin": "es"
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-237.com": {
+    "domain": "news-source-237.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "high",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-238.com": {
+    "domain": "news-source-238.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "high"
+  },
+  "news-source-239.com": {
+    "domain": "news-source-239.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "high",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "right",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-240.com": {
+    "domain": "news-source-240.com",
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "low"
+  },
+  "news-source-241.com": {
+    "domain": "news-source-241.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-242.com": {
+    "domain": "news-source-242.com",
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "US",
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-243.com": {
+    "domain": "news-source-243.com",
+    "perspective": "non_western",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-244.com": {
+    "domain": "news-source-244.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
+  },
+  "news-source-245.com": {
+    "domain": "news-source-245.com",
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "state_public",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "left",
+    "mbfc_rating": "low"
+  },
+  "news-source-246.com": {
+    "domain": "news-source-246.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "center",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-247.com": {
+    "domain": "news-source-247.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "right",
+    "mbfc_rating": "high"
+  },
+  "news-source-248.com": {
+    "domain": "news-source-248.com",
+    "perspective": "conservative",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "low"
+  },
+  "news-source-249.com": {
+    "domain": "news-source-249.com",
+    "perspective": "conservative",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-250.com": {
+    "domain": "news-source-250.com",
+    "perspective": "liberal",
+    "factual_rating": "mixed",
+    "ownership": "independent",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "right",
+    "mbfc_rating": "high"
+  },
+  "news-source-251.com": {
+    "domain": "news-source-251.com",
+    "perspective": "conservative",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "right",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-252.com": {
+    "domain": "news-source-252.com",
+    "perspective": "conservative",
+    "factual_rating": "low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-253.com": {
+    "domain": "news-source-253.com",
+    "perspective": "conservative",
+    "factual_rating": "mostly_factual",
+    "ownership": "independent",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "right",
+    "mbfc_rating": "low"
+  },
+  "news-source-254.com": {
+    "domain": "news-source-254.com",
+    "perspective": "western_mainstream",
+    "factual_rating": "low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-255.com": {
+    "domain": "news-source-255.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "left",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-256.com": {
+    "domain": "news-source-256.com",
+    "perspective": "non_western",
+    "factual_rating": "high",
+    "ownership": "independent",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-257.com": {
+    "domain": "news-source-257.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "center",
+    "mbfc_rating": "high"
+  },
+  "news-source-258.com": {
+    "domain": "news-source-258.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-259.com": {
+    "domain": "news-source-259.com",
+    "perspective": "non_western",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-260.com": {
+    "domain": "news-source-260.com",
+    "perspective": "neutral",
+    "factual_rating": "very_low",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-261.com": {
+    "domain": "news-source-261.com",
+    "perspective": "liberal",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Middle East"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "lean_right",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-262.com": {
+    "domain": "news-source-262.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "center",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-263.com": {
+    "domain": "news-source-263.com",
+    "perspective": "conservative_leaning",
+    "factual_rating": "very_low",
+    "ownership": "independent",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "es",
+    "allsides_rating": "left",
+    "mbfc_rating": "mixed"
+  },
+  "news-source-264.com": {
+    "domain": "news-source-264.com",
+    "perspective": "state_sponsored_china",
+    "factual_rating": "low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Europe"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "mostly_factual"
+  },
+  "news-source-265.com": {
+    "domain": "news-source-265.com",
+    "perspective": "liberal_leaning",
+    "factual_rating": "mixed",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "en",
+    "allsides_rating": "center",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-266.com": {
+    "domain": "news-source-266.com",
+    "perspective": "neutral",
+    "factual_rating": "very_low",
+    "ownership": "state_public",
+    "regional_focus": [
+      "US"
+    ],
+    "language_origin": "fr",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_high"
+  },
+  "news-source-267.com": {
+    "domain": "news-source-267.com",
+    "perspective": "neutral",
+    "factual_rating": "mixed",
+    "ownership": "corporate",
+    "regional_focus": [
+      "UK",
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-268.com": {
+    "domain": "news-source-268.com",
+    "perspective": "liberal",
+    "factual_rating": "mostly_factual",
+    "ownership": "state_public",
+    "regional_focus": [
+      "Russia"
+    ],
+    "language_origin": "zh",
+    "allsides_rating": "left",
+    "mbfc_rating": "high"
+  },
+  "news-source-269.com": {
+    "domain": "news-source-269.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "mostly_factual",
+    "ownership": "corporate",
+    "regional_focus": [
+      "global"
+    ],
+    "language_origin": "ar",
+    "allsides_rating": "left",
+    "mbfc_rating": "very_low"
+  },
+  "news-source-270.com": {
+    "domain": "news-source-270.com",
+    "perspective": "state_sponsored_russia",
+    "factual_rating": "low",
+    "ownership": "independent",
+    "regional_focus": [
+      "Asia"
+    ],
+    "language_origin": "ru",
+    "allsides_rating": "lean_left",
+    "mbfc_rating": "very_low"
   }
 }
