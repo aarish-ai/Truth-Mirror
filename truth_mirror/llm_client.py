@@ -2,6 +2,12 @@ import os
 import logging
 import requests
 from typing import List, Dict, Any
+try:
+    from google import genai as google_genai
+    from google.genai import types as genai_types
+    _GENAI_AVAILABLE = True
+except ImportError:
+    _GENAI_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -12,14 +18,20 @@ class LLMClient:
     """
     def __init__(
         self, 
-        ollama_url: str = "http://localhost:11434/api", 
-        ollama_model: str = "llama3", 
-        gemini_model: str = "gemini-1.5-flash"
+        ollama_url: str = None, 
+        ollama_model: str = None, 
+        gemini_model: str = None
     ):
-        self.ollama_url = ollama_url.rstrip('/')
-        self.ollama_model = ollama_model
-        self.gemini_model = gemini_model
+        base_url = (ollama_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")).rstrip('/')
+        if not base_url.endswith("/api"):
+            base_url += "/api"
+        self.ollama_url = base_url
+        self.ollama_model = ollama_model or os.getenv("OLLAMA_MODEL", "gemma2:2b")
+        self.gemini_model = gemini_model or os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
+        self._genai_client = None
+        if self.gemini_api_key and _GENAI_AVAILABLE:
+            self._genai_client = google_genai.Client(api_key=self.gemini_api_key)
 
     def _ollama_complete(self, prompt: str) -> str:
         url = f"{self.ollama_url}/generate"
@@ -33,23 +45,17 @@ class LLMClient:
         return response.json().get("response", "")
 
     def _gemini_complete(self, prompt: str) -> str:
-        if not self.gemini_api_key:
-            raise ValueError("GEMINI_API_KEY is not set.")
-        
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.gemini_model}:generateContent?key={self.gemini_api_key}"
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}]
-        }
-        headers = {"Content-Type": "application/json"}
-        response = requests.post(url, json=payload, headers=headers, timeout=30)
-        response.raise_for_status()
-        data = response.json()
-        
+        if not self.gemini_api_key or not _GENAI_AVAILABLE or not self._genai_client:
+            raise ValueError("Gemini SDK not available or GEMINI_API_KEY not set.")
         try:
-            return data["candidates"][0]["content"]["parts"][0]["text"]
-        except (KeyError, IndexError) as e:
-            logger.error(f"Failed to parse Gemini response: {data}")
-            raise ValueError(f"Invalid Gemini response format: {e}")
+            response = self._genai_client.models.generate_content(
+                model=self.gemini_model,
+                contents=prompt
+            )
+            return response.text
+        except Exception as e:
+            logger.error(f"Failed to generate Gemini response: {e}")
+            raise ValueError(f"Gemini API Error: {e}")
 
     def complete(self, prompt: str) -> str:
         """
@@ -77,34 +83,18 @@ class LLMClient:
         return response.json().get("message", {}).get("content", "")
 
     def _gemini_chat(self, messages: List[Dict[str, str]]) -> str:
-        if not self.gemini_api_key:
-            raise ValueError("GEMINI_API_KEY is not set.")
-            
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.gemini_model}:generateContent?key={self.gemini_api_key}"
-        
-        contents = []
-        for msg in messages:
-            role = msg.get("role", "user")
-            content = msg.get("content", "")
-            
-            gemini_role = "model" if role == "assistant" else "user"
-            
-            contents.append({
-                "role": gemini_role,
-                "parts": [{"text": content}]
-            })
-            
-        payload = {"contents": contents}
-        headers = {"Content-Type": "application/json"}
-        response = requests.post(url, json=payload, headers=headers, timeout=30)
-        response.raise_for_status()
-        data = response.json()
-        
+        if not self.gemini_api_key or not _GENAI_AVAILABLE or not self._genai_client:
+            raise ValueError("Gemini SDK not available or GEMINI_API_KEY not set.")
+        combined = "\n".join(m.get('content', '') for m in messages)
         try:
-            return data["candidates"][0]["content"]["parts"][0]["text"]
-        except (KeyError, IndexError) as e:
-            logger.error(f"Failed to parse Gemini response: {data}")
-            raise ValueError(f"Invalid Gemini response format: {e}")
+            response = self._genai_client.models.generate_content(
+                model=self.gemini_model,
+                contents=combined
+            )
+            return response.text
+        except Exception as e:
+            logger.error(f"Failed to chat with Gemini: {e}")
+            raise ValueError(f"Gemini API Error: {e}")
 
     def chat(self, messages: List[Dict[str, str]]) -> str:
         """

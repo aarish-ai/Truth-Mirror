@@ -53,6 +53,16 @@ class ArxivConnector:
         self.config = config or RetrievalConfig()
         
     def search(self, query: str) -> List[EvidenceItem]:
+        # Skip arXiv for non-scientific claims (political, social, current events)
+        skip_keywords = [
+            'president', 'minister', 'election', 'dead', 'alive', 'died',
+            'killed', 'arrested', 'jailed', 'war', 'attack', 'protest',
+            'resign', 'government', 'party', 'leader', 'politician'
+        ]
+        claim_lower = query.lower()
+        if any(kw in claim_lower for kw in skip_keywords):
+            return []
+
         items = []
         try:
             client = arxiv.Client()

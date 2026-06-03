@@ -81,13 +81,79 @@ def aggregate_verdict(
         f"Claim type route: {claim_type}. "
         "Confidence is based on evidence quality and agreement."
     )
-    
+
     all_evidence = [e for s in sub_claim_results for e in s.evidence]
     key_sources = list({e.url_or_id for e in all_evidence if e.url_or_id})
+
+    # ── Build a detailed, journalistic evidence_summary ───────────────────────
     if all_evidence:
-        evidence_summary = f"Aggregated {len(all_evidence)} pieces of evidence across {len(sub_claim_results)} sub-claims."
+        summary_lines: list[str] = [
+            f"Analysis of {len(sub_claim_results)} sub-claim(s) yielded "
+            f"{len(all_evidence)} evidence item(s). "
+            f"Overall verdict: {verdict}.\n"
+        ]
+
+        for sc in sub_claim_results:
+            if not sc.evidence:
+                summary_lines.append(
+                    f"• Sub-claim '{sc.text}': No evidence retrieved "
+                    f"(status: {sc.status})."
+                )
+                continue
+
+            # Group evidence by stance for this sub-claim
+            supporting = [e for e in sc.evidence if e.stance == "supports"]
+            contradicting = [e for e in sc.evidence if e.stance == "contradicts"]
+            neutral = [e for e in sc.evidence if e.stance not in ("supports", "contradicts")]
+
+            summary_lines.append(
+                f"• Sub-claim '{sc.text}' — status: {sc.status}, "
+                f"confidence: {sc.confidence:.0%}."
+            )
+
+            for ev in supporting[:3]:
+                title = ev.source_title or ev.publisher or ev.url_or_id or "Unknown"
+                excerpt = (ev.excerpt or "").strip()[:200]
+                summary_lines.append(
+                    f"    ✅ SUPPORTS — [{title}] ({ev.publisher}): "
+                    f"{excerpt}{'…' if len(ev.excerpt or '') > 200 else ''}"
+                )
+
+            for ev in contradicting[:3]:
+                title = ev.source_title or ev.publisher or ev.url_or_id or "Unknown"
+                excerpt = (ev.excerpt or "").strip()[:200]
+                summary_lines.append(
+                    f"    ❌ CONTRADICTS — [{title}] ({ev.publisher}): "
+                    f"{excerpt}{'…' if len(ev.excerpt or '') > 200 else ''}"
+                )
+
+            for ev in neutral[:2]:
+                title = ev.source_title or ev.publisher or ev.url_or_id or "Unknown"
+                excerpt = (ev.excerpt or "").strip()[:150]
+                if excerpt:
+                    summary_lines.append(
+                        f"    ℹ️ NEUTRAL — [{title}] ({ev.publisher}): "
+                        f"{excerpt}{'…' if len(ev.excerpt or '') > 150 else ''}"
+                    )
+
+        # Verdict rationale
+        status_counts = Counter(s.status for s in sub_claim_results)
+        summary_lines.append(
+            f"\nVerdict rationale: "
+            f"{status_counts.get('supported', 0)} sub-claim(s) supported, "
+            f"{status_counts.get('contradicted', 0)} contradicted, "
+            f"{status_counts.get('partially_supported', 0)} partially supported, "
+            f"{status_counts.get('unclear', 0)} unclear. "
+            f"This produced a final verdict of '{verdict}' at "
+            f"{mean_conf:.0%} confidence."
+        )
+
+        evidence_summary = "\n".join(summary_lines)
     else:
-        evidence_summary = "No evidence was found for the sub-claims."
+        evidence_summary = (
+            "No evidence was retrieved for any of the sub-claims. "
+            "The claim could not be verified with available sources."
+        )
 
     return VerificationResult(
         original_claim=original_claim,

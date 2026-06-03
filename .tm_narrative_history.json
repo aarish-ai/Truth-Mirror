@@ -284,5 +284,65 @@
   {
     "claim": "COVID-19 pandemic started in 1850",
     "entities": []
+  },
+  {
+    "claim": "Imran Khan is Dead",
+    "entities": [],
+    "timestamp": 1780457902.1846614,
+    "verdict": "Unclear"
+  },
+  {
+    "claim": "The US Iran war was started by US aggression",
+    "entities": [],
+    "timestamp": 1780457938.5465457,
+    "verdict": "Unclear"
+  },
+  {
+    "claim": "Imran Khan is dead",
+    "entities": [],
+    "timestamp": 1780458455.7464027,
+    "verdict": "Unclear"
+  },
+  {
+    "claim": "Imran Khan is Dead",
+    "entities": [],
+    "timestamp": 1780458687.754453,
+    "verdict": "Unclear"
+  },
+  {
+    "claim": "Imran Khan is Dead",
+    "entities": [],
+    "timestamp": 1780458864.242692,
+    "verdict": "Unclear"
+  },
+  {
+    "claim": "Donald Trump was shot by his own Son",
+    "entities": [],
+    "timestamp": 1780458962.9541702,
+    "verdict": "Unclear"
+  },
+  {
+    "claim": "Imran Khan is in Jail",
+    "entities": [],
+    "timestamp": 1780458995.2187397,
+    "verdict": "Unclear"
+  },
+  {
+    "claim": "Imran Khan is in Jail",
+    "entities": [],
+    "timestamp": 1780459182.7074068,
+    "verdict": "Contradicted"
+  },
+  {
+    "claim": "Imran Khan is Dead",
+    "entities": [],
+    "timestamp": 1780459786.5422964,
+    "verdict": null
+  },
+  {
+    "claim": "Imran Khan is Dead",
+    "entities": [],
+    "timestamp": 1780460024.7390616,
+    "verdict": "Unclear"
   }
 ]

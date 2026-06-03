@@ -16,11 +16,12 @@ class ReActAgent:
         self.tools = tools
         self.max_iterations = max_iterations
         
-        self.system_prompt = """You are a helpful ReAct reasoning agent. You solve tasks by thinking, acting, and observing.
+        self.system_prompt = """You are a strictly formatted ReAct reasoning agent.
 You have access to the following tools:
 {tools_desc}
 
-Use the following format:
+You MUST use the exact format below for every single step.
+
 Question: the input question you must answer
 Thought: you should always think about what to do
 Action: the action to take, should be one of [{tool_names}]
@@ -30,7 +31,20 @@ Observation: the result of the action
 Thought: I now know the final answer
 Final Answer: the final answer to the original input question
 
-Always finish with "Final Answer:" when you have resolved the question.
+EXAMPLE:
+Question: Did humans land on Mars?
+Thought: I need to decompose this and verify the subclaims.
+Action: decompose_claim
+Action Input: Did humans land on Mars?
+Observation: ["Humans landed on Mars"]
+Thought: Now I need to verify the subclaim.
+Action: verify_subclaim
+Action Input: Humans landed on Mars
+Observation: Status: Contradicted, Confidence: 0.99. Sources: 12.
+Thought: I now know the final answer.
+Final Answer: The claim is contradicted.
+
+Always finish with "Final Answer:" when you have resolved the question. Do not skip steps.
 """
 
     def _build_system_prompt(self) -> str:

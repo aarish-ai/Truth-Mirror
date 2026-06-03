@@ -289,6 +289,66 @@
       color: var(--text-muted);
     }
 
+    /* Evidence summary & reasoning panels */
+    .evidence-summary {
+      font-size: 0.9rem;
+      line-height: 1.75;
+      color: #d1d5db;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 360px;
+      overflow-y: auto;
+      background: rgba(0,0,0,0.15);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+    }
+
+    .reasoning-text {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: #d1d5db;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .source-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .source-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      word-break: break-all;
+    }
+
+    .source-list li a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .source-list li a:hover { text-decoration: underline; }
+
+    .meta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(255,255,255,0.07);
+      color: var(--text-muted);
+    }
+
   </style>
 </head>
 <body>
@@ -326,12 +386,13 @@
       <div class="panel">
         <div class="panel-header">
           <h3 class="panel-title">Verdict Summary</h3>
+          <span id="claimTypeBadge" class="meta-badge"></span>
         </div>
         <div id="verdictBox" class="verdict-box">
           <h3 id="verdictTitle">Evaluating...</h3>
           <p id="verdictConfidence">Confidence: --</p>
         </div>
-        
+
         <div style="margin-bottom: 1rem;">
           <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Geographic Perspectives (Stance)</h4>
           <div id="stackedBarChart"></div>
@@ -340,7 +401,33 @@
         <div class="alerts-container" id="alertsContainer"></div>
       </div>
 
-      <!-- Panel 2: Network Graph -->
+      <!-- Panel 2: Reasoning & Analysis -->
+      <div class="panel">
+        <div class="panel-header">
+          <h3 class="panel-title">Reasoning &amp; Analysis</h3>
+        </div>
+        <p id="reasoningText" class="reasoning-text">No reasoning available yet.</p>
+      </div>
+
+      <!-- Panel 3: Evidence Summary (full-width) -->
+      <div class="panel panel-full">
+        <div class="panel-header">
+          <h3 class="panel-title">Evidence Summary</h3>
+          <span id="evidenceCountBadge" class="meta-badge">0 sources</span>
+        </div>
+        <div id="evidenceSummaryBox" class="evidence-summary">No evidence summary available yet.</div>
+      </div>
+
+      <!-- Panel 4: Key Sources -->
+      <div class="panel">
+        <div class="panel-header">
+          <h3 class="panel-title">Key Sources</h3>
+          <span id="sourceCountBadge" class="meta-badge">0</span>
+        </div>
+        <ul id="keySourcesList" class="source-list"></ul>
+      </div>
+
+      <!-- Panel 5: Network Graph -->
       <div class="panel">
         <div class="panel-header">
           <h3 class="panel-title">Evidence Network</h3>
@@ -348,10 +435,10 @@
         <div id="networkGraph"></div>
       </div>
 
-      <!-- Panel 3: Hidden Story -->
+      <!-- Panel 6: Hidden Stories -->
       <div class="panel panel-full">
         <div class="panel-header">
-          <h3 class="panel-title">Hidden Stories & Omissions</h3>
+          <h3 class="panel-title">Hidden Stories &amp; Omissions</h3>
           <span class="tag" id="hiddenStoryCount">0 Detected</span>
         </div>
         <div id="hiddenStoryContainer">
@@ -472,8 +559,14 @@
 
     function renderVerdict(data) {
       elements.verdictTitle.textContent = data.final_verdict || "Analysis Complete";
-      
-      // Determine color
+
+      // Claim type badge
+      const claimTypeBadge = document.getElementById('claimTypeBadge');
+      if (claimTypeBadge && data.claim_type) {
+        claimTypeBadge.textContent = '🏷 ' + data.claim_type;
+      }
+
+      // Verdict color
       const verdictLower = (data.final_verdict || "").toLowerCase();
       if (verdictLower.includes('supported') && !verdictLower.includes('un')) {
         elements.verdictTitle.style.color = 'var(--success)';
@@ -487,6 +580,43 @@
       }
 
       elements.verdictConfidence.textContent = `Confidence: ${((data.confidence || 0) * 100).toFixed(1)}%`;
+
+      // Reasoning panel
+      const reasoningText = document.getElementById('reasoningText');
+      if (reasoningText) {
+        reasoningText.textContent = data.reasoning || 'No reasoning provided.';
+      }
+
+      // Evidence summary panel
+      const evidenceSummaryBox = document.getElementById('evidenceSummaryBox');
+      const evidenceCountBadge = document.getElementById('evidenceCountBadge');
+      if (evidenceSummaryBox) {
+        evidenceSummaryBox.textContent = data.evidence_summary || 'No evidence summary available.';
+      }
+      if (evidenceCountBadge) {
+        const count = (data.key_sources || []).length;
+        evidenceCountBadge.textContent = count + ' source' + (count !== 1 ? 's' : '');
+      }
+
+      // Key sources panel
+      const keySourcesList = document.getElementById('keySourcesList');
+      const sourceCountBadge = document.getElementById('sourceCountBadge');
+      if (keySourcesList) {
+        const sources = data.key_sources || [];
+        if (sourceCountBadge) sourceCountBadge.textContent = sources.length;
+        if (sources.length === 0) {
+          keySourcesList.innerHTML = '<li style="color: var(--text-muted);">No key sources identified.</li>';
+        } else {
+          keySourcesList.innerHTML = sources.map((src, i) => {
+            const isUrl = src && src.startsWith('http');
+            return `<li><span style="color: var(--text-muted); flex-shrink:0;">${i + 1}.</span>
+              ${isUrl
+                ? `<a href="${src}" target="_blank" rel="noopener">${src}</a>`
+                : `<span>${src}</span>`
+              }</li>`;
+          }).join('');
+        }
+      }
 
       // Alerts
       let alertsHtml = '';

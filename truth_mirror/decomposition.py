@@ -9,7 +9,8 @@ import logging
 from dataclasses import dataclass, field
 
 try:
-    import google.generativeai as genai
+    from google import genai
+    from google.genai import types as genai_types
     from dotenv import load_dotenv
     LLM_AVAILABLE = True
 except ImportError:
@@ -98,13 +99,22 @@ def _decompose_claim_regex(claim: str) -> DecompositionResult:
 
 
 def decompose_claim(claim: str) -> DecompositionResult:
+    # Short-circuit: if the claim is simple (one subject, one predicate), don't split
+    words = claim.strip().split()
+    if len(words) <= 10 and not any(kw in claim.lower() for kw in [' and ', ' but ', ' while ', ' also ', ' both ']):
+        return DecompositionResult(
+            sub_claims=[claim],
+            logical_joiners=[],
+            interpretive_fragments=[],
+            hidden_premises=[]
+        )
+
     if LLM_AVAILABLE:
         try:
             load_dotenv()
             api_key = os.getenv("GEMINI_API_KEY")
             if api_key:
-                genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-2.5-flash')
+                client = genai.Client(api_key=api_key)
                 
                 prompt = f"""
 You are an expert at breaking down complex claims into verifiable sub-claims. 
@@ -125,10 +135,11 @@ Respond ONLY with a valid JSON object matching this schema. Ensure dependencies 
   "dependencies": [["word1", "dep", "word2"]]
 }}
 """
-                response = model.generate_content(
-                    prompt,
-                    generation_config=genai.GenerationConfig(
-                        response_mime_type="application/json",
+                response = client.models.generate_content(
+                    model='gemini-2.0-flash',
+                    contents=prompt,
+                    config=genai_types.GenerateContentConfig(
+                        response_mime_type='application/json',
                         temperature=0.1
                     )
                 )

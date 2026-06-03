@@ -79,7 +79,7 @@ class TruthMirrorPipeline:
             """Verify a single subclaim and return a summary."""
             verifier_cls = get_verifier_class(claim_type)
             verifier = verifier_cls(self.retriever, self.stance_analyzer)
-            sr = verifier.verify_subclaim(subclaim, context={"context": context, "entities": entities})
+            sr = verifier.verify_subclaim(subclaim, context={"context": context, "entities": entities, "claim_type": claim_type})
             
             supporting = [e.url_or_id for e in sr.evidence if e.stance == "supports" and e.url_or_id]
             contradicting = [e.url_or_id for e in sr.evidence if e.stance == "contradicts" and e.url_or_id]
@@ -108,6 +108,19 @@ class TruthMirrorPipeline:
         for sr in sub_results:
             all_evidence.extend(sr.evidence)
             
+        if not sub_results:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning("Agent failed to use tools. Falling back to linear verification.")
+            try:
+                subclaims_json = tool_decompose(claim)
+                for sc in json.loads(subclaims_json):
+                    tool_verify_subclaim(sc)
+                for sr in sub_results:
+                    all_evidence.extend(sr.evidence)
+            except Exception as e:
+                logger.error(f"Linear fallback failed: {e}")
+            
         gemini_result = self.gemini_analyzer.synthesize(
             claim, all_evidence
         )
@@ -134,4 +147,31 @@ class TruthMirrorPipeline:
 
     @staticmethod
     def to_json(result: VerificationResult) -> dict:
-        return asdict(result)
+        """Serialise a VerificationResult to a dict guaranteed to include all
+        frontend-required fields: final_verdict, confidence, reasoning,
+        evidence_summary, key_sources, and warnings."""
+        base = asdict(result)
+        # Ensure every field the frontend expects is present with a sane default.
+        required_fields = {
+            "final_verdict": base.get("final_verdict", "Unclear"),
+            "confidence": base.get("confidence", 0.0),
+            "confidence_interval": base.get("confidence_interval", (0.0, 1.0)),
+            "reasoning": base.get("reasoning", ""),
+            "evidence_summary": base.get("evidence_summary", "No evidence summary available."),
+            "key_sources": base.get("key_sources", []),
+            "warnings": base.get("warnings", []),
+            "missing_information": base.get("missing_information", []),
+            "claim_type": base.get("claim_type", ""),
+            "original_claim": base.get("original_claim", ""),
+            "normalized_claim": base.get("normalized_claim", ""),
+            "sub_claims": base.get("sub_claims", []),
+            "hidden_story_items": base.get("hidden_story_items", []),
+            "evidence_by_region": base.get("evidence_by_region", {}),
+            "geo_divergence_detected": base.get("geo_divergence_detected", False),
+            "narrative_coherence_score": base.get("narrative_coherence_score", 0.0),
+            "source_diversity_score": base.get("source_diversity_score", 0.0),
+            "human_review_recommended": base.get("human_review_recommended", False),
+            "generated_at": base.get("generated_at", ""),
+        }
+        # Merge: required_fields takes priority; keep any extra keys from base.
+        return {**base, **required_fields}

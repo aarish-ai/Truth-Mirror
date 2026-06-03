@@ -7,7 +7,8 @@ import logging
 from typing import Optional, List, Dict, Any
 
 try:
-    import google.generativeai as genai
+    from google import genai
+    from google.genai import types
     from dotenv import load_dotenv
     DEPENDENCIES_MET = True
 except ImportError:
@@ -22,15 +23,15 @@ class GeminiAnalyzer:
 
     def __init__(self):
         if not DEPENDENCIES_MET:
-            logger.warning("google-generativeai or python-dotenv not installed. Gemini integration disabled.")
+            logger.warning("google-genai or python-dotenv not installed. Gemini integration disabled.")
             self.enabled = False
             return
             
         load_dotenv()
         self.api_key = os.getenv("GEMINI_API_KEY")
         if self.api_key:
-            genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel('gemini-2.5-flash')
+            self.client = genai.Client(api_key=self.api_key)
+            self.model_name = 'gemini-2.0-flash'
             self.enabled = True
         else:
             logger.warning("GEMINI_API_KEY not found. Gemini integration disabled.")
@@ -74,15 +75,15 @@ You must respond ONLY with a valid JSON object using the exact schema below. Do 
 }}
 """
         try:
-            # We use gemini-1.5-flash as it is free, fast, and supports JSON output natively
-            response = self.model.generate_content(
-                prompt,
-                generation_config=genai.GenerationConfig(
-                    response_mime_type="application/json",
+            # We use gemini-2.0-flash as it is free, fast, and supports JSON output natively
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type='application/json',
                     temperature=0.1
                 )
             )
-            
             result_json = response.text
             result = json.loads(result_json)
             

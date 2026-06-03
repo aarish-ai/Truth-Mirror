@@ -19,11 +19,12 @@ class BaseVerifier:
 
     def verify_subclaim(self, subclaim: str, context: dict = None) -> SubClaimResult:
         """Verify a single subclaim. Overridden by specific verifiers if needed."""
-        evidence = self.retriever.retrieve(subclaim)
-        
+        claim_type = (context or {}).get("claim_type", "mixed or ambiguous claim")
+        evidence = self.retriever.retrieve(subclaim, claim_type=claim_type)
+
         # Hidden Story retrieval pass targeting dissenting/minority sources
         negated_claim = f"not {subclaim}"
-        hidden_evidence = self.retriever.retrieve(negated_claim)
+        hidden_evidence = self.retriever.retrieve(negated_claim, claim_type=claim_type)
         for item in hidden_evidence:
             item.is_hidden_story = True
             if item.url_or_id and item.url_or_id.startswith("http"):
@@ -31,9 +32,9 @@ class BaseVerifier:
                 if wb and "url" in wb:
                     item.url_or_id = wb["url"]
                     item.source_title = f"[Archived] {item.source_title}"
-        
+
         evidence.extend(hidden_evidence)
-        
+
         ranked = rank_evidence(subclaim, evidence)[:4]
         for item in ranked:
             item.stance = self.stance_analyzer.detect(subclaim, item)
