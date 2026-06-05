@@ -27,7 +27,7 @@ class LLMClient:
             base_url += "/api"
         self.ollama_url = base_url
         self.ollama_model = ollama_model or os.getenv("OLLAMA_MODEL", "gemma2:2b")
-        self.gemini_model = gemini_model or os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+        self.gemini_model = gemini_model or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
         self._genai_client = None
         if self.gemini_api_key and _GENAI_AVAILABLE:

@@ -344,5 +344,17 @@
     "entities": [],
     "timestamp": 1780460024.7390616,
     "verdict": "Unclear"
+  },
+  {
+    "claim": "Imran Khan is Dead",
+    "entities": [],
+    "timestamp": 1780461756.5499187,
+    "verdict": "Unclear"
+  },
+  {
+    "claim": "Imran Khan is in Jail as of June 2026",
+    "entities": [],
+    "timestamp": 1780627738.124061,
+    "verdict": "Contradicted"
   }
 ]
