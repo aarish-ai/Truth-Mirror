@@ -15,6 +15,7 @@ Truth Mirror has undergone significant architectural enhancements, transitioning
 - **Tier 3 (Gemini Integration)**: Incorporates the Gemini LLM for intelligent, human-like evidence synthesis and reasoning (if enabled).
 - **Phase 8 (ReAct Agentic Architecture)**: Implements a ReAct (Reason, Act) agentic loop for dynamic, iterative evidence gathering and reasoning.
 - **Phase 9 (Perspective & Geo-Narrative Capabilities)**: Introduces geo-narrative divergence tracking and an expanded 300+ domain credibility registry for cross-cultural bias analysis.
+- **Phase 10 (Hybrid Deterministic Pipeline)**: Restructured the orchestrator to use a fully deterministic evidence pipeline with exactly one Gemini API call per query for final synthesis. Local LLM (Ollama) is used only for claim decomposition. All retrieval, ranking, stance detection, and triangulation are pure Python with no LLM dependency. ReAct agent preserved as opt-in feature for large models.
 
 ## Core Features
 
@@ -66,14 +67,17 @@ CORE_API_KEY=your_core_key_here
 SEMANTIC_SCHOLAR_API_KEY=your_ss_key_here
 OPENCALAIS_API_KEY=your_opencalais_key_here
 OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama3.1:8b
-OLLAMA_FALLBACK_MODEL=mistral:7b
+OLLAMA_MODEL=qwen2.5:3b
+OLLAMA_FALLBACK_MODEL=gemma2:2b
+GEMINI_MODEL=gemini-2.5-flash
 LLM_PROVIDER=ollama
 VECTOR_STORE_PATH=.tm_vectorstore
-ENABLE_NON_WESTERN_SOURCES=true
-ENABLE_ARCHIVAL_SOURCES=true
+ENABLE_REACT_AGENT=false
+ENABLE_OLLAMA_DECOMPOSITION=true
 ENABLE_KG_VERIFICATION=true
-MAX_AGENT_ITERATIONS=8
+ENABLE_NARRATIVE_CLUSTERING=false
+ENABLE_NON_WESTERN_SOURCES=true
+MAX_GEMINI_CALLS_PER_QUERY=1
 ```
 
 > **Note**: Several internal tools (Wikipedia, Wikidata, DBpedia, Open Library, arXiv, PubMed, etc.) rely on free public endpoints and do not require API keys. OpenStreetMap Nominatim is also free but enforces strict rate limits.
@@ -95,11 +99,20 @@ Then open [http://127.0.0.1:8080](http://127.0.0.1:8080).
 ## Core Technologies & Dependencies
 
 Truth Mirror utilizes the following key machine learning and infrastructure libraries:
-- **Ollama**: For local LLM inference and agentic reasoning within the ReAct loop.
+- **Ollama**: For local LLM inference (strictly used for claim decomposition by default).
+- **Google GenAI SDK**: Used exactly once per query for final intelligent evidence synthesis.
 - **ChromaDB**: Local vector database for semantic search and evidence caching.
 - **spaCy**: Advanced NLP for entity extraction, normalization, and linguistic analysis.
 - **sentence-transformers**: Dense vector embeddings for semantic similarity and retrieval.
 - **cross-encoders**: High-precision stance detection, NLI mapping, and evidence reranking.
+
+## API Call Budget
+
+To guarantee fast execution and avoid API quotas, Truth Mirror enforces a strict LLM budget:
+- **1 Gemini call per query**: Exclusively for final synthesis of collected evidence.
+- **1 Ollama call per query**: Used optionally for atomic claim decomposition.
+- **0 LLM calls for retrieval**: Retrieval, ranking, stance, and triangulation are all deterministic Python.
+- **0 LLM calls for KG**: Knowledge Graph verification uses direct SPARQL keyword matching.
 
 To install dependencies and enable stronger model-backed stance inference:
 

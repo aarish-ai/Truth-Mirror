@@ -1,3 +1,9 @@
+"""
+ReAct Agent — optional component, not in critical path.
+Enable via ENABLE_REACT_AGENT=true in .env.
+Only activate with models >= 7B parameters.
+Recommended: llama3.1:8b or larger.
+"""
 import re
 import logging
 from typing import Callable, Dict, Any

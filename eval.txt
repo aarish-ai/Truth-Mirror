@@ -1,0 +1,99 @@
+=================================================================
+1. Original Query:
+Donald Trump is president of USA in June 2026
+
+2. Decomposed Claims:
+  - Donald Trump is president of USA in June 2026
+
+3. Context & Entities:
+  Entities: []
+  Context: ClaimContext(entities=[], previous_claims=[], background_summary='No recent narrative context found for these entities.', narrative_coherence_score=1.0)
+
+4. Evidence retrieved per subclaim:
+  Subclaim: Unknown
+    - [neutral] https://en.wikipedia.org/wiki/Trump_Mobile: 
+    - [neutral] https://en.wikipedia.org/wiki/Trump_Mobile: 
+    - [neutral] https://en.wikipedia.org/wiki/Timeline_of_the_second_Trump_presidency_%282026_Q2%29: 
+    - [insufficient] https://en.wikipedia.org/wiki/Second_presidency_of_Donald_Trump: 
+
+5. Final Gemini Synthesis and Verdict:
+  Verdict: Supported
+  Synthesis: Source 4 explicitly states that "Donald Trump's second and current tenure as the president of the United States began upon his inauguration as the 47th president on January 20, 2025." Source 3 further corroborates this by providing a "timeline of the second presidency of Donald Trump during the second quarter of 2026, from April 1, 2026, to June 30, 2026." Since June 2026 falls within this specified period, it directly supports the claim that Donald Trump is president of the USA in June 2026. Sources 1 and 2 indicate he was alive and active in June 2025, which is consistent with him being president in 2026. Source 5 is irrelevant as it refers to 'June' as an entity with a head of government, which is nonsensical in this context and does not pertain to the US presidency.
+=================================================================
+
+=================================================================
+1. Original Query:
+Donald Trump is Dead
+
+2. Decomposed Claims:
+  - Donald Trump is Dead
+
+3. Context & Entities:
+  Entities: []
+  Context: ClaimContext(entities=[], previous_claims=[], background_summary='No recent narrative context found for these entities.', narrative_coherence_score=1.0)
+
+4. Evidence retrieved per subclaim:
+  Subclaim: Unknown
+    - [insufficient] https://pubmed.ncbi.nlm.nih.gov/28947955/: 
+    - [insufficient] https://pubmed.ncbi.nlm.nih.gov/25263658/: 
+    - [insufficient] https://pubmed.ncbi.nlm.nih.gov/25907621/: 
+    - [insufficient] https://pubmed.ncbi.nlm.nih.gov/20164683/: 
+
+5. Final Gemini Synthesis and Verdict:
+  Verdict: Unsupported
+  Synthesis: The provided evidence consists of four PubMed academic paper metadata entries. All sources are related to cancer research (bladder cancer, prostate cancer, and vitamin D's role in cancer). None of the sources mention 'Donald Trump' or provide any information regarding his life status, whether he is alive or dead. Therefore, the evidence does not contain any information to support, contradict, or even make the claim unclear.
+=================================================================
+
+=================================================================
+1. Original Query:
+Donald Trump is Dead as of June 2026
+
+2. Decomposed Claims:
+  - Donald Trump is dead
+  - The period in question is June 2026
+
+3. Context & Entities:
+  Entities: []
+  Context: ClaimContext(entities=[], previous_claims=[], background_summary='No recent narrative context found for these entities.', narrative_coherence_score=1.0)
+
+4. Evidence retrieved per subclaim:
+  Subclaim: Unknown
+    - [insufficient] https://pubmed.ncbi.nlm.nih.gov/28947955/: 
+    - [insufficient] https://pubmed.ncbi.nlm.nih.gov/25263658/: 
+    - [insufficient] https://pubmed.ncbi.nlm.nih.gov/25907621/: 
+    - [insufficient] https://pubmed.ncbi.nlm.nih.gov/20164683/: 
+
+  Subclaim: Unknown
+    - [insufficient] https://pubmed.ncbi.nlm.nih.gov/42192578/: 
+    - [insufficient] https://pubmed.ncbi.nlm.nih.gov/42136478/: 
+    - [insufficient] https://pubmed.ncbi.nlm.nih.gov/42135758/: 
+    - [insufficient] https://pubmed.ncbi.nlm.nih.gov/42164538/: 
+
+5. Final Gemini Synthesis and Verdict:
+  Verdict: Unsupported
+  Synthesis: The claim states that 'Donald Trump is Dead as of June 2026'. After reviewing all provided evidence, none of the sources mention Donald Trump, his life status, or any events related to his death in June 2026 or at any other time. The evidence consists primarily of academic paper metadata on various medical and social topics, none of which are relevant to the claim.
+=================================================================
+
+=================================================================
+1. Original Query:
+Donald Trump is Dead
+
+2. Decomposed Claims:
+  - Donald Trump is Dead
+
+3. Context & Entities:
+  Entities: []
+  Context: ClaimContext(entities=[], previous_claims=[], background_summary='No recent narrative context found for these entities.', narrative_coherence_score=1.0)
+
+4. Evidence retrieved per subclaim:
+  Subclaim: Unknown
+    - [neutral] https://en.wikipedia.org/wiki/Age_and_health_concerns_about_Donald_Trump: 
+    - [supports] https://en.wikipedia.org/wiki/List_of_Donald_Trump_2024_presidential_campaign_non-political_endorsements: 
+    - [insufficient] https://en.wikipedia.org/wiki/2025%E2%80%932026_Iran%E2%80%93United_States_negotiations: 
+    - [contradicts] https://en.wikipedia.org/wiki/Second_presidency_of_Donald_Trump: 
+
+5. Final Gemini Synthesis and Verdict:
+  Verdict: Contradicted
+  Synthesis: The evidence directly contradicts the claim that Donald Trump is dead. Source 4 states that "Donald Trump's second and current tenure as the president of the United States began upon his inauguration as the 47th president on January 20, 2025." This explicitly indicates he is alive and serving as president after this date. Source 3 further mentions "US president Donald Trump" in the context of 2025–2026 negotiations, reinforcing his alive status during that period. Source 2 also refers to his 2024 presidential campaign, implying he was alive and active then. None of the provided sources suggest he is deceased; instead, they consistently portray him as alive and active in the present and near future.
+=================================================================
+

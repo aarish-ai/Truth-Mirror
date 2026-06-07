@@ -1,3 +1,7 @@
+"""
+LLM Client — used by ReActAgent when ENABLE_REACT_AGENT=true.
+Not called by the main pipeline in default configuration.
+"""
 import os
 import logging
 import requests

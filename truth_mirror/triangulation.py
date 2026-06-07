@@ -93,7 +93,7 @@ class HostileSourceTriangulator:
                 
         return False
 
-    def triangulate(self, claim: str, supporting_sources: List[str], contradicting_sources: List[str]) -> Tuple[bool, float, str]:
+    def triangulate(self, claim: str, evidence: List[Any]) -> Tuple[bool, float, str]:
         """
         Evaluates a claim based on the triangulation of hostile/opposing sources.
         
@@ -104,6 +104,9 @@ class HostileSourceTriangulator:
             - reasoning (str): Explanation of the triangulation result.
         """
         logger.info(f"Triangulating claim: '{claim[:50]}...'")
+        
+        supporting_sources = [e.url_or_id for e in evidence if e.stance == "supports" and e.url_or_id]
+        contradicting_sources = [e.url_or_id for e in evidence if e.stance == "contradicts" and e.url_or_id]
         
         # Extract stances for both sides
         supporting_stances = {self._determine_source_stance(src) for src in supporting_sources}

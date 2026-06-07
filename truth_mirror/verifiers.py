@@ -8,6 +8,7 @@ from truth_mirror.stance import StanceAnalyzer
 from truth_mirror.ranking import rank_evidence
 from truth_mirror.verdict import build_subclaim_result
 from truth_mirror.retrieval_archival import WaybackMachineConnector
+from truth_mirror.normalization import inject_temporal_context
 
 class BaseVerifier:
     """Base class for all claim verifiers."""
@@ -20,10 +21,12 @@ class BaseVerifier:
     def verify_subclaim(self, subclaim: str, context: dict = None) -> SubClaimResult:
         """Verify a single subclaim. Overridden by specific verifiers if needed."""
         claim_type = (context or {}).get("claim_type", "mixed or ambiguous claim")
-        evidence = self.retriever.retrieve(subclaim, claim_type=claim_type)
+        
+        enriched_subclaim, _ = inject_temporal_context(subclaim)
+        evidence = self.retriever.retrieve(enriched_subclaim, claim_type=claim_type)
 
         # Hidden Story retrieval pass targeting dissenting/minority sources
-        negated_claim = f"not {subclaim}"
+        negated_claim = f"not {enriched_subclaim}"
         hidden_evidence = self.retriever.retrieve(negated_claim, claim_type=claim_type)
         for item in hidden_evidence:
             item.is_hidden_story = True

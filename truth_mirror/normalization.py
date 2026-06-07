@@ -53,3 +53,27 @@ def normalize_claim(claim: str) -> NormalizedClaim:
         is_time_sensitive=is_time_sensitive,
     )
 
+
+def inject_temporal_context(claim: str) -> tuple[str, bool]:
+    """
+    Checks for a 4-digit year or specific date phrases.
+    If found, returns (claim, True).
+    Else, returns (claim + ' as of ' + current_month_year, False).
+    """
+    if re.search(r"\b\d{4}\b", claim):
+        return claim, True
+        
+    date_phrases = [
+        "today", "yesterday", "this week", "this month", "this year", 
+        "last year", "recently", "latest", "current", "now", "as of"
+    ]
+    lowered = claim.lower()
+    # Check for whole words/phrases
+    for phrase in date_phrases:
+        if re.search(rf"\b{re.escape(phrase)}\b", lowered):
+            return claim, True
+            
+    now = datetime.now()
+    current_month_year = now.strftime("%B %Y")
+    new_claim = f"{claim} as of {current_month_year}"
+    return new_claim, False

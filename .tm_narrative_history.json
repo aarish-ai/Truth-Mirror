@@ -356,5 +356,59 @@
     "entities": [],
     "timestamp": 1780627738.124061,
     "verdict": "Contradicted"
+  },
+  {
+    "claim": "The Eiffel Tower is in Paris",
+    "entities": [],
+    "timestamp": 1780629409.3910282,
+    "verdict": "Supported"
+  },
+  {
+    "claim": "Imran Khan is in jail as of June 2026Imran Khan is in jail as of June 2026",
+    "entities": [],
+    "timestamp": 1780630515.226742,
+    "verdict": "Unsupported"
+  },
+  {
+    "claim": "Imran Khan is in Jail as of June 2026",
+    "entities": [],
+    "timestamp": 1780631074.6188998,
+    "verdict": "Unsupported"
+  },
+  {
+    "claim": "Donald Trump is in Jail as of June 2026",
+    "entities": [],
+    "timestamp": 1780631216.5459359,
+    "verdict": "Unsupported"
+  },
+  {
+    "claim": "Donald Trump the president of USA as of June 2026",
+    "entities": [],
+    "timestamp": 1780631439.1750097,
+    "verdict": "Unsupported"
+  },
+  {
+    "claim": "Donald Trump is president of USA in June 2026",
+    "entities": [],
+    "timestamp": 1780633194.092156,
+    "verdict": "Supported"
+  },
+  {
+    "claim": "Donald Trump is Dead",
+    "entities": [],
+    "timestamp": 1780634158.297922,
+    "verdict": "Unsupported"
+  },
+  {
+    "claim": "Donald Trump is Dead as of June 2026",
+    "entities": [],
+    "timestamp": 1780634409.301745,
+    "verdict": "Unsupported"
+  },
+  {
+    "claim": "Donald Trump is Dead",
+    "entities": [],
+    "timestamp": 1780806407.0157301,
+    "verdict": "Contradicted"
   }
 ]

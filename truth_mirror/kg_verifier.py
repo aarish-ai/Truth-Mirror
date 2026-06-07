@@ -7,15 +7,8 @@ import logging
 import urllib.parse
 import urllib.request
 import json
-from typing import Optional, Dict, Any, List
-
-try:
-    import google.generativeai as genai
-    from dotenv import load_dotenv
-    import os
-    DEPENDENCIES_MET = True
-except ImportError:
-    DEPENDENCIES_MET = False
+from typing import Optional, Dict, Any, List, Tuple
+import re
 
 from .models import EvidenceItem
 
@@ -80,17 +73,6 @@ SELECT ?objectLabel WHERE {{
 class KGVerifier:
     def __init__(self):
         self.endpoint_url = "https://query.wikidata.org/sparql"
-        if DEPENDENCIES_MET:
-            load_dotenv()
-            self.api_key = os.getenv("GEMINI_API_KEY")
-            if self.api_key:
-                genai.configure(api_key=self.api_key)
-                self.model = genai.GenerativeModel('gemini-2.5-flash')
-                self.enabled = True
-            else:
-                self.enabled = False
-        else:
-            self.enabled = False
 
     def query_wikidata(self, sparql_query: str) -> List[str]:
         """Executes a SPARQL query against Wikidata and returns a list of result labels."""
@@ -114,54 +96,60 @@ class KGVerifier:
             logger.error(f"Wikidata query failed: {e}")
             return []
 
+    def _select_template(self, claim: str) -> Tuple[Optional[str], Optional[str]]:
+        claim_lower = claim.lower()
+        entity_regex = r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b'
+
+        if re.search(r'\b(president|prime minister|pm|head of)\b', claim_lower):
+            match = re.search(r'\b(?:of|in)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b', claim)
+            if match:
+                return "head_of_government", match.group(1)
+
+        if re.search(r'\b(born|birth|birthdate)\b', claim_lower):
+            match = re.search(entity_regex, claim)
+            if match:
+                return "birth_date", match.group(1)
+
+        if re.search(r'\b(died|death|passed away)\b', claim_lower):
+            match = re.search(entity_regex, claim)
+            if match:
+                return "death_date", match.group(1)
+
+        if re.search(r'\b(population|people|residents)\b', claim_lower):
+            match = re.search(entity_regex, claim)
+            if match:
+                return "population", match.group(1)
+
+        if re.search(r'\b(capital|capital city)\b', claim_lower):
+            match = re.search(entity_regex, claim)
+            if match:
+                return "capital", match.group(1)
+
+        if re.search(r'\bwon\b', claim_lower) and re.search(r'\b(election|vote)\b', claim_lower):
+            match = re.search(entity_regex, claim)
+            if match:
+                return "election_winner", match.group(1)
+
+        if re.search(r'\b(nobel|award|prize)\b', claim_lower):
+            match = re.search(entity_regex, claim)
+            if match:
+                return "award_received", match.group(1)
+
+        return None, None
+
     def verify_claim(self, claim: str) -> Optional[EvidenceItem]:
         """
-        Uses an LLM to select the right query template and extract the entity from the claim.
+        Selects a query template deterministically and extracts the entity.
         Then executes the query and returns an EvidenceItem.
         """
-        if not self.enabled:
-            logger.warning("KGVerifier disabled: Gemini API not available.")
-            return None
-
-        # Build prompt for template selection
-        template_descriptions = "\\n".join([
-            f"- {key}: {desc}" for key, (pid, desc) in WIKIDATA_PROPERTIES.items()
-        ])
+        template_key, entity_name = self._select_template(claim)
         
-        prompt = f"""
-You are an expert fact-checker mapping a claim to a Wikidata query template.
-We have the following templates available:
-{template_descriptions}
-
-Given the claim: "{claim}"
-
-If one of the templates applies, extract the main entity name to search for (e.g., "France", "Barack Obama", "Eiffel Tower"), and select the correct template key.
-If no template applies, return "none" for both.
-
-Respond ONLY in valid JSON format exactly matching this schema:
-{{
-  "template_key": "<one of the available keys, or 'none'>",
-  "entity_name": "<the name of the entity, or 'none'>"
-}}
-"""
+        if not template_key or not entity_name or template_key not in WIKIDATA_PROPERTIES:
+            return None
+            
+        property_id, description = WIKIDATA_PROPERTIES[template_key]
+        
         try:
-            response = self.model.generate_content(
-                prompt,
-                generation_config=genai.GenerationConfig(
-                    response_mime_type="application/json",
-                    temperature=0.1
-                )
-            )
-            result = json.loads(response.text)
-            
-            template_key = result.get("template_key")
-            entity_name = result.get("entity_name")
-            
-            if template_key == "none" or entity_name == "none" or template_key not in WIKIDATA_PROPERTIES:
-                return None
-                
-            property_id, description = WIKIDATA_PROPERTIES[template_key]
-            
             # Execute query
             sparql_query = build_sparql_query(entity_name, property_id)
             results = self.query_wikidata(sparql_query)

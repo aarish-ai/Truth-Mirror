@@ -1,0 +1,989 @@
+<USER_REQUEST>
+I want to start working on this project, can you tell me what is this project; and what it has?
+Include the tech stack and what it does, Explain the flow in detail.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-05-24T12:45:11+05:00.
+</ADDITIONAL_METADATA>
+<USER_SETTINGS_CHANGE>
+The user changed setting `Model Selection` from None to Gemini 3.1 Pro (High). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
+</USER_SETTINGS_CHANGE>
+<USER_REQUEST>
+Now spin up 10 sub agents (3 for Phase 1 and 6 for Phase 2 to 7 (one sub-agent for each phase, and 1 for testing everything at the end with claims like test_claims = [
+    # Historical (verifiable, stable)
+    "The moon landing happened in 1969",
+    
+    # Statistical (requires official data)
+    "US unemployment rate was 3.7% in December 2023",
+    
+    # Event (recent, news-based)
+    "Russia invaded Ukraine in February 2022",
+    
+    # Contested political
+    "The 2020 US election was stolen",
+    
+    # Scientific
+    "mRNA vaccines are 95% effective against COVID-19",
+    
+    # Quote (requires primary source)
+    "Biden said 'I will not raise taxes on anyone making under $400,000'",
+    
+    # False/misleading
+    "5G causes COVID-19",
+]) , and collectively build this web app according to the following details:
+PROJECT CONTEXT:
+Truth Mirror is a claim verification system with a modular pipeline architecture. 
+Current stack: Python, http.server, transformers (optional), torch (optional).
+Current pipeline: normalization → decomposition → routing → retrieval → 
+credibility check → ranking → stance detection → abstention → verdict.
+
+CURRENT CAPABILITIES:
+✓ Multi-source retrieval (Wikipedia, Wikinews, Crossref)
+✓ Evidence ranking with credibility scoring
+✓ Zero-shot NLI stance detection (with transformer fallback to heuristics)
+✓ Abstention logic for uncertainty handling
+✓ 5-tier verdict system
+
+CRITICAL GAPS FOR PRODUCTION-GRADE VERIFICATION:
+1. Limited sources (no real-time news, fact-check databases, government archives)
+2. No temporal context (can't distinguish 2020 vs 2024 claims)
+3. Weak entity disambiguation ("Biden" = Joe? Hunter? Historical figure?)
+4. No cross-source triangulation or hostile-source verification
+5. Claim-type agnostic (treats statistics same as events)
+6. No provenance tracking or source-ladder prioritization
+
+ENHANCEMENT REQUEST:
+
+Phase 1: Source Expansion & Temporal Intelligence
+─────────────────────
+<truncated 21220 bytes>
+cation
+────────────────────────────────────
+Upgrade abstention.py and verdict.py:
+
+Replace binary abstention with confidence intervals:
+- verdict: "Supported"
+- confidence: 0.78 (out of 1.0)
+- uncertainty_sources: ["Limited primary sources", "Recent claim (< 7 days old)"]
+
+Add provenance transparency:
+{
+  "verdict": "Contradicted",
+  "confidence": 0.91,
+  "evidence_summary": {
+    "supporting": 2,
+    "contradicting": 15,
+    "neutral": 3
+  },
+  "key_sources": [
+    {"source": "AP News", "stance": "contradicts", "credibility": 0.95},
+    {"source": "Reuters", "stance": "contradicts", "credibility": 0.95},
+    ...
+  ],
+  "reasoning": "15 high-credibility sources directly contradict claim. 
+                2 supporting sources are low-credibility blogs."
+}
+
+IMPLEMENTATION PRIORITIES:
+1. Phase 1 (sources) - CRITICAL for news/political claims
+2. Phase 4 (claim types) - CRITICAL for accuracy
+3. Phase 5 (triangulation) - CRITICAL for contested topics
+4. Phase 2 (decomposition) - HIGH
+5. Phase 3 (entities) - HIGH
+6. Phase 6 (scoring) - MEDIUM
+7. Phase 7 (uncertainty) - MEDIUM
+
+CONSTRAINTS:
+- Maintain current modular pipeline architecture
+- Keep optional ML dependency (graceful fallback to heuristics)
+- Add comprehensive logging for debugging
+- Cache aggressively (add TTL based on claim recency)
+- Handle API failures gracefully
+
+CODING STANDARDS:
+- Type hints throughout
+- Docstrings for all new modules/functions
+- Unit tests for each verification type
+- Config file for API keys (use python-dotenv)
+- Async HTTP requests where possible (aiohttp)
+
+OUTPUT REQUIREMENTS:
+Implement the enhancements incrementally. For each phase:
+1. Show modified file structure
+2. Provide complete code for new modules
+3. Update existing modules with clear # ENHANCED comments
+4. Include example usage/test cases
+5. Document any new dependencies in requirements.txt
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-05-24T13:00:43+05:00.
+</ADDITIONAL_METADATA>
+Comments on artifact URI: file:///c%3A/Users/DELL/.gemini/antigravity/brain/8875dec5-6ca0-4cb0-96e3-cb5ffbaf1aaa/implementation_plan.md
+
+Selection:
+>Do you already have a .env file with the required free API ke
+
+Comment: "No I dont have any .env file with API keys"
+
+Selection:
+>should the cache be memory-based or SQLite-based as proposed in the prompt?
+
+Comment: "SQLite based caching"
+<USER_REQUEST>
+Yes I like th plan; you can proceed
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-05-24T13:03:39+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+I want to know what does this project still need, which API keys should I put in and where? Are there any paid API keys or ones having limits? Can you tell me these constraints and then add them into the READme file plus the changes that we have done to the READme file
+SPin up two sub agents; one will add the constraints and changes into the READm file and the second one will push all the changes to "https://github.com/aarish-ai/Truth-Mirror"
+Meanwhile you will tell me the constraints or limitations that we currently have in our project?
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-05-24T13:17:30+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+Now can you pull up a 9  sub-agent (1 for each step and 1 for testing and pushing the changes to GutHub with the commit message "Critical Fixes + Gemini Integration") fix up marathon according to the following details?
+PROJECT: Truth Mirror Enhancement - Critical Fixes + Gemini Integration
+
+CURRENT PROBLEMS DIAGNOSED:
+1. System returns "Unclear" for obviously true claims ("Biden won 2020 election")
+2. System returns "Unclear" for temporally impossible claims ("Biden won 756 election") instead of "Contradicted"
+3. Abstention thresholds too aggressive - system gives up too easily
+4. No temporal validation - impossible dates not caught early
+5. No intelligent evidence synthesis - just mechanical scoring
+
+SOLUTION: Three-tier fix
+- Tier 1: Add temporal validation (catch impossible dates immediately)
+- Tier 2: Lower abstention thresholds (be less cautious)
+- Tier 3: Add Gemini API integration (intelligent evidence synthesis)
+
+═══════════════════════════════════════════════════════════════════════
+IMPLEMENTATION INSTRUCTIONS
+═══════════════════════════════════════════════════════════════════════
+
+STEP 1: CREATE NEW FILE - truth_mirror/temporal_validator.py
+───────────────────────────────────────────────────────────────────────
+
+"""
+Temporal validation - catch impossible/future dates early.
+"""
+from datetime import datetime
+import re
+
+class TemporalValidator:
+    """Validates temporal claims before evidence retrieval."""
+    
+    def __init__(self):
+        self.current_year = datetime.now().year
+        self.min_reasonable_year = 1000  # Nothing before medieval times makes sense for mos
+<truncated 22369 bytes>
+══════════════════════
+WHY THESE CHANGES MAKE IT STATE-OF-THE-ART
+═══════════════════════════════════════════════════════════════════════
+
+1. TEMPORAL VALIDATION (Novel Feature)
+   - Catches impossible dates BEFORE wasting time on retrieval
+   - No other open-source fact-checker has this
+   - Handles entity-date compatibility (Biden in year 756 = impossible)
+
+2. GEMINI INTEGRATION (Game Changer)
+   - LLM reads ALL evidence like a human fact-checker
+   - Synthesizes nuanced verdicts with reasoning
+   - Handles cases that mechanical scoring misses
+   - Free API with generous limits
+
+3. REDUCED ABSTENTION (More Useful)
+   - Old system said "Unclear" too often
+   - New system gives verdicts when possible
+   - Only abstains when truly necessary
+
+4. HYBRID APPROACH (Best of Both Worlds)
+   - Structured pipeline for retrieval/filtering
+   - LLM for intelligent synthesis
+   - Graceful fallback if Gemini unavailable
+
+═══════════════════════════════════════════════════════════════════════
+FINAL NOTES
+═══════════════════════════════════════════════════════════════════════
+
+- All changes are MODULAR - easy to test individually
+- Maintains backward compatibility with existing code
+- Gemini integration is OPTIONAL - system works without it (fallback mode)
+- Free tier Gemini API has generous limits (60 requests/minute)
+- Temporal validation has NO dependencies - pure Python
+
+This transforms Truth Mirror from an MVP into a production-ready fact-checker.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-05-24T13:33:04+05:00.
+</ADDITIONAL_METADATA>
+Comments on artifact URI: file:///c%3A/Users/DELL/.gemini/antigravity/brain/8875dec5-6ca0-4cb0-96e3-cb5ffbaf1aaa/implementation_plan.md
+
+Selection:
+>If I blindly replace the orchestrator code with your snippet, it will break the system and erase the Phase 1-7 upgrades. Instead, I will adapt your TemporalValidator and GeminiAnalyzer logic to integrate cleanly into the current verify() method of orchestrator.py, preserving all our recent enhancements while adding your powerful new features.
+
+Comment: "Yes sure, preserve our recent enhancements while adding my powerful new features"
+<USER_REQUEST>
+Yes I approve the plan; go forward
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-05-24T13:35:42+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+Update the READme with our changes and push it to the Repo
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-05-24T13:45:41+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+I have added the API keys for Gemini and Google Fact Check
+Can you check if they are running fine
+Then push these changes to GitHub; make sure to add the .env file in git ignore to hide my API keys from the public
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-01T07:23:54+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+I have added the API keys for Gemini and Google Fact Check
+Can you check if they are running fine (dont go into an endless loop of timers, just do one 600 seconds timer; run it and if it doesn't run until 10 minutes then just push the changes as I asked; we'll test it later)
+Then push these changes to GitHub; make sure to add the .env file in git ignore to hide my API keys from the public
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-01T07:34:05+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+Ok now can we work on the troubleshooting as you suggested, if the pip packages are not correctly installed or if there is any issue with the virtual enviornment (or if it could be that I have mistakenly entered the wrong API key)
+Spin up 2 sub agents; 1 will identify what is the problem through proper testing and give the feedback to you (and you will tell me what was the problem) and then the 2nd sub agent will work on fixing the issue. Then lastly you (the main agent) will test it again if there is any error or if it is fixed (if there is error repeat the loop again and the 2 sub agents will work on it again)
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-01T07:48:31+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+Now I've added the API key, now does it run 
+If it does push the changes to GitHub
+If not spin up a fixer Sub agent to work on fixes
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-01T07:57:18+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+I want an 12 sub-agent approach for the following Upgrade Marathon (one for each section)
+and 1 at the last to test the changes (I will setup the models later; but if you can feel free to set those up, just tell me what you did and how you did it, currently see if everything esle is working fine or not) and update READMe; finishing off with Pushing everything to GitHub with message "Agentic Upgrade"
+================================================================
+TRUTH MIRROR — ANTIGRAVITY TECHNICAL SPECIFICATION
+Project: Full architectural upgrade to a geo-narratively aware,
+         multi-perspective, agentic fact-checking system.
+================================================================
+
+----------------------------------------------------------------
+SECTION A: CORE ARCHITECTURE
+----------------------------------------------------------------
+
+1. REPLACE THE LINEAR PIPELINE WITH A REACT AGENT LOOP
+   File to modify: truth_mirror/orchestrator.py
+   Current problem: The pipeline runs sequentially and cannot
+   adapt mid-run. It cannot decide "I need more non-Western
+   sources before concluding" or "this sub-claim needs a
+   different retrieval strategy."
+   Change: Implement a ReAct (Reason + Act) loop. The
+   orchestrator should:
+   a) Plan which tools to call based on claim type and
+      initial evidence quality.
+   b) Evaluate intermediate results after each tool call.
+   c) Decide whether to stop (sufficient evidence) or
+      continue (fetch more, try different source families).
+   d) Cap at a configurable max_iterations (default: 8).
+   Use LangChain AgentExecutor or LlamaIndex ReActAgent
+   as the orchestration framework. The local Ollama LLM
+   acts as the planning brain.
+   New file to create: truth_mirror/agent.py
+
+2. ADD AN OLLAMA LLM INTERFACE
+   New file to create: truth_mirror/llm_client.py
+   This module wraps the local Ollama HTTP API
+   (http://localhost:11434/api/generate). It must:
+   a) Accept a prompt string and return a completion string.
+   b) Support model selec
+<truncated 16974 bytes>
+ collapsible left sidebar showing the last 10 verified
+    claims with verdict badges. Clicking any entry reloads
+    that result into the main panels without re-running
+    the pipeline.
+
+21. ADD EXPORT FUNCTIONALITY
+    An "Export Report" button that generates a structured
+    JSON plus readable HTML report of the full verification
+    including all evidence, perspective summaries, and
+    sources. Use a data URI download so no server is needed.
+
+
+----------------------------------------------------------------
+SECTION K: NEW FILES SUMMARY
+----------------------------------------------------------------
+
+Files to CREATE:
+  truth_mirror/agent.py
+  truth_mirror/llm_client.py
+  truth_mirror/nlp_pipeline.py
+  truth_mirror/retrieval_nonwestern.py
+  truth_mirror/retrieval_archival.py
+  truth_mirror/retrieval_quotes.py
+  truth_mirror/vector_store.py
+  truth_mirror/narrative_clusterer.py
+  truth_mirror/kg_verifier.py
+  truth_mirror/perspective_registry.json
+
+Files to MODIFY:
+  truth_mirror/orchestrator.py      (ReAct loop, new modules)
+  truth_mirror/decomposition.py     (LLM decomposition + spaCy)
+  truth_mirror/models.py            (new fields on all models)
+  truth_mirror/ranking.py           (semantic embeddings)
+  truth_mirror/stance.py            (semantic filter + NLI swap)
+  truth_mirror/triangulation.py     (load perspective_registry)
+  truth_mirror/verdict.py           (perspective-aware logic)
+  truth_mirror/verifiers.py         (hidden story pass)
+  truth_mirror/context_tracker.py   (narrative engineering)
+  truth_mirror/retrieval_fact.py    (WorldBank + GovInfo)
+  truth_mirror/gemini_analyzer.py   (fall back to Ollama)
+  static/index.html                 (full D3.js UI rebuild)
+  requirements.txt                  (new dependencies)
+
+================================================================
+END OF ANTIGRAVITY TECHNICAL SPEC
+================================================================
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-01T08:33:31+05:00.
+</ADDITIONAL_METADATA>
+Comments on artifact URI: file:///c%3A/Users/DELL/.gemini/antigravity/brain/8875dec5-6ca0-4cb0-96e3-cb5ffbaf1aaa/implementation_plan.md
+
+Selection:
+>Proposed Solution: I will act as the orchestrator and implement the core models.py changes first (to establish the shared data structures), and then I will launch the subagents in two sequential batches to prevent them from stepping on each other's toes.
+  
+  Batch 1: Subagents for independent modules (Retrieval Layers, NLP, Vector Store, LLM clients, UI).
+  Batch 2: Subagents for the dependent modules (Orchestrator ReAct loop, Triangulation, Output formatting).
+  Final: The Testing & Git Push subagents.
+  
+  Please confirm if this batching strategy is acceptable!
+
+Comment: "This solution sounds acceptable"
+
+Selection:
+>Are you planning to run a local Ollama server on port 11434 on this machine? If it's not running during the test phase, our fallback logic will trigger.
+
+Comment: "Yes I will install Ollama and run it later; currently wrap everything else, afterwards I will download and link the models"
+
+Selection:
+>Installing heavy ML dependencies (like torch, sentence-transformers, spacy + en_core_web_trf) might take some time and disk space. Shall the subagents go ahead and pip install these massive libraries into your current environment?
+
+Comment: "Yes but keep them inside this venv so if in future I delete this project the dependencies will also be deleted (be sure to push to github; requirements.txt)"
+<USER_REQUEST>
+Looks good proceed
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-01T08:38:48+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+I need you to confirm 5 things for my project
+1 . These dependencies are required by my project to run, can you confirm if you have installed these in the venv in my project?
+ pip install langchain
+     pip install langchain-community
+     pip install llama-index
+     pip install sentence-transformers
+     pip install chromadb
+     pip install faiss-cpu
+     pip install spacy
+     pip install trafilatura
+     pip install torch
+     pip install transformers
+     pip install feedparser
+     pip install requests
+     pip install beautifulsoup4
+     pip install python-dotenv
+     pip install google-generativeai
+     pip install arxiv
+     pip install aiohttp
+     python -m spacy download en_core_web_trf
+
+2. And these API keys are required for my project, can you tell me if you've added those in the .env or not?
+GOVINFO API
+CORE.AC.UK
+SEMANTIC SCHOLAR API
+OPEN CALAIS
+
+3. (I'm not if these are APIs too or if you can access these directly)
+- Wikipedia API
+  - Wikidata SPARQL endpoint
+  - DBpedia SPARQL endpoint
+  - Hansard API (UK Parliament)
+  - UN Documents API (basic search)
+  - Open Library / Internet Archive
+  - Project Gutenberg
+  - OpenStreetMap Nominatim
+  - All RSS feeds (Al Jazeera, TASS, CGTN, Dawn, etc.)
+  - arXiv API
+  - PubMed / NCBI Entrez API
+  - Europarl RSS
+  - Wayback Machine CDX API
+  - Miller Center (scraped via trafilatura)
+
+Basically the .env file should look something like this
+GEMINI_API_KEY=your_gemini_key_here
+    GOOGLE_FACT_CHECK_API_KEY=your_google_key_here
+    FRED_API_KEY=your_fred_key_here
+    GOVINFO_API_KEY=your_govinfo_key_here
+    CORE_API_KEY=your_core_key_here
+    SEMANTIC_SCHOLAR_API_KEY=your_ss_key_here
+    OPENCALAIS_API_KEY=your_opencalais_key_here
+    OLLAMA_BASE_URL=http://localhost:11434
+    OLLAMA_MODEL=llama3.1:8b
+    OLLAMA_FALLBACK_MODEL=mistral:7b
+    LLM_PROVIDER=ollama
+    VECTOR_STORE_PATH=.tm_vectorstore
+    ENABLE_NON_WESTERN_SOURCES=true
+    ENABLE_ARCHIVAL_SOURCES=true
+    ENABLE_KG_VERIFICATION=true
+    MAX_AGENT_ITERATIONS=8
+
+4. Two data sources to use:
+    a) AllSides media bias ratings:
+       https://www.allsides.com/media-bias/ratings
+    b) Media Bias Fact Check ratings:
+       https://mediabiasfactcheck.com
+
+    Neither has a free API so the easiest approach is to generate an initial version of
+    perspective_registry.json pre-populated with ~300 common
+    domains based on publicly known ratings. I can then
+    add or correct entries manually over time.
+
+    Each entry in the JSON should look like this:
+    {
+      "domain": "bbc.com",
+      "perspective": "western_mainstream",
+      "factual_rating": "high",
+      "ownership": "state_public",
+      "regional_focus": ["UK", "global"],
+      "language_origin": "en",
+      "allsides_rating": "center",
+      "mbfc_rating": "mostly_factual"
+    }
+
+5. Make sure these lines are in your .gitignore so you do
+    not accidentally commit large local data files:
+    .tm_vectorstore/
+    .tm_cache.json
+    .tm_cache.db
+    .tm_narrative_history.json
+    *.db
+    __pycache__/
+    .env
+    venv/
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-02T08:21:17+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+Now can you update the Read Me and push all changes to Git Hub with the message "Setup Completion"
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-02T08:51:49+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+Now I want to test the whole Truth Mirror Project
+Can you give me a step by step guide on what I need to do
+First which API keys are missing, then which Ollama model do I need to activate (I think we should use Gemma 2b: as that takes less RAM instead of a heavier model like llama 4.1 etc), then which things do I need to ensure running (I think you said the spacy library wasn't working; how can I fix that and ensure that every thing in my pipeline will run 100% in the way we want
+Lastly give the command to run the project (in which folder or on which file to run which command)
+Give a comprehensive report
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-03T07:18:06+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+Ok I am facing some issues getting the API keys for Semantic Scholar and OpenCalais, you can route web scraping if possible or other alternatives for it.
+
+And this error occures when intalling Spacay; I've installed Visual Studio build tools but still some error is occuring,can you help fix this
+Collecting spacy-curated-transformers
+  Downloading spacy_curated_transformers-2.1.2-py2.py3-none-any.whl.metadata (2.8 kB)
+Collecting curated-transformers<3.0.0,>=2.0.0 (from spacy-curated-transformers)
+  Downloading curated_transformers-2.0.1-py2.py3-none-any.whl.metadata (5.3 kB)
+Collecting curated-tokenizers<3.0.0,>=2.0.0 (from spacy-curated-transformers)
+  Downloading curated_tokenizers-2.0.0.tar.gz (2.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.3/2.3 MB 1.9 MB/s  0:00:01
+  Installing build dependencies ... done
+  Getting requirements to build wheel ... done
+  Preparing metadata (pyproject.toml) ... done
+Requirement already satisfied: fsspec>=2023.5.0 in .\venv\Lib\site-packages (from spacy-curated-transformers) (2026.4.0)
+Collecting thinc<9.2.0,>=9.0.0.dev4 (from spacy-curated-transformers)
+  Downloading thinc-9.1.1.tar.gz (191 kB)
+  Installing build dependencies ... error
+  error: subprocess-exited-with-error
+
+  × installing build dependencies for thinc did not run successfully.
+  │ exit code: 1
+  ╰─> [85 lines of output]
+      Ignoring numpy: markers 'python_version < "3.9"' don't match your environment
+      Collecting setuptools
+        Using cached setuptools-82.0.1-py3-none-any.whl.metadata (6.5 kB)
+      Collecting cython<3.0,>=0.25
+        Downloading Cython-0.29.37-py2.py3-none-any.whl.metadata (3.1 kB)
+      Collecting murmurhash<1.1.0,>=1.0.2
+        Using cached murmurhash-1.0.15-cp314-cp314-win_amd64.whl.metadata (2.3 kB)
+      Collecting cymem<2.1.0,>=2.0.2
+        Using cached cymem-2.0.13-cp314-cp314-win_amd64.whl.metadata (9.9 kB)
+      Collecting preshed<3.1.0,>=3.0.2
+        Using cached
+<truncated 20443 bytes>
+VSSADM~1\\AppData\\Local\\Temp', 'TERM': 'xterm-256color', 'TF_BUILD': 'True', 'TMP': 'C:\\Users\\VSSADM~1\\AppData\\Local\\Temp', 'TMPDIR': 'C:\\Users\\VSSADM~1\\AppData\\Local\\Temp', 'USEPYTHONVERSION_PYTHONLOCATION': 'C:\\hostedtoolcache\\windows\\Python\\3.8.10\\x64', 'USERDOMAIN': 'WIN-CU8INV6766V', 'USERDOMAIN_ROAMINGPROFILE': 'WIN-CU8INV6766V', 'USERNAME': 'VssAdministrator', 'USERPROFILE': 'C:\\Users\\VssAdministrator', 'VCPKG_INSTALLATION_ROOT': 'C:\\vcpkg', 'VSTS_AGENT_PERFLOG': 'C:\\agents\\perflog', 'VSTS_PROCESS_LOOKUP_ID': 'vsts_175962b3-f397-42b7-b557-a072c6b9de45', 'VSTS_SECRET_VARIABLES': '', 'WINDIR': 'C:\\Windows', 'WIX': 'C:\\Program Files (x86)\\WiX Toolset v3.11\\', '_': 'C:/hostedtoolcache/windows/Python/3.8.10/x64/python', 'AGENT.JOBSTATUS': 'Succeeded', 'NPM_CONFIG_PREFIX': 'C:\\npm\\prefix'}
+        [COMMAND] C:\Program Files\LLVM\bin\clang.exe -c C:\Users\DELL\AppData\Local\Temp\pip-install-5g6xhscx\blis_27ee87bfb4b246769b2b6e91084ff950\blis\_src\config\bulldozer\bli_cntx_init_bulldozer.c -o C:\Users\DELL\AppData\Local\Temp\tmpct7m9wtz\bli_cntx_init_bulldozer.o -O2 -std=c99 -D_POSIX_C_SOURCE=200112L -DBLIS_VERSION_STRING="0.9.0" -DBLIS_IS_BUILDING_LIBRARY -Iinclude\windows-x86_64 -I.\frame\3\ -I.\frame\1m\ -I.\frame\1f\ -I.\frame\1\ -I.\frame\include -IC:\Users\DELL\AppData\Local\Temp\pip-install-5g6xhscx\blis_27ee87bfb4b246769b2b6e91084ff950\blis\_src\include\windows-x86_64
+        error: [WinError 2] The system cannot find the file specified
+        [end of output]
+
+        note: This error originates from a subprocess, and is likely not a problem with pip.
+        ERROR: Failed building wheel for blis
+      Failed to build blis
+      error: failed-wheel-build-for-install
+
+      Failed to build installable wheels for some pyproject.toml based projects
+
+      blis
+      [end of output]
+
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-03T08:29:24+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+I asked it two questions but it gave the following problems, what is happening?
+127.0.0.1 - - [03/Jun/2026 08:38:10] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 08:38:11] "GET /favicon.ico HTTP/1.1" 404 -
+WARNING:truth_mirror.entity_resolution:DBpedia Spotlight resolution failed: HTTP Error 502: Proxy Error
+INFO:truth_mirror.agent:ReAct Iteration 1/10
+WARNING:truth_mirror.llm_client:Ollama completion failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate. Falling back to Gemini.
+ERROR:truth_mirror.agent:LLM completion failed: 404 Client Error: Not Found for url: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyDNDW4drYVWNqULgyvJnf9B_x9UbQhvHqM
+INFO:truth_mirror.gemini_analyzer:No evidence provided for Gemini synthesis.
+127.0.0.1 - - [03/Jun/2026 08:38:25] "POST /api/verify HTTP/1.1" 200 -
+WARNING:truth_mirror.entity_resolution:DBpedia Spotlight resolution failed: HTTP Error 502: Proxy Error
+INFO:truth_mirror.agent:ReAct Iteration 1/10
+WARNING:truth_mirror.llm_client:Ollama completion failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate. Falling back to Gemini.
+ERROR:truth_mirror.agent:LLM completion failed: 404 Client Error: Not Found for url: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyDNDW4drYVWNqULgyvJnf9B_x9UbQhvHqM
+INFO:truth_mirror.gemini_analyzer:No evidence provided for Gemini synthesis.
+127.0.0.1 - - [03/Jun/2026 08:39:01] "POST /api/verify HTTP/1.1" 200 -
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-03T08:40:15+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+Ok some changes then I will run it again; I want to use the Gemma2:2b model on Ollama and it is already running on the server
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-03T08:44:53+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+I haven't tested it yet, but this is what the logs tell; are there any problems?
+All support for the `google.generativeai` package has ended. It will no longer be receiving
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights: 100%|█████████████████████████████████████████████████████████████| 103/103 [00:00<00:00, 8928.11it/s]
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/cross-encoder/nli-deberta-v3-large/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/nli-deberta-v3-large/bab4bc7178836f731dcfd18c06ca9def0a137712/config.json "HTTP/1.1 200 OK"
+Loading weights: 100%|█████████████████████████████████████████████████████████████| 394/394 [00:00<00:00, 6863.60it/s]
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/cross-encoder/nli-deberta-v3-large/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/cross-encoder/nli-deberta-v3-large/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/cross-encoder/nli-deberta-v3-large "HTTP/1.1 200 OK"
+INFO:sentence_transformers.base.model:No device provided, using cpu
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json "HTTP/1.1 307 Temporar
+<truncated 3820 bytes>
+n "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/1_Pooling/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/1_Pooling%2Fconfig.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2 "HTTP/1.1 200 OK"
+Truth Mirror running on http://127.0.0.1:8080
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-03T08:47:23+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+I again asked it a question and it gave me this, what to do?
+127.0.0.1 - - [03/Jun/2026 08:47:27] "GET / HTTP/1.1" 200 -
+WARNING:truth_mirror.entity_resolution:DBpedia Spotlight resolution failed: HTTP Error 502: Proxy Error
+INFO:truth_mirror.agent:ReAct Iteration 1/10
+WARNING:truth_mirror.llm_client:Ollama completion failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate. Falling back to Gemini.
+ERROR:truth_mirror.agent:LLM completion failed: 404 Client Error: Not Found for url: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyDNDW4drYVWNqULgyvJnf9B_x9UbQhvHqM
+INFO:truth_mirror.gemini_analyzer:No evidence provided for Gemini synthesis.
+127.0.0.1 - - [03/Jun/2026 08:47:38] "POST /api/verify HTTP/1.1" 200 -
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-03T08:48:26+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+What you should do is give the command ".\venv\Scripts\python.exe app.py" everytime when its time for me to test, so I can easily copy paste it and test the project, ok?
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-03T08:51:16+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+These are the latest logs:
+127.0.0.1 - - [03/Jun/2026 08:51:21] "GET / HTTP/1.1" 200 -
+WARNING:truth_mirror.entity_resolution:DBpedia Spotlight resolution failed: HTTP Error 502: Proxy Error
+INFO:truth_mirror.agent:ReAct Iteration 1/10
+WARNING:truth_mirror.llm_client:Ollama completion failed: 404 Client Error: Not Found for url: http://localhost:11434/generate. Falling back to Gemini.
+ERROR:truth_mirror.agent:LLM completion failed: 404 Client Error: Not Found for url: https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyDNDW4drYVWNqULgyvJnf9B_x9UbQhvHqM
+INFO:truth_mirror.gemini_analyzer:No evidence provided for Gemini synthesis.
+127.0.0.1 - - [03/Jun/2026 08:51:31] "POST /api/verify HTTP/1.1" 200 -
+
+Can you fix issues?
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-03T08:52:09+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+I think its getting better but still it doesn't give the best output; this is what I got after asking it a question
+
+127.0.0.1 - - [03/Jun/2026 08:54:15] "GET / HTTP/1.1" 200 -
+WARNING:truth_mirror.entity_resolution:DBpedia Spotlight resolution failed: HTTP Error 502: Proxy Error
+INFO:truth_mirror.agent:ReAct Iteration 1/10
+INFO:truth_mirror.gemini_analyzer:No evidence provided for Gemini synthesis.
+127.0.0.1 - - [03/Jun/2026 08:54:51] "POST /api/verify HTTP/1.1" 200 -
+
+Can you help fix this
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-03T08:57:14+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+This is what happened now, its getting better, I asked it a simple fact and it took like 4 minutes to asnwer and the answer was not correct, it said it has some evidence but didn't really show it. These are the logs; can't we somewhow fix the dact that Gemma 2 doesn't go thorugh our prescribed loop, maybe give it a prompt to make it understand that it needs to got horugh the entire loop?
+Here are the logs;
+127.0.0.1 - - [03/Jun/2026 08:59:33] "GET / HTTP/1.1" 200 -
+WARNING:truth_mirror.entity_resolution:DBpedia Spotlight resolution failed: HTTP Error 502: Proxy Error
+INFO:truth_mirror.agent:ReAct Iteration 1/10
+WARNING:truth_mirror.orchestrator:Agent failed to use tools. Falling back to linear verification.
+INFO:arxiv:Requesting page (first: True, try: 0): https://export.arxiv.org/api/query?search_query=Imran+Khan+is+currently+confined+within+a+correctional+facility.&id_list=&sortBy=relevance&sortOrder=descending&start=0&max_results=100
+INFO:arxiv:Sleeping: 2.999935 seconds
+INFO:arxiv:Requesting page (first: True, try: 1): https://export.arxiv.org/api/query?search_query=Imran+Khan+is+currently+confined+within+a+correctional+facility.&id_list=&sortBy=relevance&sortOrder=descending&start=0&max_results=100
+INFO:arxiv:Sleeping: 2.999968 seconds
+INFO:arxiv:Requesting page (first: True, try: 2): https://export.arxiv.org/api/query?search_query=Imran+Khan+is+currently+confined+within+a+correctional+facility.&id_list=&sortBy=relevance&sortOrder=descending&start=0&max_results=100
+INFO:arxiv:Sleeping: 2.999961 seconds
+INFO:arxiv:Requesting page (first: True, try: 3): https://export.arxiv.org/api/query?search_query=Imran+Khan+is+currently+confined+within+a+correctional+facility.&id_list=&sortBy=relevance&sortOrder=descending&start=0&max_results=100
+INFO:arxiv:Requesting page (first: True, try: 0): https://export.arxiv.org/api/query?search_query=not+Imran+Khan+is+currently+confined+within+a+correctional+facility.&id_list=&sortBy=relevance&sortOrder=descending&start=0&max_results=100
+INFO:arxiv:Sleeping: 2.99998
+<truncated 10138 bytes>
+██████████████████████████████████████| 1/1 [00:00<00:00, 126.40it/s]
+Batches: 100%|███████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 43.51it/s]
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 114.66it/s]
+Batches: 100%|███████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 41.42it/s]
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 100.37it/s]
+Batches: 100%|███████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 38.22it/s]
+INFO:truth_mirror.triangulation:Triangulating claim: 'Imran Khan is currently confined within a correcti...'
+ERROR:truth_mirror.gemini_analyzer:Gemini API failure: 404 models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.
+127.0.0.1 - - [03/Jun/2026 09:07:59] "POST /api/verify HTTP/1.1" 200 -
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-03T09:11:17+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+Okay so this is what happened; I asked it "Imran Khan is Dead" and it took about 2 to 3 minutes gathering info and then told me that it is Unclear, It says it has opinionated language (how can there be opinionated languageof death of a person, either he is alive or he is dead, accoridng to the latest news he is alive)
+Then it tells me that Imran Khan is a real person
+Imran Khan was alive at some point (obviously if he is a real person he was alive at some point)
+The concept of death is understood and applicable to humans (like obviously)
+
+I feel like this is not a fact verifier journalist, it is just a child with google in its hand, it doesn't actually disect and understand the claims, it just gives obvious points after thinking for 2 to 4 minutes, what can we do to build upon this sturcutre an actual agentic system that actually understands the claim and then dissects it, searches all the sources and gives the underlying truth behind it. It should understand basic claims and not throw obvious truths. The problem I see is that the Gemma 2:2b model is not doing anything plus everytime it completes its whole search and at the end Gemini model also fails; can you spin up sub agents to first identify the issue and fix it so that we use the bothe models to their full extent then test the new changes by running the app and giving it different obvious truths and obvious lies and if it can test those (then also give some complex claims if it passes the first test), do not end your response until the problem is fully fixed and the agentic system is really a powerful journalist who can dissect claims and give a very detailed report.
+
+Here are the logs of the latest question:
+127.0.0.1 - - [03/Jun/2026 09:13:35] "GET / HTTP/1.1" 200 -
+WARNING:truth_mirror.entity_resolution:DBpedia Spotlight resolution failed: HTTP Error 502: Proxy Error
+INFO:truth_mirror.agent:ReAct Iteration 1/10
+WARNING:truth_mirror.orchestrator:Agent failed to use tools. Falling back to linear verification.
+INFO:arxiv:Requesting page (firs
+<truncated 43638 bytes>
+████████████████████████████| 1/1 [00:00<00:00, 48.01it/s]
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 107.09it/s]
+Batches: 100%|███████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 50.59it/s]
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 127.95it/s]
+Batches: 100%|███████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 45.34it/s]
+INFO:truth_mirror.triangulation:Triangulating claim: 'That individual is in a state of being dead....'
+ERROR:truth_mirror.gemini_analyzer:Gemini API failure: 404 models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.
+127.0.0.1 - - [03/Jun/2026 09:17:56] "POST /api/verify HTTP/1.1" 200 -
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-03T09:28:25+05:00.
+</ADDITIONAL_METADATA>
+<USER_SETTINGS_CHANGE>
+The user changed setting `Model Selection` from Gemini 3.1 Pro (High) to Claude Sonnet 4.6 (Thinking). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
+</USER_SETTINGS_CHANGE>
+<USER_REQUEST>
+Can you tell me why is my gemini rate limit being hit? I've only made one request today, which model are you using?
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-05T07:57:49+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+Can you shift the Gemini API to 2.5 flash, that would be more helpful as I think the API is originally of 2.5 flash?
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-05T07:59:20+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+Can you spin up a multiple sub agent route to complete the following instructions?
+================================================================
+TRUTH MIRROR — PIPELINE RESTRUCTURE
+Engineering Spec: Hybrid Deterministic + LLM Architecture
+Prepared for: Antigravity Execution
+================================================================
+
+----------------------------------------------------------------
+EXECUTIVE SUMMARY
+----------------------------------------------------------------
+
+The current orchestrator.py runs a ReAct agent loop (agent.py)
+as the primary pipeline controller. This causes two critical
+production problems:
+
+  1. Small local models (Gemma 2B, Qwen 3B) fail to reliably
+     follow the ReAct format, causing the loop to exit early
+     without calling any tools.
+
+  2. On agent failure, the system falls through to Gemini for
+     compensation, resulting in multiple Gemini calls per query
+     and rapid API quota exhaustion.
+
+This spec restructures the system into a HYBRID DETERMINISTIC
+PIPELINE with the following guarantee:
+
+  - EXACTLY ONE Gemini API call per user query (final synthesis)
+  - ONE optional Ollama call per query (claim decomposition only)
+  - All other steps are deterministic Python with no LLM dependency
+  - Graceful fallback at every LLM touchpoint
+  - No agent loop in the critical path
+
+The ReAct agent (agent.py) and LLMClient (llm_client.py) are
+NOT deleted. They are preserved and gated behind an environment
+flag for future optional use.
+
+
+----------------------------------------------------------------
+SECTION 1: ENVIRONMENT CONFIGURATION
+----------------------------------------------------------------
+
+Add the following keys to the .env file. Do not remove any
+existing keys.
+
+  # LLM routing
+  OLLAMA_MODEL=qwen2.5:3b
+  OLLAMA_FALLBACK_MODEL=gemma2:2b
+  OLLAMA_BASE_URL=http://localhost:11434
+  GEMINI_MODEL=gemini-2.5-flash
+
+  # Feature flags
+  ENABLE_REACT_AGENT=false
+  ENABLE_OLLAMA_DECOMPOSITION=true
+  ENABLE_KG_VERIFICATION=true
+  ENABLE_NARRATIVE_CLUSTER
+<truncated 17879 bytes>
+3. Modify truth_mirror/gemini_analyzer.py (add budget guard)
+  4. Modify truth_mirror/orchestrator.py (rewrite verify())
+  5. Update .env (add new flags)
+  6. Update requirements.txt
+  7. Update README.md
+  8. Create test_hybrid_pipeline.py
+  9. Run: python test_hybrid_pipeline.py
+     Fix any failures before proceeding.
+  10. Run: python pipeline.py
+      Test with: "Imran Khan is in jail as of June 2026"
+      Confirm exactly one Gemini call is made.
+      Confirm the verdict is Supported or Partially supported.
+      Confirm total run time is under 3 minutes.
+
+
+----------------------------------------------------------------
+ACCEPTANCE CRITERIA
+----------------------------------------------------------------
+
+The implementation is complete when ALL of the following hold:
+
+  [ ] python test_hybrid_pipeline.py prints all PASS
+  [ ] One query to pipeline.py results in exactly 1 Gemini call
+  [ ] If Ollama is not running, the pipeline still completes
+      (falls back to regex decomposition)
+  [ ] If Gemini key is missing, the pipeline still completes
+      (returns heuristic verdict with a warning)
+  [ ] agent.py and llm_client.py exist and are unmodified
+  [ ] ENABLE_REACT_AGENT=true in .env causes no import errors
+      (the flag is read but the agent is not wired into
+      orchestrator in this implementation — that is acceptable)
+  [ ] The web UI (python app.py) renders results correctly
+      including the D3.js evidence network and verdict panel
+
+================================================================
+END OF SPEC
+================================================================
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-05T08:10:45+05:00.
+</ADDITIONAL_METADATA>
+<USER_SETTINGS_CHANGE>
+The user changed setting `Model Selection` from Claude Sonnet 4.6 (Thinking) to Gemini 3.1 Pro (High). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
+</USER_SETTINGS_CHANGE>
+<USER_REQUEST>
+Yes this is great proceed forward
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-05T08:12:32+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+Ok what I'm looking at is the issue that every time the analyzer goes to arxiv and wikipedia. It cannot justify a simple claim like Trump is president in June 2026
+I have attached the output screenshots for you
+
+I want you to not write code yet but discuss with me how can we improve this sytem?
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-05T08:59:52+05:00.
+
+The user has uploaded 1 image(s):
+- C:/Users/DELL/.gemini/antigravity/brain/tempmediaStorage/media__1780631987699.png
+You can embed this image in an artifact if you need the USER to review it.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+Yes I think we should do solution one and tweak the model for office terms, marriages, alive dates (if he has no death date he should be alive), prison tenures (if there is a news of putting someone in jail in the past and no news has been given that he/she has been released then he/she is most probably in jail still or dead) 
+Give it prompts to address these cases and use some logical reasoning beyond the articles available, but be sure to base all its claims on the articles present and logical reasoning no assumptions
+Plus, step 3 to enhance the query abstraction with maybe including a few more examples on how to decompose the claims (as you mentioned)
+
+Then can you make some changes to the code such that it outputs all of its outputs in a .txt document in the same project root with the name "eval" , each step will print its output (with the original query being on the top) into that document so I can look through where the problem occurs, basically we're building component level evals.
+
+Go with a 3 sub agent route
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-05T09:07:29+05:00.
+</ADDITIONAL_METADATA>
+Comments on artifact URI: file:///c%3A/Users/DELL/.gemini/antigravity/brain/8875dec5-6ca0-4cb0-96e3-cb5ffbaf1aaa/implementation_plan.md
+
+Selection:
+>Should this file be cleared on each new run, or should it continuously append?
+
+Comment: "It should append on each run"
+
+Selection:
+>Add examples demonstrating how to isolate dates/times from the main claim (e.g., "Donald Trump is president of USA in June 2026" → ["Donald Trump is president of the USA", "It is June 2026"])
+
+Comment: "Tweak it slightly so it checks if this claim was true for this date i.e if a user ask Donal Trump was president in July 2016 then that should be evaluated as well even though it is not currently July 2016"
+<USER_REQUEST>
+Everyhting else is good proceed
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-05T09:10:36+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+Can you spin up a multiple agent route to implement the following changes in TruthMirror?
+(Keep our evals there, the Ollama agent will return the sub claims and the articles to the evals and also the gemini analyzer will return the final verdict)
+Push the changes to GitHub with commit message "INTELLIGENT QUERY GENERATION + DATE INJECTION"
+----------------------------------------------------------------
+EXECUTIVE SUMMARY
+----------------------------------------------------------------
+
+Two production defects are addressed in this spec:
+
+DEFECT 1 — SEMANTIC DRIFT IN SEARCH QUERIES
+  Current behavior: Sub-claims are passed directly as search
+  strings to retrieval connectors. The sub-claim "Donald Trump
+  is Dead" causes Wikipedia and Crossref to return medical
+  articles about death symptoms and diseases because the
+  retrieval layer has no understanding of what KIND of search
+  is appropriate for this claim.
+
+  Root cause: The retrieval layer treats every sub-claim as a
+  raw keyword search with no semantic guidance. It has no
+  concept of "this is a person-status claim, search for news
+  about this person."
+
+  Fix: Insert a QUERY GENERATION step between decomposition
+  and retrieval. A local LLM (Qwen 2.5:3b via Ollama) converts
+  each sub-claim into 3 targeted, entity-focused search strings
+  optimized for news and fact-verification retrieval. The LLM
+  is given explicit claim-type context so it generates the
+  RIGHT kind of query.
+
+DEFECT 2 — MISSING TEMPORAL CONTEXT
+  Current behavior: Bare claims like "Donald Trump is Dead" are
+  searched without any date context, causing retrieval to pull
+  articles from arbitrary time periods.
+
+  Fix: Before retrieval, inject the current date into every
+  query. If the user's claim already contains a date reference,
+  preserve it. If not, append "as of [Month Year]" to the
+  claim context passed to the query generator and retrieval
+  system. The ORIGINAL claim stored in VerificationResult is
+  never modified.
+
+These two changes together guarantee that "D
+<truncated 18700 bytes>
+-----------
+
+Implement in this exact order:
+
+  1. ADD inject_temporal_context() to normalization.py
+  2. CREATE truth_mirror/query_generator.py
+  3. CREATE truth_mirror/search_planner.py
+  4. MODIFY truth_mirror/verifiers.py (date injection only)
+  5. MODIFY truth_mirror/orchestrator.py
+     (add imports, __init__ additions, verify() changes)
+  6. CREATE test_query_generation.py
+  7. RUN python test_query_generation.py
+     All tests must pass or skip before proceeding.
+  8. RUN python pipeline.py
+     TEST CLAIM 1: "Donald Trump is Dead"
+       Expected: queries about Trump's status, not medicine
+       Expected verdict: Contradicted (he is alive as of 2026)
+     TEST CLAIM 2: "Imran Khan is in jail"
+       Expected: queries about Imran Khan + imprisonment + 2026
+       Expected verdict: Supported or Partially supported
+     TEST CLAIM 3: "The Eiffel Tower is in Paris"
+       Expected: location queries, not date-appended (timeless)
+       Expected verdict: Supported
+
+
+----------------------------------------------------------------
+ACCEPTANCE CRITERIA
+----------------------------------------------------------------
+
+  [ ] test_query_generation.py: all 5 non-Ollama tests PASS
+  [ ] "Donald Trump is Dead" produces zero medical/symptom
+      articles in the top 8 evidence items
+  [ ] "Donald Trump is Dead" produces at least 2 articles
+      specifically about Donald Trump
+  [ ] Bare claims without dates have current month+year
+      appended to their retrieval queries
+  [ ] Claims with explicit dates are not double-dated
+  [ ] Ollama failure causes silent fallback to deterministic
+      queries — no exception propagates to the user
+  [ ] Total Gemini calls per query remains exactly 1
+  [ ] SearchPlanner never returns duplicate evidence items
+      by url_or_id
+
+================================================================
+END OF SPEC
+================================================================
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-07T09:13:37+05:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+Its good proceed
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-07T09:16:18+05:00.
+</ADDITIONAL_METADATA>

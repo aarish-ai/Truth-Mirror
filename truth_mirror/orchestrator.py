@@ -18,9 +18,12 @@ from truth_mirror.context_tracker import ContextTracker
 from truth_mirror.triangulation import HostileSourceTriangulator
 from truth_mirror.temporal_validator import TemporalValidator
 from truth_mirror.gemini_analyzer import GeminiAnalyzer
-from truth_mirror.agent import ReActAgent
-from truth_mirror.llm_client import LLMClient
+from truth_mirror.kg_verifier import KGVerifier
+from truth_mirror.narrative_clusterer import NarrativeClusterer
+from truth_mirror.local_decomposer import LocalDecomposer
 import json
+import os
+from truth_mirror.eval_logger import EvalLogger
 
 
 class TruthMirrorPipeline:
@@ -32,11 +35,24 @@ class TruthMirrorPipeline:
         self.triangulator = HostileSourceTriangulator()
         self.temporal_validator = TemporalValidator()
         self.gemini_analyzer = GeminiAnalyzer()
-        self.llm_client = LLMClient()
+        self.local_decomposer = LocalDecomposer()
+        self.kg_verifier = KGVerifier()
+        self.narrative_clusterer = NarrativeClusterer()
+        self.eval_logger = EvalLogger()
+        
+        from truth_mirror.query_generator import QueryGenerator
+        from truth_mirror.search_planner import SearchPlanner
+        self.query_generator = QueryGenerator()
+        self.search_planner = SearchPlanner(self.retriever, self.query_generator)
 
     def verify(self, claim: str) -> VerificationResult:
         warnings: list[str] = []
         missing_info: list[str] = []
+        sub_results = []
+        all_evidence = []
+        
+        GeminiAnalyzer.reset_call_count()
+        
         normalized = normalize_claim(claim)
         
         is_valid, temp_reason = self.temporal_validator.validate(normalized.normalized)
@@ -61,30 +77,52 @@ class TruthMirrorPipeline:
         if normalized.is_time_sensitive:
             warnings.append("time-sensitive-claim-needs-fresh-sources")
 
+        try:
+            entities = self.entity_resolver.resolve_entities(normalized.normalized)
+        except Exception as e:
+            entities = []
+            warnings.append(f"entity-resolution-failed: {str(e)}")
+
+        try:
+            context = self.context_tracker.track_claim(normalized.normalized, entities)
+        except Exception as e:
+            from truth_mirror.models import ClaimContext
+            context = ClaimContext()
+            warnings.append(f"context-tracking-failed: {str(e)}")
+            
+        if getattr(context, "background_summary", None):
+            warnings.append(f"context-warning: {context.background_summary}")
+
+        dec = decompose_claim(normalized.normalized)
+        if dec.interpretive_fragments:
+            warnings.append("contains-opinionated-language")
+        warnings.extend("hidden-premise: " + p for p in dec.hidden_premises)
+
+        if os.getenv("ENABLE_OLLAMA_DECOMPOSITION", "true").lower() == "true":
+            raw_sub_claims = self.local_decomposer.decompose(normalized.normalized)
+        else:
+            raw_sub_claims = dec.sub_claims
+
         claim_type = detect_claim_type(normalized.normalized)
-        entities = self.entity_resolver.resolve_entities(normalized.normalized)
-        context = self.context_tracker.track_claim(normalized.normalized, entities)
-
-        sub_results = []
         
-        def tool_decompose(q: str) -> str:
-            """Decompose the claim into subclaims."""
-            dec = decompose_claim(q)
-            if dec.interpretive_fragments:
-                warnings.append("contains-opinionated-language")
-            warnings.extend("hidden-premise: " + p for p in dec.hidden_premises)
-            return json.dumps(dec.sub_claims)
-
-        def tool_verify_subclaim(subclaim: str) -> str:
-            """Verify a single subclaim and return a summary."""
-            verifier_cls = get_verifier_class(claim_type)
-            verifier = verifier_cls(self.retriever, self.stance_analyzer)
-            sr = verifier.verify_subclaim(subclaim, context={"context": context, "entities": entities, "claim_type": claim_type})
+        for subclaim in raw_sub_claims:
+            from truth_mirror.normalization import inject_temporal_context
+            from truth_mirror.ranking import rank_evidence
+            from truth_mirror.verdict import build_subclaim_result
             
-            supporting = [e.url_or_id for e in sr.evidence if e.stance == "supports" and e.url_or_id]
-            contradicting = [e.url_or_id for e in sr.evidence if e.stance == "contradicts" and e.url_or_id]
+            enriched_subclaim, has_date = inject_temporal_context(subclaim)
+            evidence_items, queries_used = self.search_planner.retrieve_for_subclaim(
+                enriched_subclaim, claim_type, has_date
+            )
             
-            is_hc, t_score, t_reason = self.triangulator.triangulate(subclaim, supporting, contradicting)
+            ranked = rank_evidence(enriched_subclaim, evidence_items)[:4]
+            for item in ranked:
+                item.stance = self.stance_analyzer.detect(subclaim, item)
+            
+            sr = build_subclaim_result(subclaim, ranked)
+            sr.provenance.append(f"Queries used: {queries_used}")
+            
+            is_hc, t_score, t_reason = self.triangulator.triangulate(subclaim, sr.evidence)
             sr.provenance.append(f"Triangulation: {t_reason}")
             
             _, _, abstain_warnings = compute_uncertainty(sr.evidence, sr.confidence)
@@ -94,38 +132,14 @@ class TruthMirrorPipeline:
                 missing_info.append(f"No evidence retrieved for: {subclaim}")
                 
             sub_results.append(sr)
-            return f"Status: {sr.status}, Confidence: {sr.confidence}. Sources: {len(sr.evidence)}."
-
-        tools = {
-            "decompose_claim": tool_decompose,
-            "verify_subclaim": tool_verify_subclaim
-        }
-        
-        agent = ReActAgent(self.llm_client, tools)
-        react_answer = agent.run(claim)
-
-        all_evidence = []
-        for sr in sub_results:
             all_evidence.extend(sr.evidence)
-            
-        if not sub_results:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.warning("Agent failed to use tools. Falling back to linear verification.")
-            try:
-                subclaims_json = tool_decompose(claim)
-                for sc in json.loads(subclaims_json):
-                    tool_verify_subclaim(sc)
-                for sr in sub_results:
-                    all_evidence.extend(sr.evidence)
-            except Exception as e:
-                logger.error(f"Linear fallback failed: {e}")
-            
-        gemini_result = self.gemini_analyzer.synthesize(
-            claim, all_evidence
-        )
 
-        result = aggregate_verdict(
+        if os.getenv("ENABLE_KG_VERIFICATION", "true").lower() == "true":
+            kg_item = self.kg_verifier.verify_claim(normalized.normalized)
+            if kg_item:
+                all_evidence.append(kg_item)
+
+        heuristic_result = aggregate_verdict(
             original_claim=claim,
             normalized_claim=normalized.normalized,
             claim_type=claim_type,
@@ -133,17 +147,39 @@ class TruthMirrorPipeline:
             warnings=warnings,
             missing_information=missing_info,
         )
-        
-        if gemini_result:
-            result.final_verdict = gemini_result["verdict"]
-            result.reasoning = f"Gemini Synthesis: {gemini_result['reasoning']}\nReAct Agent reasoning: {react_answer}"
-        else:
-            result.reasoning = f"ReAct Agent reasoning: {react_answer}"
 
-        result.context = context
-        result.narrative_coherence_score = getattr(context, "narrative_coherence_score", 1.0)
-        self.context_tracker.record_verdict(normalized.normalized, result.final_verdict)
-        return result
+        if os.getenv("ENABLE_NARRATIVE_CLUSTERING", "false").lower() == "true":
+            cluster_res = self.narrative_clusterer.cluster_and_detect_divergence(claim, all_evidence)
+            if cluster_res:
+                heuristic_result.geo_divergence_detected = cluster_res.get("divergence_detected", False)
+                if heuristic_result.geo_divergence_detected:
+                    heuristic_result.warnings.append(cluster_res.get("divergence_summary", ""))
+
+        gemini_result = self.gemini_analyzer.synthesize(claim, all_evidence)
+        if gemini_result:
+            heuristic_result.final_verdict = gemini_result.get("verdict", heuristic_result.final_verdict)
+            heuristic_result.reasoning = f"Gemini Synthesis: {gemini_result.get('reasoning', '')}"
+            if "confidence" in gemini_result:
+                heuristic_result.confidence = gemini_result["confidence"]
+            if "evidence_summary" in gemini_result:
+                heuristic_result.evidence_summary = gemini_result["evidence_summary"]
+
+        heuristic_result.context = context
+        heuristic_result.narrative_coherence_score = getattr(context, "narrative_coherence_score", 1.0)
+        self.context_tracker.record_verdict(normalized.normalized, heuristic_result.final_verdict)
+        
+        # Log the component-level output
+        self.eval_logger.log_run(
+            original_query=claim,
+            decomposed_claims=raw_sub_claims,
+            context=context,
+            entities=entities,
+            sub_results=sub_results,
+            gemini_result=gemini_result,
+            final_verdict=heuristic_result.final_verdict
+        )
+        
+        return heuristic_result
 
     @staticmethod
     def to_json(result: VerificationResult) -> dict:

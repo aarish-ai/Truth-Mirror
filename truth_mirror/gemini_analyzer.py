@@ -20,6 +20,12 @@ logger = logging.getLogger(__name__)
 
 class GeminiAnalyzer:
     """Synthesizes evidence using the Gemini API to produce a reasoned verdict."""
+    
+    _call_count = 0
+    
+    @classmethod
+    def reset_call_count(cls):
+        cls._call_count = 0
 
     def __init__(self):
         if not DEPENDENCIES_MET:
@@ -43,6 +49,13 @@ class GeminiAnalyzer:
         Returns a dictionary with 'verdict', 'confidence', 'reasoning', 'evidence_summary'
         or None if disabled or API fails.
         """
+        max_calls = int(os.getenv("MAX_GEMINI_CALLS_PER_QUERY", "1"))
+        if GeminiAnalyzer._call_count >= max_calls:
+            logger.warning(f"Gemini call budget ({max_calls}) exhausted. Skipping synthesis.")
+            return None
+            
+        GeminiAnalyzer._call_count += 1
+        
         if not self.enabled:
             return None
 
@@ -64,6 +77,13 @@ Evidence:
 {evidence_text}
 
 Analyze the evidence and determine if the claim is Supported, Partially supported, Contradicted, Unsupported, or Unclear.
+
+Apply deductive temporal reasoning when analyzing the evidence:
+1. Terms of office: If the claim date falls within a known term of office, deduce that the person holds/held the office.
+2. Alive status: If the person is shown as alive and there is no evidence of death, deduce they are still alive.
+3. Marriages: If the person is shown as married and there is no evidence of divorce or death, deduce they are still married.
+4. Prison tenures: If the person is shown as jailed and there is no evidence of release, deduce they are still in jail.
+CRITICAL CONSTRAINT: Base your reasoning logically ONLY on the provided evidence. Do not hallucinate outside knowledge.
 
 You must respond ONLY with a valid JSON object using the exact schema below. Do not include markdown formatting or extra text outside the JSON.
 
