@@ -83,6 +83,7 @@ Apply deductive temporal reasoning when analyzing the evidence:
 2. Alive status: If the person is shown as alive and there is no evidence of death, deduce they are still alive.
 3. Marriages: If the person is shown as married and there is no evidence of divorce or death, deduce they are still married.
 4. Prison tenures: If the person is shown as jailed and there is no evidence of release, deduce they are still in jail.
+5. If a claim asserts an ongoing present state (e.g., 'is happening', 'is a war'), and the evidence only describes past or 'brief' events without explicitly confirming current continuation, you MUST evaluate it as Unsupported or Contradicted.
 CRITICAL CONSTRAINT: Base your reasoning logically ONLY on the provided evidence. Do not hallucinate outside knowledge.
 
 You must respond ONLY with a valid JSON object using the exact schema below. Do not include markdown formatting or extra text outside the JSON.

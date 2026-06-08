@@ -13,14 +13,22 @@ REGISTRY = CredibilityRegistry.load(
     str(Path(__file__).with_name("credibility_registry.json"))
 )
 
-_encoder = SentenceTransformer("all-MiniLM-L6-v2")
+_encoder = None
 
+def get_encoder():
+    global _encoder
+    if _encoder is None:
+        from sentence_transformers import SentenceTransformer
+        _encoder = SentenceTransformer("all-MiniLM-L6-v2")
+    return _encoder
 
 def _semantic_similarity(a: str, b: str) -> float:
     if not a.strip() or not b.strip():
         return 0.0
-    emb_a = _encoder.encode(a, convert_to_tensor=True)
-    emb_b = _encoder.encode(b, convert_to_tensor=True)
+    from sentence_transformers import util
+    enc = get_encoder()
+    emb_a = enc.encode(a, convert_to_tensor=True)
+    emb_b = enc.encode(b, convert_to_tensor=True)
     # Clamp between 0 and 1
     return max(0.0, float(util.cos_sim(emb_a, emb_b)[0][0]))
 

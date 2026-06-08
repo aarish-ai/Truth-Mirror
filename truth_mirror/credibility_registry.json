@@ -14,5 +14,18 @@
     "cdc": 0.97,
     "world bank": 0.96,
     "united nations": 0.96
+  },
+  "geo_credibility_overrides": {
+    "reuters": 0.95,
+    "apnews": 0.94,
+    "bbc": 0.88,
+    "aljazeera": 0.75,
+    "france24": 0.82,
+    "dw": 0.83,
+    "tass": 0.45,
+    "rt": 0.40,
+    "cgtn": 0.42,
+    "xinhua": 0.42,
+    "wikipedia": 0.55
   }
 }

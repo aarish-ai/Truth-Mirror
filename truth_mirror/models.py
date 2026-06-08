@@ -97,3 +97,56 @@ class VerificationResult:
     source_diversity_score: float = 0.0
     human_review_recommended: bool = False
     generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+@dataclass(slots=True)
+class GeoActor:
+    name: str
+    role: str
+    stated_position: str
+
+@dataclass(slots=True)
+class GeoNarrative:
+    bloc: str
+    claim: str
+    evidence_strength: str  # strong|moderate|weak
+    key_evidence: list[str]
+    known_bias: str
+
+@dataclass(slots=True)
+class GeoStory:
+    headline: str
+    background: str
+    current_situation: str
+    key_actors: list[GeoActor]
+    timeline_hints: list[str]
+    sources_agreeing_on: str
+
+@dataclass(slots=True)
+class GeoDisputeAnalysis:
+    undisputed_facts: list[str]
+    contested_claims: list[str]
+    narratives: list[GeoNarrative]
+    most_likely_ground_truth: str
+    ground_truth_confidence: str  # high|medium|low
+    ground_truth_reasoning: str
+
+@dataclass(slots=True)
+class GeopoliticalResult:
+    original_claim: str
+    is_geopolitical: bool
+    rejection_reason: str = ""   # populated if not geopolitical
+    verdict: str = "Unclear"
+    confidence: float = 0.0
+    verdict_reasoning: str = ""
+    source_agreement_level: str = "none"
+    story: GeoStory | None = None
+    has_dispute: bool = False
+    dispute_analysis: GeoDisputeAnalysis | None = None
+    key_sources: list[dict] = field(default_factory=list)
+    missing_evidence: list[str] = field(default_factory=list)
+    sub_claims: list[str] = field(default_factory=list)
+    evidence_count: int = 0
+    generated_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )

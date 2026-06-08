@@ -8,6 +8,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from truth_mirror import TruthMirrorPipeline
+from truth_mirror.models import GeopoliticalResult
+from dataclasses import asdict
 
 BASE_DIR = Path(__file__).parent
 STATIC_DIR = BASE_DIR / "static"
@@ -55,7 +57,10 @@ class TruthMirrorHandler(BaseHTTPRequestHandler):
             self._write_json({"error": "Claim is required"}, status=400)
             return
         result = self.pipeline.verify(claim)
-        self._write_json(self.pipeline.to_json(result), status=200)
+        if isinstance(result, GeopoliticalResult):
+            self._write_json(asdict(result), status=200)
+        else:
+            self._write_json(self.pipeline.to_json(result), status=200)
 
 
 def run_server(host: str = "127.0.0.1", port: int = 8080) -> None:

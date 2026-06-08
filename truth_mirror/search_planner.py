@@ -17,8 +17,8 @@ class SearchPlanner:
         max_results_per_query: int = 8
     ) -> Tuple[List[EvidenceItem], List[str]]:
         try:
-            if hasattr(self.query_generator, "generate"):
-                queries = self.query_generator.generate(sub_claim, claim_type, has_date)
+            if hasattr(self.query_generator, "generate_queries"):
+                queries = self.query_generator.generate_queries(sub_claim, has_date, claim_type)
             else:
                 queries = self.query_generator(sub_claim, claim_type, has_date)
             

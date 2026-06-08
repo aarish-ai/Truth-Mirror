@@ -149,3 +149,51 @@ class RSSAggregator:
             self.cache.set(cache_key, [asdict(item) for item in items])
 
         return items
+
+class BaseConnector:
+    """Base interface for all connectors."""
+    pass
+
+class GoogleNewsRSSConnector(BaseConnector):
+    """Fetches real-time news from Google News RSS feed."""
+    def __init__(self, max_results: int = 8):
+        self.max_results = max_results
+        self.timeout_seconds = 10
+
+    def search(self, query: str) -> list[EvidenceItem]:
+        return self.retrieve(query)
+
+    def retrieve(self, query: str) -> list[EvidenceItem]:
+        api_url = f"https://news.google.com/rss/search?q={urllib.parse.quote(query)}"
+        try:
+            req = urllib.request.Request(api_url, headers={"User-Agent": "TruthMirror/1.0"})
+            with urllib.request.urlopen(req, timeout=self.timeout_seconds) as response:
+                xml_bytes = response.read()
+            root = ET.fromstring(xml_bytes)
+        except Exception:
+            return []
+
+        items: list[EvidenceItem] = []
+        for node in root.findall("./channel/item")[:self.max_results]:
+            title = (node.findtext("title") or "").strip()
+            link = (node.findtext("link") or "").strip()
+            description = (node.findtext("description") or "").strip()
+            pub_date = (node.findtext("pubDate") or datetime.now(timezone.utc).date().isoformat()).strip()
+            
+            if not title or not link:
+                continue
+                
+            items.append(
+                EvidenceItem(
+                    source_title=title,
+                    source_type="news",
+                    publisher="Google News",
+                    date=pub_date,
+                    url_or_id=link,
+                    excerpt=description[:500],
+                    language="en",
+                    independence_key="news:google_news",
+                )
+            )
+            
+        return items

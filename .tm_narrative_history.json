@@ -406,9 +406,69 @@
     "verdict": "Unsupported"
   },
   {
-    "claim": "Donald Trump is Dead",
+    "claim": "Imran Khan is in jail as of June 2026",
     "entities": [],
-    "timestamp": 1780806407.0157301,
+    "timestamp": 1780806406.9964263,
+    "verdict": "Supported"
+  },
+  {
+    "claim": "Imran Khan is not in Jail",
+    "entities": [],
+    "timestamp": 1780806926.832767,
     "verdict": "Contradicted"
+  },
+  {
+    "claim": "There is a War going on between Pakistan and India",
+    "entities": [],
+    "timestamp": 1780807029.3650498,
+    "verdict": "Partially supported"
+  },
+  {
+    "claim": "Shahbaz Sharif is the Current Prime Minister of Pakistan",
+    "entities": [],
+    "timestamp": 1780807298.95561,
+    "verdict": "Supported"
+  },
+  {
+    "claim": "The Pak-Afghan was started by India",
+    "entities": [],
+    "timestamp": 1780807357.730982,
+    "verdict": "Contradicted"
+  },
+  {
+    "claim": "The Pak-India war in May 2025 started by India",
+    "entities": [],
+    "timestamp": 1780807583.8585036,
+    "verdict": "Unclear"
+  },
+  {
+    "claim": "The Pak-India War of May 2025 was started by India",
+    "entities": [],
+    "timestamp": 1780808634.143172,
+    "verdict": "Partially supported"
+  },
+  {
+    "claim": "The Pak India war of May 2025 was Started by India",
+    "entities": [],
+    "timestamp": 1780808875.4564416,
+    "verdict": "Partially supported"
+  },
+  {
+    "claim": "Iran Israel War was started due to Israel Aggression",
+    "entities": [],
+    "timestamp": 1780883885.2764683,
+    "verdict": "Supported"
+  },
+  {
+    "claim": "Israel is conducting a Genocide in Gaza",
+    "entities": [],
+    "timestamp": 1780883998.2165093,
+    "verdict": "Supported"
+  },
+  {
+    "claim": "The Genocide of Gaza was started due to Gaza Aggression",
+    "entities": [],
+    "timestamp": 1780884186.736046,
+    "verdict": "Unsupported"
   }
 ]

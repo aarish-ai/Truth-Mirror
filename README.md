@@ -16,10 +16,12 @@ Truth Mirror has undergone significant architectural enhancements, transitioning
 - **Phase 8 (ReAct Agentic Architecture)**: Implements a ReAct (Reason, Act) agentic loop for dynamic, iterative evidence gathering and reasoning.
 - **Phase 9 (Perspective & Geo-Narrative Capabilities)**: Introduces geo-narrative divergence tracking and an expanded 300+ domain credibility registry for cross-cultural bias analysis.
 - **Phase 10 (Hybrid Deterministic Pipeline)**: Restructured the orchestrator to use a fully deterministic evidence pipeline with exactly one Gemini API call per query for final synthesis. Local LLM (Ollama) is used only for claim decomposition. All retrieval, ranking, stance detection, and triangulation are pure Python with no LLM dependency. ReAct agent preserved as opt-in feature for large models.
+- **Phase 11 (Geopolitical Intelligence Engine)**: Advanced capabilities to detect state-aligned narratives, evaluate source bias, analyze geo-narrative divergence, and provide specialized GeopoliticalResults for complex global disputes.
 
 ## Core Features
 
 - Accepts a natural-language claim
+- **Geopolitical Intelligence Engine** tracks cross-cultural narratives and state-aligned biases
 - Normalizes and decomposes into sub-claims
 - Routes claim type with type-specific hints
 - Retrieves evidence from multiple connectors (Wikipedia, Wikinews, Crossref, GDELT, Semantic Scholar, RSS, Fact-checkers)

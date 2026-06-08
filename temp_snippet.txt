@@ -1,0 +1,29 @@
+USER_EXPLICIT","type":"USER_INPUT","status":"DONE","created_at":"2026-06-03T03:29:24Z","co
+ntent":"<USER_REQUEST>\nOk I am facing some issues getting the API keys for Semantic Scholar and OpenCalais, you can 
+route web scraping if possible or other alternatives for it.\n\nAnd this error occures when intalling Spacay; I've 
+installed Visual Studio build tools but still some error is occuring,can you help fix this\nCollecting 
+spacy-curated-transformers\n  Downloading spacy_curated_transformers-2.1.2-py2.py3-none-any.whl.metadata (2.8 
+kB)\nCollecting curated-transformers<3.0.0,>=2.0.0 (from spacy-curated-transformers)\n  Downloading 
+curated_transformers-2.0.1-py2.py3-none-any.whl.metadata (5.3 kB)\nCollecting curated-tokenizers<3.0.0,>=2.0.0 (from 
+spacy-curated-transformers)\n  Downloading curated_tokenizers-2.0.0.tar.gz (2.3 MB)\n     â”â”â”â”â”â”â”â”â”â”
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” 2.3/2.3 MB 1.9 MB/s  
+0:00:01\n  Installing build dependencies ... done\n  Getting requirements to build wheel ... done\n  Preparing 
+metadata (pyproject.toml) ... done\nRequirement already satisfied: fsspec>=2023.5.0 in .\\venv\\Lib\\site-packages 
+(from spacy-curated-transformers) (2026.4.0)\nCollecting thinc<9.2.0,>=9.0.0.dev4 (from spacy-curated-transformers)\n  
+Downloading thinc-9.1.1.tar.gz (191 kB)\n  Installing build dependencies ... error\n  error: 
+subprocess-exited-with-error\n\n  Ã— installing build dependencies for thinc did not run successfully.\n  â”‚ exit 
+code: 1\n  â•°â”€> [85 lines of output]\n      Ignoring numpy: markers 'python_version < \"3.9\"' don't match your 
+environment\n      Collecting setuptools\n        Using cached setuptools-82.0.1-py3-none-any.whl.metadata (6.5 kB)\n  
+    Collecting cython<3.0,>=0.25\n        Downloading Cython-0.29.37-py2.py3-none-any.whl.metadata (3.1 kB)\n      
+Collecting murmurhash<1.1.0,>=1.0.2\n        Using cached murmurhash-1.0.15-cp314-cp314-win_amd64.whl.metadata (2.3 
+kB)\n      Collecting cymem<2.1.0,>=2.0.2\n        Using cached cymem-2.0.13-cp314-cp314-win_amd64.whl.metadata (9.9 
+kB)\n      Collecting preshed<3.1.0,>=3.0.2\n        Using cached\n<truncated 20443 
+bytes>\nVSSADM~1\\\\AppData\\\\Local\\\\Temp', 'TERM': 'xterm-256color', 'TF_BUILD': 'True', 'TMP': 
+'C:\\\\Users\\\\VSSADM~1\\\\AppData\\\\Local\\\\Temp', 'TMPDIR': 
+'C:\\\\Users\\\\VSSADM~1\\\\AppData\\\\Local\\\\Temp', 'USEPYTHONVERSION_PYTHONLOCATION': 
+'C:\\\\hostedtoolcache\\\\windows\\\\Python\\\\3.8.10\\\\x64', 'USERDOMAIN': 'WIN-CU8INV6766V', 
+'USERDOMAIN_ROAMINGPROFILE': 'WIN-CU8INV6766V', 'USERNAME': 'VssAdministrator', 'USERPROFILE': 
+'C:\\\\Users\\\\VssAdministrator', 'VCPKG_INSTALLATION_ROOT': 'C:\\\\vcpkg', 'VSTS_AGENT_PERFLOG': 
+'C:\\\\agents\\\\perflog', 'VSTS_PROCESS_LOOKUP_ID': 'vsts_175962b3-f397-42b7-b557-a072c6b9de45', 
+'VSTS_SECRET_VARIABLES': '', 'WINDIR': 'C:\\\\Windows', 'WIX': 'C:\\\\Program Files (x86)\\\\WiX Toolset v3.11\\\\', 
+'_': 'C:/

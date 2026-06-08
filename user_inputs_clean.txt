@@ -1,0 +1,165 @@
+<USER_REQUEST>
+I have an architecture redesign ready, can you spin up a multiple sub agent approach to follow this redesign and also fix the decompostion part, it again and again says in the terminal that it fails to decompose the claims.
+Redesign (pushed with message "Specified to Geopoltical, added Explanation and Disagreement Sections)
+------------------------
+# TRUTH MIRROR ΓÇö GEOPOLITICAL INTELLIGENCE ENGINE
+
+## Full Restructure Engineering Specification
+
+### Prepared for: Antigravity Multi-Agent Execution
+
+
+
+---
+
+
+
+## EXECUTIVE SUMMARY
+
+
+
+Truth Mirror is being restructured from a general-purpose claim verifier into a
+
+**dedicated geopolitical intelligence engine**. It will accept international news
+
+claims and return three rich outputs:
+
+
+
+1. **VERDICT** ΓÇö Supported / Partially Supported / Unclear / Partially Unsupported / False,
+
+   with narrative-level source attribution.
+
+2. **STORY** ΓÇö Full contextual background of the geopolitical situation, pulled from
+
+   multiple perspectives, explaining the who/what/when/why of the claim's context.
+
+3. **DISPUTE ANALYSIS** ΓÇö Only shown when sources diverge. Explains WHY they disagree,
+
+   what evidence each side holds, which narrative is better supported, and which
+
+   sources carry known bias.
+
+
+
+Non-geopolitical claims are rejected at the gate with a clear user message.
+
+
+
+Models in use:
+
+- **Qwen2.5:3b via Ollama** ΓÇö claim classification, decomposition, query generation
+
+- **Gemini 2.5 Flash via API** ΓÇö story synthesis, dispute analysis, final verdict
+
+- Future: OpenRouter API key slot for model upgrades (architecture must support it)
+
+
+
+---
+
+
+
+## ARCHITECTURE
+
+
+
+```
+
+USER INPUT (geopolitical claim)
+
+         Γöé
+
+         Γû╝
+
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+
+Γöé  GEO CLASSIFIER     Γöé  ΓåÉ Ollama (Qwen2.5:3b)
+
+Γöé  Is this geopolitical? Γöé  If NO ΓåÆ reject with message
+
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+
+         Γöé YES
+
+         Γû╝
+
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+<truncated 29160 bytes>
+ge, never a verdict
+
+- [ ] Geopolitical claims produce all three outputs: verdict, story, dispute (if applicable)
+
+- [ ] The Story section is non-empty and contains at least 150 words
+
+- [ ] The Dispute Analysis is ONLY shown when `has_dispute: true`
+
+- [ ] Source perspective grouping works (western / non-western / state media)
+
+- [ ] Exactly 1 Gemini API call per geopolitical query
+
+- [ ] eval.txt appends a new block for each run
+
+- [ ] The UI renders the Story panel and Dispute panel correctly
+
+- [ ] `ENABLE_OPENROUTER=true` in .env does not throw import errors
+
+- [ ] All 5 geopolitical test claims produce non-empty story sections
+
+- [ ] Both non-geo claims are correctly rejected
+
+- [ ] Git push succeeds with commit "Geopolitical Intelligence Engine v1"
+
+
+
+---
+
+
+
+## IMPORTANT IMPLEMENTATION NOTES
+
+
+
+1. **Do not delete any existing files.** The existing pipeline must remain functional
+
+   for non-geo claims. Only route geo claims to the new pipeline.
+
+
+
+2. **The Gemini prompt is the most critical component.** Sub-Agent 4 must embed
+
+   the `GEO_SYNTHESIS_PROMPT` string exactly as written. Do not shorten it.
+
+   Light models (Qwen 2.5:3b) handle only decomposition and classification.
+
+   ALL reasoning and synthesis is done by Gemini.
+
+
+
+3. **Evidence volume matters.** The geo pipeline should retrieve up to 20 items
+
+   per run (not just 4). Gemini can handle this context. Increase
+
+   `max_results_per_query` to 8 and run across 3 queries = up to 24 items.
+
+
+
+4. **Perspective tagging is mandatory before Gemini.** Gemini must receive
+
+   evidence already grouped by geopolitical alignment, not a flat list.
+
+   This is what enables the dispute analysis.
+
+
+
+5. **The Story must reference specific sources.** In the Gemini prompt's instruction,
+
+   "cite which sources say what" ΓÇö the story text should say things like
+
+   "According to Reuters..." or "Al Jazeera reported that..." not generic summaries.
+
+```
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-08T07:05:18+05:00.
+</ADDITIONAL_METADATA>

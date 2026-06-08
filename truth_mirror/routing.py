@@ -21,6 +21,7 @@ NEWS_FIRST_CLAIM_TYPES = {
     "political",
     "current_event",
     "breaking news / recent event",
+    "geopolitical",
 }
 
 

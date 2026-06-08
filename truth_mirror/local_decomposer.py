@@ -13,20 +13,23 @@ class LocalDecomposer:
         timeout: int = 15
     ):
         self.ollama_base_url = ollama_base_url or os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-        self.model = model or os.environ.get("OLLAMA_MODEL", "llama3")
+        self.model = model or os.environ.get("OLLAMA_MODEL", "qwen2.5:3b")
         self.timeout = timeout
 
     def decompose(self, claim: str) -> list[str]:
         prompt = f"""Break this claim into simple sub-claims, separating temporal elements from core factual elements.
 Return ONLY a JSON array of strings. No explanation. No markdown.
 
-Ensure the temporal context evaluates the truthfulness for that specific date.
+Ensure the temporal context evaluates the truthfulness for that specific date. Explicitly note if the action is currently ongoing versus historical, making it a "tense-aware" decomposition.
 
 Example input: "Donald Trump is president of USA in June 2026"
 Example output: ["Donald Trump is president of the USA", "The period in question is June 2026"]
 
 Example input: "Donald Trump was president in July 2016"
 Example output: ["Donald Trump is president of the USA", "The period in question is July 2016"]
+
+Example input: "A war is happening today"
+Example output: ["A war is happening", "The action is currently ongoing"]
 
 Claim: "{claim}"
 
@@ -38,6 +41,7 @@ Output:"""
                 "model": self.model,
                 "prompt": prompt,
                 "stream": False,
+                "format": "json",
                 "options": {
                     "temperature": 0.1,
                     "num_predict": 200
@@ -78,10 +82,9 @@ Output:"""
                     raise ValueError("Element is not a non-empty string")
                 
                 item = item.strip()
-                # Condition: Each element must be shorter than the original claim 
-                # OR the list must have more than 1 element
-                if len(item) >= len(claim) and len(subclaims) <= 1:
-                    raise ValueError("Single element is not shorter than the original claim")
+                # Condition: Relaxed length validation
+                if len(item) >= len(claim) * 2 and len(subclaims) <= 1:
+                    raise ValueError("Single element is significantly longer than the original claim")
                     
                 valid_subclaims.append(item)
                 

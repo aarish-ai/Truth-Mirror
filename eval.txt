@@ -97,3 +97,305 @@ Donald Trump is Dead
   Synthesis: The evidence directly contradicts the claim that Donald Trump is dead. Source 4 states that "Donald Trump's second and current tenure as the president of the United States began upon his inauguration as the 47th president on January 20, 2025." This explicitly indicates he is alive and serving as president after this date. Source 3 further mentions "US president Donald Trump" in the context of 2025–2026 negotiations, reinforcing his alive status during that period. Source 2 also refers to his 2024 presidential campaign, implying he was alive and active then. None of the provided sources suggest he is deceased; instead, they consistently portray him as alive and active in the present and near future.
 =================================================================
 
+=================================================================
+1. Original Query:
+Imran Khan is in jail as of June 2026
+
+2. Decomposed Claims:
+  - Imran Khan is in jail
+  - The period in question is June 2026
+
+3. Context & Entities:
+  Entities: []
+  Context: ClaimContext(entities=[], previous_claims=[], background_summary='No recent narrative context found for these entities.', narrative_coherence_score=1.0)
+
+4. Evidence retrieved per subclaim:
+  Subclaim: Unknown
+    - [neutral] https://en.wikipedia.org/wiki/Imprisonment_of_Imran_Khan: 
+    - [neutral] https://en.wikipedia.org/wiki/Imran_Riaz_Khan: 
+    - [supports] https://en.wikipedia.org/wiki/Imran_Khan: 
+    - [insufficient] https://en.wikipedia.org/wiki/2026_in_Pakistan: 
+
+  Subclaim: Unknown
+    - [contradicts] https://en.wikipedia.org/wiki/2026_Alberta_referendums: 
+    - [contradicts] https://en.wikipedia.org/wiki/Timeline_of_the_2026_Iran_war: 
+    - [neutral] https://en.wikipedia.org/wiki/2026_FIFA_World_Cup: 
+    - [neutral] https://en.wikipedia.org/wiki/2026_Iran_war: 
+
+5. Final Gemini Synthesis and Verdict:
+  Verdict: Supported
+  Synthesis: Source 1 explicitly states that the imprisonment of Imran Khan is an "ongoing detention" since his arrest in August 2023. There is no evidence provided in any of the sources to indicate that Imran Khan has been released from jail at any point after August 2023, or specifically before June 2026. Applying the deductive temporal reasoning rule that if a person is shown as jailed and there is no evidence of release, they are still in jail, it can be deduced that Imran Khan is still in jail as of June 2026.
+=================================================================
+
+=================================================================
+1. Original Query:
+Imran Khan is not in Jail
+
+2. Decomposed Claims:
+  - Imran Khan is not currently in jail
+  - The temporal context is unspecified
+
+3. Context & Entities:
+  Entities: []
+  Context: ClaimContext(entities=[], previous_claims=[], background_summary='No recent narrative context found for these entities.', narrative_coherence_score=1.0)
+
+4. Evidence retrieved per subclaim:
+  Subclaim: Unknown
+    - [supports] https://en.wikipedia.org/wiki/Imran_Khan: 
+    - [contradicts] https://en.wikipedia.org/wiki/Imran_Riaz_Khan: 
+    - [neutral] https://en.wikipedia.org/wiki/Virtual_politician: 
+    - [neutral] https://en.wikipedia.org/wiki/Pakistani_political_crisis_%282022%E2%80%93present%29: 
+
+  Subclaim: Unknown
+    - [neutral] https://en.wikipedia.org/wiki/Dynamical_system: 
+    - [insufficient] https://en.wikipedia.org/wiki/ISO_8601: 
+    - [neutral] https://en.wikipedia.org/wiki/Deepfake: 
+    - [neutral] https://en.wikipedia.org/wiki/Presidency_of_Javier_Milei: 
+
+5. Final Gemini Synthesis and Verdict:
+  Verdict: Contradicted
+  Synthesis: Source 3 explicitly states that 'former Prime Minister of Pakistan, Imran Khan, was sentenced to 3 years in prison' and 'Khan was jailed due to numerous charges of corruption'. There is no evidence provided within the given sources to indicate that Imran Khan has been released from jail. Applying the deductive temporal reasoning rule that if a person is shown as jailed and there is no evidence of release, they are still in jail, the claim 'Imran Khan is not in Jail' is directly contradicted by the evidence.
+=================================================================
+
+=================================================================
+1. Original Query:
+There is a War going on between Pakistan and India
+
+2. Decomposed Claims:
+  - A war is occurring between Pakistan and India
+
+3. Context & Entities:
+  Entities: []
+  Context: ClaimContext(entities=[], previous_claims=[], background_summary='No recent narrative context found for these entities.', narrative_coherence_score=1.0)
+
+4. Evidence retrieved per subclaim:
+  Subclaim: Unknown
+    - [insufficient] https://en.wikipedia.org/wiki/2026_Iran_war_ceasefire: 
+    - [neutral] https://en.wikipedia.org/wiki/2026_Afghanistan%E2%80%93Pakistan_war: 
+    - [neutral] https://en.wikipedia.org/wiki/2025_India%E2%80%93Pakistan_conflict: 
+    - [neutral] https://en.wikipedia.org/wiki/India%E2%80%93United_States_relations: 
+
+5. Final Gemini Synthesis and Verdict:
+  Verdict: Partially supported
+  Synthesis: Source 3 explicitly states, 'A brief armed conflict between India and Pakistan began on 7 May 2025'. This confirms that an armed conflict (a form of war) did occur between India and Pakistan. However, the claim uses the present tense 'is going on,' and the evidence describes the 2025 conflict as 'brief.' The evidence does not provide information to confirm that this conflict, or any other, is *currently* ongoing between India and Pakistan. Therefore, while a conflict did happen, its ongoing status at an unspecified present time is not fully confirmed by the evidence.
+=================================================================
+
+=================================================================
+1. Original Query:
+Shahbaz Sharif is the Current Prime Minister of Pakistan
+
+2. Decomposed Claims:
+  - Shahbaz Sharif is the Current Prime Minister of Pakistan
+
+3. Context & Entities:
+  Entities: []
+  Context: ClaimContext(entities=[], previous_claims=[], background_summary='No recent narrative context found for these entities.', narrative_coherence_score=1.0)
+
+4. Evidence retrieved per subclaim:
+  Subclaim: Unknown
+    - [neutral] https://en.wikipedia.org/wiki/Shehbaz_Sharif: 
+    - [neutral] https://en.wikipedia.org/wiki/Pakistan_Muslim_League_%28N%29: 
+    - [neutral] https://en.wikipedia.org/wiki/Hamza_Shahbaz: 
+    - [neutral] https://en.wikipedia.org/wiki/Abbas_Sharif: 
+
+5. Final Gemini Synthesis and Verdict:
+  Verdict: Supported
+  Synthesis: The evidence consistently supports the claim that Shahbaz Sharif is the Current Prime Minister of Pakistan. Source 1 states he 'has served as the prime minister of Pakistan since 2024'. Source 2 refers to him as Pakistan's 'new prime minister'. Source 4 explicitly identifies him as the '23rd and current Prime Minister of Pakistan'. Source 5, a Wikidata query, also lists Shehbaz Sharif as the head of government for Pakistan. All relevant sources confirm his current position.
+=================================================================
+
+=================================================================
+1. Original Query:
+The Pak-Afghan was started by India
+
+2. Decomposed Claims:
+  - The Pak-Afghan war began
+  - The period in question is unspecified
+
+3. Context & Entities:
+  Entities: []
+  Context: ClaimContext(entities=[], previous_claims=[], background_summary='No recent narrative context found for these entities.', narrative_coherence_score=1.0)
+
+4. Evidence retrieved per subclaim:
+  Subclaim: Unknown
+    - [insufficient] https://en.wikipedia.org/wiki/2026_Afghanistan%E2%80%93Pakistan_war: 
+    - [insufficient] https://en.wikipedia.org/wiki/Afghanistan%E2%80%93Pakistan_relations: 
+    - [neutral] https://en.wikipedia.org/wiki/Afghan_conflict: 
+    - [supports] https://en.wikipedia.org/wiki/War_in_Afghanistan_%282001%E2%80%932021%29: 
+
+  Subclaim: Unknown
+    - [neutral] https://en.wikipedia.org/wiki/Timeline_of_the_2026_Iran_war: 
+    - [insufficient] https://en.wikipedia.org/wiki/2026_in_American_television: 
+    - [insufficient] https://en.wikipedia.org/wiki/2025%E2%80%932026_Iranian_protests: 
+    - [insufficient] https://en.wikipedia.org/wiki/2025%E2%80%9326_European_windstorm_season: 
+
+5. Final Gemini Synthesis and Verdict:
+  Verdict: Contradicted
+  Synthesis: Source 1, titled '2026 Afghanistan–Pakistan war', explicitly states that a war began in late February 2026 between Pakistan and Afghanistan 'following Pakistani airstrikes on militant targets in eastern Afghanistan'. This directly contradicts the claim that India started 'The Pak-Afghan' war, as it attributes the start of this specific conflict to Pakistan. No other provided evidence suggests that India started any Pak-Afghan conflict.
+=================================================================
+
+=================================================================
+1. Original Query:
+The Pak-India war in May 2025 started by India
+
+2. Decomposed Claims:
+  - The Pak-India war started in May 2025
+  - The period in question is May 2025
+
+3. Context & Entities:
+  Entities: []
+  Context: ClaimContext(entities=[], previous_claims=[], background_summary='No recent narrative context found for these entities.', narrative_coherence_score=1.0)
+
+4. Evidence retrieved per subclaim:
+  Subclaim: Unknown
+    - [supports] https://en.wikipedia.org/wiki/2025_India%E2%80%93Pakistan_conflict: 
+    - [neutral] https://en.wikipedia.org/wiki/India%E2%80%93Pakistan_wars_and_conflicts: 
+    - [contradicts] https://en.wikipedia.org/wiki/India%E2%80%93Pakistan_war_of_1965: 
+    - [neutral] https://en.wikipedia.org/wiki/2025_Pahalgam_attack: 
+
+  Subclaim: Unknown
+    - [supports] https://en.wikipedia.org/wiki/Question_mark: 
+    - [neutral] https://en.wikipedia.org/wiki/Eurovision_Song_Contest_2025: 
+    - [contradicts] https://en.wikipedia.org/wiki/2026_Alberta_referendums: 
+    - [neutral] https://en.wikipedia.org/wiki/Lok_Sabha: 
+
+5. Final Gemini Synthesis and Verdict:
+  Verdict: Unclear
+  Synthesis: The evidence confirms the existence of an India-Pakistan conflict in May 2025, with Source 1 explicitly mentioning '2025 India–Pakistan conflict' and Source 4 referring to a '2025 Pahalgam attack' on May 2, 2025. However, the evidence does not explicitly state that India started this war. Source 1 notes 'schools damaged in Pak shelling in Poonch, Rajouri', which indicates Pakistan's aggressive actions. Source 4 mentions 'Opinion | 'Indian Threat'' and 'India's hardening policies' in a context where Chinese experts are 'Batting For Pak Over India', suggesting India's actions might have contributed to the tensions or conflict. While these 'hardening policies' could be a precursor, they do not definitively prove India initiated the war. Therefore, while a conflict is supported, the specific claim that India *started* it is neither clearly supported nor contradicted by the provided information.
+=================================================================
+
+=================================================================
+1. Original Query:
+The Pak-India War of May 2025 was started by India
+
+2. Decomposed Claims:
+  - The Pak-India War was started by India
+  - The period in question is May 2025
+
+3. Context & Entities:
+  Entities: []
+  Context: ClaimContext(entities=[], previous_claims=[], background_summary='No recent narrative context found for these entities.', narrative_coherence_score=1.0)
+
+4. Evidence retrieved per subclaim:
+  Subclaim: Unknown
+    - [neutral] https://en.wikipedia.org/wiki/India%E2%80%93Pakistan_war_of_1965: 
+    - [neutral] https://en.wikipedia.org/wiki/India%E2%80%93Pakistan_cricket_rivalry: 
+    - [supports] https://en.wikipedia.org/wiki/2025_India%E2%80%93Pakistan_conflict: 
+    - [neutral] https://en.wikipedia.org/wiki/India%E2%80%93Pakistan_war_of_1971: 
+
+  Subclaim: Unknown
+    - [supports] https://en.wikipedia.org/wiki/Question_mark: 
+    - [neutral] https://en.wikipedia.org/wiki/Eurovision_Song_Contest_2025: 
+    - [contradicts] https://en.wikipedia.org/wiki/2026_Alberta_referendums: 
+    - [neutral] https://en.wikipedia.org/wiki/Lok_Sabha: 
+
+5. Final Gemini Synthesis and Verdict:
+  Verdict: Partially supported
+  Synthesis: None (Gemini Synthesis did not return a result)
+=================================================================
+
+=================================================================
+1. Original Query:
+The Pak India war of May 2025 was Started by India
+
+2. Decomposed Claims:
+  - The Pak India war was started by India
+  - The period in question is May 2025
+
+3. Context & Entities:
+  Entities: []
+  Context: ClaimContext(entities=[], previous_claims=[], background_summary='No recent narrative context found for these entities.', narrative_coherence_score=1.0)
+
+4. Evidence retrieved per subclaim:
+  Subclaim: Unknown
+    - [insufficient] https://en.wikipedia.org/wiki/Casualties_of_the_2026_Iran_war: 
+    - [insufficient] https://en.wikipedia.org/wiki/2026_Afghanistan%E2%80%93Pakistan_war: 
+    - [neutral] https://en.wikipedia.org/wiki/India%E2%80%93Pakistan_war_of_1965: 
+    - [neutral] https://en.wikipedia.org/wiki/India%E2%80%93Pakistan_cricket_rivalry: 
+
+  Subclaim: Unknown
+    - [supports] https://en.wikipedia.org/wiki/Question_mark: 
+    - [insufficient] https://en.wikipedia.org/wiki/2025_Pahalgam_attack: 
+    - [neutral] https://en.wikipedia.org/wiki/2025_India%E2%80%93Pakistan_conflict: 
+    - [neutral] https://en.wikipedia.org/wiki/2025%E2%80%9326_ACB_season: 
+
+5. Final Gemini Synthesis and Verdict:
+  Verdict: Partially supported
+  Synthesis: None (Gemini Synthesis did not return a result)
+=================================================================
+
+=================================================================
+1. Original Query:
+Iran Israel War was started due to Israel Aggression
+
+2. Decomposed Claims:
+  - Iran Israel War was started due to Israel Aggression
+
+3. Context & Entities:
+  Entities: []
+  Context: ClaimContext(entities=[], previous_claims=[], background_summary='No recent narrative context found for these entities.', narrative_coherence_score=1.0)
+
+4. Evidence retrieved per subclaim:
+  Subclaim: Unknown
+    - [neutral] https://en.wikipedia.org/wiki/2026_Iran_war: 
+    - [contradicts] https://en.wikipedia.org/wiki/Iran%E2%80%93Israel_relations: 
+    - [neutral] https://en.wikipedia.org/wiki/Twelve-Day_War: 
+    - [neutral] https://en.wikipedia.org/wiki/Reactions_to_the_2026_Iran_war: 
+
+5. Final Gemini Synthesis and Verdict:
+  Verdict: Supported
+  Synthesis: The evidence explicitly states that multiple conflicts between Iran and Israel were initiated by Israel or a joint US-Israel action. Source 3 details the 'Twelve-Day War' in 2025, stating it 'began when Israel bombed military and nuclear' targets. Sources 1 and 4 describe the '2026 Iran war,' both indicating it 'began when the US and Israel launched airstrikes' on Iran. This directly supports the claim that an 'Iran Israel War was started due to Israel Aggression' for these specific conflicts.
+=================================================================
+
+=================================================================
+1. Original Query:
+Israel is conducting a Genocide in Gaza
+
+2. Decomposed Claims:
+  - Israel is conducting a genocide in Gaza
+  - The period in question is current
+
+3. Context & Entities:
+  Entities: []
+  Context: ClaimContext(entities=[], previous_claims=[], background_summary='No recent narrative context found for these entities.', narrative_coherence_score=1.0)
+
+4. Evidence retrieved per subclaim:
+  Subclaim: Unknown
+    - [supports] https://en.wikipedia.org/wiki/Gaza_genocide: 
+    - [neutral] https://en.wikipedia.org/wiki/Academic_and_legal_responses_to_the_Gaza_genocide: 
+    - [neutral] https://en.wikipedia.org/wiki/Gaza_peace_plan: 
+    - [contradicts] https://en.wikipedia.org/wiki/2026_in_Israel: 
+
+  Subclaim: Unknown
+    - [neutral] https://en.wikipedia.org/wiki/Karelian_question: 
+    - [neutral] https://en.wikipedia.org/wiki/Question_Period: 
+    - [neutral] https://en.wikipedia.org/wiki/Question_Period_%28TV_program%29: 
+    - [neutral] https://en.wikipedia.org/wiki/Holocene: 
+
+5. Final Gemini Synthesis and Verdict:
+  Verdict: Supported
+  Synthesis: The evidence directly supports the claim that Israel is conducting a genocide in Gaza. Source 1 explicitly states, "The Gaza genocide is the ongoing, intentional, and systematic destruction of the Palestinian people in the Gaza Strip carried out by Israel." Source 2 refers to "assessments of the conduct of Israel in the Gaza genocide" and notes that "Since late 2023, a growing number of experts have accused the Israeli government of committing" it. Source 3 also mentions "genocide in Gaza" and indicates that "Interim ceasefires in late 2023 and early 2025 collapsed," implying a continuing conflict. The mention of events extending into 'early 2025' and '2026' (Source 4, regarding Israeli actions in Gaza) further reinforces the ongoing nature of the situation described in the claim and other sources. The critical constraint regarding ongoing present states is met by Source 1's explicit use of 'is the ongoing' and the temporal references in Sources 3 and 4.
+=================================================================
+
+=================================================================
+1. Original Query:
+The Genocide of Gaza was started due to Gaza Aggression
+
+2. Decomposed Claims:
+  - The Genocide of Gaza was started due to Gaza Aggression
+
+3. Context & Entities:
+  Entities: []
+  Context: ClaimContext(entities=[], previous_claims=[], background_summary='No recent narrative context found for these entities.', narrative_coherence_score=1.0)
+
+4. Evidence retrieved per subclaim:
+  Subclaim: Unknown
+    - [neutral] https://en.wikipedia.org/wiki/Gaza_war: 
+    - [neutral] https://en.wikipedia.org/wiki/Timeline_of_the_Gaza_war_%283_October_2025_%E2%80%93_present%29: 
+    - [neutral] https://en.wikipedia.org/wiki/International_reactions_to_the_Gaza_war: 
+    - [neutral] https://en.wikipedia.org/wiki/Gaza_Strip_famine: 
+
+5. Final Gemini Synthesis and Verdict:
+  Verdict: Unsupported
+  Synthesis: The provided evidence confirms that various bodies, NGOs, and international figures have referred to Israel's actions or the situation in Gaza as 'genocide' (Source 1, 3). It also details events of the 'Gaza war,' including Israeli attacks and a blockade leading to famine (Source 2, 4). However, none of the sources provide any information or mention that the 'Genocide of Gaza' or the 'Gaza war' was started due to 'Gaza Aggression.' The evidence describes the conflict and its impacts without attributing its origin to 'Gaza Aggression.'
+=================================================================
+

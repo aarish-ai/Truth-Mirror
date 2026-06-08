@@ -8,8 +8,8 @@
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
     :root {
-      --bg-color: #0b0f19;
-      --panel-bg: #111827;
+      --bg-color: #000000;
+      --panel-bg: #0A192F;
       --panel-border: #1f2937;
       --text-main: #f3f4f6;
       --text-muted: #9ca3af;
@@ -18,7 +18,6 @@
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
-      --sidebar-width: 300px;
     }
 
     * { box-sizing: border-box; }
@@ -33,56 +32,7 @@
       overflow: hidden;
     }
 
-    /* Sidebar */
-    .sidebar {
-      width: var(--sidebar-width);
-      background-color: var(--panel-bg);
-      border-right: 1px solid var(--panel-border);
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .sidebar-header {
-      padding: 1.5rem;
-      border-bottom: 1px solid var(--panel-border);
-    }
-    
-    .sidebar-header h2 {
-      margin: 0;
-      font-size: 1.25rem;
-      font-weight: 600;
-      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    
-    .history-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
 
-    .history-item {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--panel-border);
-      border-radius: 8px;
-      padding: 1rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .history-item:hover {
-      background: rgba(255,255,255,0.08);
-      border-color: var(--accent);
-    }
-
-    .history-item.active {
-      border-color: var(--accent);
-      background: rgba(59, 130, 246, 0.1);
-    }
 
     /* Main Content */
     .main-content {
@@ -198,14 +148,16 @@
     /* Panel 1 specific */
     .verdict-box {
       background: rgba(255,255,255,0.03);
-      padding: 1.5rem;
-      border-radius: 8px;
+      padding: 2.5rem 1.5rem;
+      border-radius: 12px;
       margin-bottom: 1.5rem;
-      border-left: 4px solid var(--accent);
+      border: 2px solid var(--panel-border);
+      text-align: center;
+      transition: border-color 0.3s ease;
     }
     
-    .verdict-box h3 { margin: 0 0 0.5rem 0; font-size: 1.5rem; }
-    .verdict-box p { margin: 0; color: var(--text-muted); }
+    .verdict-box h3 { margin: 0 0 0.5rem 0; font-size: 2rem; font-weight: 700; }
+    .verdict-box p { margin: 0; color: var(--text-muted); font-size: 1.1rem; }
 
     .alerts-container {
       display: flex;
@@ -353,21 +305,14 @@
 </head>
 <body>
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <h2>Truth Mirror</h2>
-      <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; margin-bottom: 0;">Global Analysis Engine</p>
-    </div>
-    <div class="history-list" id="historyList">
-      <!-- History items will be injected here -->
-      <div class="empty-state" style="padding: 2rem 1rem;">No history yet.</div>
-    </div>
-  </aside>
+  <!-- Sidebar Removed -->
 
   <!-- Main Content -->
   <main class="main-content">
     <div class="top-bar">
+      <div class="brand" style="display: flex; align-items: center; gap: 0.5rem; margin-right: 1.5rem;">
+        <h2 style="margin: 0; font-size: 1.25rem; font-weight: 600; background: linear-gradient(90deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Truth Mirror</h2>
+      </div>
       <div class="search-box">
         <input type="text" id="claimInput" placeholder="Enter a claim to analyze (e.g., 'The WHO declared mpox a global emergency in 2024')" />
         <button class="btn btn-primary" id="verifyBtn">
@@ -382,68 +327,86 @@
 
     <div id="dashboard" class="dashboard" style="display: none;">
       
-      <!-- Panel 1: Verdict & Stacked Bar -->
-      <div class="panel">
-        <div class="panel-header">
-          <h3 class="panel-title">Verdict Summary</h3>
-          <span id="claimTypeBadge" class="meta-badge"></span>
+      <!-- Panel 1: Verdict + Agreement Meter -->
+      <div class="panel panel-full" style="align-items: center; position: relative;">
+        <div class="panel-header" style="width: 100%; justify-content: center; position: relative;">
+          <h3 class="panel-title" style="text-align: center;">Verdict Summary</h3>
+          <span id="claimTypeBadge" class="meta-badge" style="position: absolute; right: 0;"></span>
         </div>
-        <div id="verdictBox" class="verdict-box">
+        <div id="verdictBox" class="verdict-box" style="width: 100%; max-width: 800px;">
           <h3 id="verdictTitle">Evaluating...</h3>
           <p id="verdictConfidence">Confidence: --</p>
         </div>
 
-        <div style="margin-bottom: 1rem;">
-          <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Geographic Perspectives (Stance)</h4>
-          <div id="stackedBarChart"></div>
+        <div style="width: 100%; max-width: 800px; margin-bottom: 1rem;">
+          <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem; text-align: center;">Agreement Meter</h4>
+          <div style="background: rgba(255,255,255,0.1); border-radius: 8px; height: 24px; overflow: hidden; position: relative;">
+            <div id="agreementMeterBar" style="background: var(--accent); height: 100%; width: 0%; transition: width 0.5s ease;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+            <span>Highly Contested</span>
+            <span>Unanimous Agreement</span>
+          </div>
         </div>
 
-        <div class="alerts-container" id="alertsContainer"></div>
+        <div class="alerts-container" id="alertsContainer" style="width: 100%; max-width: 800px;"></div>
       </div>
 
-      <!-- Panel 2: Reasoning & Analysis -->
-      <div class="panel">
+      <!-- Panel 2: THE STORY -->
+      <div class="panel panel-full" id="theStoryPanel">
         <div class="panel-header">
-          <h3 class="panel-title">Reasoning &amp; Analysis</h3>
+          <h3 class="panel-title">The Story</h3>
         </div>
-        <p id="reasoningText" class="reasoning-text">No reasoning available yet.</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <div>
+            <h4 style="color: var(--accent); margin-bottom: 0.5rem;">Background</h4>
+            <div id="storyBackground" style="color: #d1d5db; font-size: 0.9rem; line-height: 1.6;">Loading...</div>
+          </div>
+          <div>
+            <h4 style="color: var(--accent); margin-bottom: 0.5rem;">Current Situation</h4>
+            <div id="storyCurrent" style="color: #d1d5db; font-size: 0.9rem; line-height: 1.6;">Loading...</div>
+          </div>
+          <div>
+            <h4 style="color: var(--accent); margin-bottom: 0.5rem;">Key Actors</h4>
+            <div id="storyActors" style="color: #d1d5db; font-size: 0.9rem; line-height: 1.6;">Loading...</div>
+          </div>
+          <div>
+            <h4 style="color: var(--success); margin-bottom: 0.5rem;">Sources Agree On</h4>
+            <div id="storyAgree" style="color: #d1d5db; font-size: 0.9rem; line-height: 1.6;">Loading...</div>
+          </div>
+        </div>
       </div>
 
-      <!-- Panel 3: Evidence Summary (full-width) -->
+      <!-- Panel 3: DISPUTE ANALYSIS -->
+      <div class="panel panel-full" id="disputePanel" style="display: none;">
+        <div class="panel-header">
+          <h3 class="panel-title" style="color: var(--danger);">Dispute Analysis</h3>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+          <div style="background: rgba(16, 185, 129, 0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);">
+            <h4 style="color: var(--success); margin-top: 0; margin-bottom: 0.5rem;">Undisputed Facts</h4>
+            <ul id="undisputedFacts" style="margin: 0; padding-left: 1.2rem; color: #d1d5db; font-size: 0.9rem;"></ul>
+          </div>
+          <div style="background: rgba(239, 68, 68, 0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);">
+            <h4 style="color: var(--danger); margin-top: 0; margin-bottom: 0.5rem;">Contested Claims</h4>
+            <ul id="contestedClaims" style="margin: 0; padding-left: 1.2rem; color: #d1d5db; font-size: 0.9rem;"></ul>
+          </div>
+        </div>
+        <div id="narrativesGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+          <!-- Narratives injected here -->
+        </div>
+        <div style="background: rgba(59, 130, 246, 0.1); padding: 1.2rem; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3);">
+          <h4 style="color: #60a5fa; margin-top: 0; margin-bottom: 0.5rem;">Most Likely Ground Truth</h4>
+          <div id="groundTruthText" style="color: #d1d5db; font-size: 0.95rem; line-height: 1.6;"></div>
+        </div>
+      </div>
+
+      <!-- Panel 4: Source Perspective Map -->
       <div class="panel panel-full">
         <div class="panel-header">
-          <h3 class="panel-title">Evidence Summary</h3>
-          <span id="evidenceCountBadge" class="meta-badge">0 sources</span>
+          <h3 class="panel-title">Source Perspective Map</h3>
         </div>
-        <div id="evidenceSummaryBox" class="evidence-summary">No evidence summary available yet.</div>
-      </div>
-
-      <!-- Panel 4: Key Sources -->
-      <div class="panel">
-        <div class="panel-header">
-          <h3 class="panel-title">Key Sources</h3>
-          <span id="sourceCountBadge" class="meta-badge">0</span>
-        </div>
-        <ul id="keySourcesList" class="source-list"></ul>
-      </div>
-
-      <!-- Panel 5: Network Graph -->
-      <div class="panel">
-        <div class="panel-header">
-          <h3 class="panel-title">Evidence Network</h3>
-        </div>
-        <div id="networkGraph"></div>
-      </div>
-
-      <!-- Panel 6: Hidden Stories -->
-      <div class="panel panel-full">
-        <div class="panel-header">
-          <h3 class="panel-title">Hidden Stories &amp; Omissions</h3>
-          <span class="tag" id="hiddenStoryCount">0 Detected</span>
-        </div>
-        <div id="hiddenStoryContainer">
-          <!-- Collapsible stories will be injected here -->
-        </div>
+        <div id="stackedBarChart"></div>
       </div>
 
     </div>
@@ -459,7 +422,6 @@
   <script>
     // State
     const state = {
-      history: [],
       currentResult: null
     };
 
@@ -472,14 +434,20 @@
       exportBtn: document.getElementById("exportBtn"),
       dashboard: document.getElementById("dashboard"),
       initialState: document.getElementById("initialState"),
-      historyList: document.getElementById("historyList"),
       verdictTitle: document.getElementById("verdictTitle"),
       verdictConfidence: document.getElementById("verdictConfidence"),
       alertsContainer: document.getElementById("alertsContainer"),
       stackedBarChart: document.getElementById("stackedBarChart"),
-      networkGraph: document.getElementById("networkGraph"),
-      hiddenStoryContainer: document.getElementById("hiddenStoryContainer"),
-      hiddenStoryCount: document.getElementById("hiddenStoryCount")
+      agreementMeterBar: document.getElementById("agreementMeterBar"),
+      storyBackground: document.getElementById("storyBackground"),
+      storyCurrent: document.getElementById("storyCurrent"),
+      storyActors: document.getElementById("storyActors"),
+      storyAgree: document.getElementById("storyAgree"),
+      disputePanel: document.getElementById("disputePanel"),
+      undisputedFacts: document.getElementById("undisputedFacts"),
+      contestedClaims: document.getElementById("contestedClaims"),
+      narrativesGrid: document.getElementById("narrativesGrid"),
+      groundTruthText: document.getElementById("groundTruthText")
     };
 
     // Event Listeners
@@ -492,7 +460,6 @@
     window.addEventListener("resize", () => {
       if (state.currentResult) {
         drawStackedBar(state.currentResult);
-        drawNetworkGraph(state.currentResult);
       }
     });
 
@@ -517,10 +484,6 @@
         const data = await res.json();
         state.currentResult = data;
         
-        // Add to history
-        state.history.unshift({ claim: data.original_claim || claim, verdict: data.final_verdict, date: new Date().toLocaleTimeString() });
-        renderHistory();
-        
         // Render Dashboard
         elements.initialState.style.display = "none";
         elements.dashboard.style.display = "grid";
@@ -528,8 +491,6 @@
         
         renderVerdict(data);
         drawStackedBar(data);
-        drawNetworkGraph(data);
-        renderHiddenStories(data);
         
       } catch (err) {
         alert("Error verifying claim: " + err.message);
@@ -538,23 +499,6 @@
         elements.verifyLoader.style.display = "none";
         elements.verifyBtn.disabled = false;
       }
-    }
-
-    function renderHistory() {
-      if (state.history.length === 0) return;
-      elements.historyList.innerHTML = state.history.map((h, i) => `
-        <div class="history-item ${i === 0 ? 'active' : ''}" onclick="loadHistoryItem(${i})">
-          <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">${h.date}</div>
-          <div style="font-weight: 500; font-size: 0.95rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">${h.claim}</div>
-          <div class="tag" style="margin-top: 0.5rem; background: rgba(59, 130, 246, 0.2); color: #93c5fd;">${h.verdict || 'Unknown'}</div>
-        </div>
-      `).join("");
-    }
-
-    function loadHistoryItem(index) {
-      document.querySelectorAll('.history-item').forEach((el, i) => {
-        el.classList.toggle('active', i === index);
-      });
     }
 
     function renderVerdict(data) {
@@ -570,52 +514,79 @@
       const verdictLower = (data.final_verdict || "").toLowerCase();
       if (verdictLower.includes('supported') && !verdictLower.includes('un')) {
         elements.verdictTitle.style.color = 'var(--success)';
-        elements.verdictTitle.parentElement.style.borderLeftColor = 'var(--success)';
+        elements.verdictTitle.parentElement.style.borderColor = 'var(--success)';
       } else if (verdictLower.includes('contradicted') || verdictLower.includes('unsupported')) {
         elements.verdictTitle.style.color = 'var(--danger)';
-        elements.verdictTitle.parentElement.style.borderLeftColor = 'var(--danger)';
+        elements.verdictTitle.parentElement.style.borderColor = 'var(--danger)';
       } else {
         elements.verdictTitle.style.color = 'var(--warning)';
-        elements.verdictTitle.parentElement.style.borderLeftColor = 'var(--warning)';
+        elements.verdictTitle.parentElement.style.borderColor = 'var(--warning)';
       }
 
       elements.verdictConfidence.textContent = `Confidence: ${((data.confidence || 0) * 100).toFixed(1)}%`;
 
-      // Reasoning panel
-      const reasoningText = document.getElementById('reasoningText');
-      if (reasoningText) {
-        reasoningText.textContent = data.reasoning || 'No reasoning provided.';
-      }
-
-      // Evidence summary panel
-      const evidenceSummaryBox = document.getElementById('evidenceSummaryBox');
-      const evidenceCountBadge = document.getElementById('evidenceCountBadge');
-      if (evidenceSummaryBox) {
-        evidenceSummaryBox.textContent = data.evidence_summary || 'No evidence summary available.';
-      }
-      if (evidenceCountBadge) {
-        const count = (data.key_sources || []).length;
-        evidenceCountBadge.textContent = count + ' source' + (count !== 1 ? 's' : '');
-      }
-
-      // Key sources panel
-      const keySourcesList = document.getElementById('keySourcesList');
-      const sourceCountBadge = document.getElementById('sourceCountBadge');
-      if (keySourcesList) {
-        const sources = data.key_sources || [];
-        if (sourceCountBadge) sourceCountBadge.textContent = sources.length;
-        if (sources.length === 0) {
-          keySourcesList.innerHTML = '<li style="color: var(--text-muted);">No key sources identified.</li>';
-        } else {
-          keySourcesList.innerHTML = sources.map((src, i) => {
-            const isUrl = src && src.startsWith('http');
-            return `<li><span style="color: var(--text-muted); flex-shrink:0;">${i + 1}.</span>
-              ${isUrl
-                ? `<a href="${src}" target="_blank" rel="noopener">${src}</a>`
-                : `<span>${src}</span>`
-              }</li>`;
-          }).join('');
+      // Agreement Meter
+      if (elements.agreementMeterBar) {
+        let agreePercent = (data.confidence || 0) * 100;
+        if (data.geo_divergence_detected || data.has_dispute) {
+            agreePercent = Math.min(agreePercent, 50);
         }
+        elements.agreementMeterBar.style.width = agreePercent + '%';
+        if (agreePercent < 40) elements.agreementMeterBar.style.background = 'var(--danger)';
+        else if (agreePercent < 70) elements.agreementMeterBar.style.background = 'var(--warning)';
+        else elements.agreementMeterBar.style.background = 'var(--success)';
+      }
+
+      // The Story Panel
+      if (data.the_story) {
+         elements.storyBackground.textContent = data.the_story.background || "No background available.";
+         elements.storyCurrent.textContent = data.the_story.current_situation || "No current situation available.";
+         elements.storyActors.textContent = (data.the_story.key_actors || []).join(", ") || "None identified.";
+         elements.storyAgree.textContent = (data.the_story.sources_agree_on || []).join(", ") || "No strong agreement found.";
+      } else {
+         elements.storyBackground.textContent = (data.context && data.context.background_summary) || data.evidence_summary || "No background available.";
+         elements.storyCurrent.textContent = data.reasoning || "No current situation available.";
+         elements.storyActors.textContent = (data.context && data.context.entities ? data.context.entities.map(e => e.name).join(", ") : "None identified.");
+         elements.storyAgree.textContent = "Data unavailable.";
+      }
+
+      // Dispute Analysis Panel
+      const hasDispute = data.has_dispute || data.geo_divergence_detected || false;
+      if (hasDispute) {
+         elements.disputePanel.style.display = "block";
+         if (data.dispute_analysis) {
+             elements.undisputedFacts.innerHTML = (data.dispute_analysis.undisputed_facts || []).map(f => `<li>${f}</li>`).join('') || "<li>None</li>";
+             elements.contestedClaims.innerHTML = (data.dispute_analysis.contested_claims || []).map(c => `<li>${c}</li>`).join('') || "<li>None</li>";
+             elements.groundTruthText.textContent = data.dispute_analysis.most_likely_ground_truth || "Unknown.";
+             
+             let narrativesHtml = "";
+             if (data.dispute_analysis.narratives) {
+                 data.dispute_analysis.narratives.forEach(n => {
+                     narrativesHtml += `<div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; border: 1px solid var(--panel-border);">
+                        <h5 style="margin-top: 0; margin-bottom: 0.5rem; color: var(--accent);">${n.name || 'Narrative'}</h5>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">${n.core_argument || n.description || ''}</p>
+                     </div>`;
+                 });
+             }
+             elements.narrativesGrid.innerHTML = narrativesHtml || "<div style='color: var(--text-muted); font-size: 0.9rem;'>No narratives structured yet.</div>";
+         } else {
+             elements.undisputedFacts.innerHTML = "<li>Awaiting detailed dispute data.</li>";
+             elements.contestedClaims.innerHTML = "<li>Awaiting detailed dispute data.</li>";
+             elements.groundTruthText.textContent = "Awaiting detailed dispute data.";
+             
+             let narrativesHtml = "";
+             if (data.narrative_perspectives) {
+                 Object.entries(data.narrative_perspectives).forEach(([k, v]) => {
+                     narrativesHtml += `<div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; border: 1px solid var(--panel-border);">
+                        <h5 style="margin-top: 0; margin-bottom: 0.5rem; color: var(--accent);">${k}</h5>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">${v}</p>
+                     </div>`;
+                 });
+             }
+             elements.narrativesGrid.innerHTML = narrativesHtml || "<div style='color: var(--text-muted); font-size: 0.9rem;'>No narratives detected.</div>";
+         }
+      } else {
+         elements.disputePanel.style.display = "none";
       }
 
       // Alerts

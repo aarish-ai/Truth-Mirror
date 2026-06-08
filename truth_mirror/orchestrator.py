@@ -29,6 +29,11 @@ from truth_mirror.eval_logger import EvalLogger
 class TruthMirrorPipeline:
     def __init__(self) -> None:
         self.retriever = FreeSourceRetrieval()
+        try:
+            from truth_mirror.retrieval_news import GoogleNewsRSSConnector
+            self.retriever._news_connectors.append(GoogleNewsRSSConnector())
+        except ImportError:
+            pass
         self.stance_analyzer = StanceAnalyzer()
         self.entity_resolver = EntityResolver(use_dbpedia=True)
         self.context_tracker = ContextTracker()
@@ -46,6 +51,21 @@ class TruthMirrorPipeline:
         self.search_planner = SearchPlanner(self.retriever, self.query_generator)
 
     def verify(self, claim: str) -> VerificationResult:
+        from truth_mirror.geo_classifier import GeoClassifier
+        classifier = GeoClassifier()
+        class_res = classifier.classify(claim)
+        if class_res.get("is_geopolitical", False):
+            from truth_mirror.geo_orchestrator import GeopoliticalPipeline
+            geo_pipeline = GeopoliticalPipeline()
+            return geo_pipeline.verify(claim)
+        else:
+            from truth_mirror.models import GeopoliticalResult
+            return GeopoliticalResult(
+                original_claim=claim,
+                is_geopolitical=False,
+                rejection_reason=class_res.get("reason", "Not classified as geopolitical.")
+            )
+
         warnings: list[str] = []
         missing_info: list[str] = []
         sub_results = []
@@ -182,10 +202,13 @@ class TruthMirrorPipeline:
         return heuristic_result
 
     @staticmethod
-    def to_json(result: VerificationResult) -> dict:
-        """Serialise a VerificationResult to a dict guaranteed to include all
+    def to_json(result) -> dict:
+        """Serialise a VerificationResult or GeopoliticalResult to a dict guaranteed to include all
         frontend-required fields: final_verdict, confidence, reasoning,
         evidence_summary, key_sources, and warnings."""
+        from truth_mirror.models import VerificationResult, GeopoliticalResult
+        if isinstance(result, GeopoliticalResult):
+            return asdict(result)
         base = asdict(result)
         # Ensure every field the frontend expects is present with a sane default.
         required_fields = {
