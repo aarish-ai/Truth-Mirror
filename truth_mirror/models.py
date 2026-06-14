@@ -145,6 +145,7 @@ class GeopoliticalResult:
     dispute_analysis: GeoDisputeAnalysis | None = None
     key_sources: list[dict] = field(default_factory=list)
     missing_evidence: list[str] = field(default_factory=list)
+    evidence_by_region: dict[str, list[EvidenceItem]] = field(default_factory=dict)
     sub_claims: list[str] = field(default_factory=list)
     evidence_count: int = 0
     generated_at: str = field(

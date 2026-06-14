@@ -147,7 +147,7 @@ Respond ONLY with this exact JSON (no markdown, no preamble):
 class GeoSynthesizer:
     def __init__(self, client: Any | None = None):
         self.client = client if client else (genai.Client() if GENAI_AVAILABLE else None)
-        self.model_name = "gemini-2.0-flash"
+        self.model_name = "gemini-2.5-flash"
 
     def synthesize(
         self,
@@ -178,28 +178,107 @@ class GeoSynthesizer:
                 evidence_count=evidence_count
             )
 
-        try:
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    temperature=0.2,
+        max_retries = 2
+        
+        data = None
+        last_error = None
+        
+        # 1. Try Gemini 2.5 flash up to 2 times
+        for attempt in range(max_retries):
+            try:
+                import time
+                if attempt > 0:
+                    logger.info(f"Retrying Gemini synthesis (attempt {attempt+1}/{max_retries})...")
+                    time.sleep(2)
+                    
+                response = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        temperature=0.2,
+                    )
                 )
-            )
-            
-            raw_json = response.text
-            if raw_json.startswith("```json"):
-                raw_json = raw_json.strip("` \n").removeprefix("json")
-            data = json.loads(raw_json)
-        except Exception as e:
-            logger.error(f"Gemini synthesis failed: {e}")
+                
+                raw_json = response.text
+                if raw_json.startswith("```json"):
+                    raw_json = raw_json.strip("` \n").removeprefix("json")
+                data = json.loads(raw_json)
+                break # Success
+            except Exception as e:
+                last_error = e
+                logger.warning(f"Gemini synthesis failed on attempt {attempt+1}: {e}")
+        
+        # 2. Fallback to OpenRouter Nemotron
+        if data is None:
+            logger.info("Gemini failed twice. Falling back to Nvidia Nemotron 3 Ultra via OpenRouter.")
+            try:
+                from openai import OpenAI
+                import os
+                
+                api_key = os.environ.get("OPENROUTER_API_KEY")
+                if not api_key or api_key == "your_openrouter_api_key_here":
+                    raise ValueError("OPENROUTER_API_KEY not found in environment.")
+                    
+                client_or = OpenAI(
+                    base_url="https://openrouter.ai/api/v1",
+                    api_key=api_key,
+                )
+                
+                nemotron_prompt = prompt + "\n\nEnsure the response strictly follows the JSON schema with no other text."
+                
+                # First API call with reasoning
+                response_or = client_or.chat.completions.create(
+                    model="nvidia/nemotron-3-ultra-550b-a55b:free",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": nemotron_prompt
+                        }
+                    ],
+                    extra_body={"reasoning": {"enabled": True}}
+                )
+                
+                response_msg = response_or.choices[0].message
+                
+                # Preserve the assistant message with reasoning_details
+                messages = [
+                    {"role": "user", "content": nemotron_prompt},
+                    {
+                        "role": "assistant",
+                        "content": response_msg.content,
+                        "reasoning_details": getattr(response_msg, 'reasoning_details', None)
+                    },
+                    {"role": "user", "content": "Are you sure? Think carefully. Ensure the final response strictly follows the JSON schema with no other text."}
+                ]
+                
+                # Second API call
+                response2 = client_or.chat.completions.create(
+                    model="nvidia/nemotron-3-ultra-550b-a55b:free",
+                    messages=messages,
+                    extra_body={"reasoning": {"enabled": True}}
+                )
+                
+                raw_json = response2.choices[0].message.content
+                # Robust extraction if there's markdown wrapping or extra text
+                import re
+                match = re.search(r'\{.*\}', raw_json, re.DOTALL)
+                if match:
+                    raw_json = match.group(0)
+                data = json.loads(raw_json)
+                
+            except Exception as e:
+                last_error = e
+                logger.error(f"Nemotron fallback synthesis failed: {e}")
+
+        if data is None:
+            logger.error(f"Synthesis failed completely. Last error: {last_error}")
             return GeopoliticalResult(
                 original_claim=claim,
                 is_geopolitical=True,
                 verdict="Unclear",
                 confidence=0.0,
-                verdict_reasoning=f"Synthesis failed due to API or parsing error: {e}",
+                verdict_reasoning=f"Synthesis failed due to API or parsing error: {last_error}",
             )
 
         # Parse Story

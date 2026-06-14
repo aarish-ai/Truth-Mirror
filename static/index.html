@@ -320,6 +320,7 @@
           <div class="loader" id="verifyLoader"></div>
         </button>
       </div>
+      <div id="loadingStatus" style="display: none; margin-top: 0.5rem; font-size: 0.85rem; color: var(--accent); transition: opacity 0.5s;"></div>
       <button class="btn btn-outline" id="exportBtn" disabled>
         Export Report
       </button>
@@ -419,6 +420,14 @@
 
   </main>
 
+  <!-- Geopolitics Domain Modal -->
+  <div id="domainModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+    <div style="background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; padding: 2.5rem 2rem; max-width: 550px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+      <p style="font-size: 1.1rem; line-height: 1.6; margin-top: 0; margin-bottom: 2rem; color: var(--text-main);">Hi, I'm G! The agent working behind this website, I see that you have entered a query that is not currently in my domain. I am built for Geopolitical claim testing only. Thank you for understanding. If you see that this is an error kindly contact at aarishmuhammad.pk@gmail.com</p>
+      <button onclick="document.getElementById('domainModal').style.display = 'none'" class="btn btn-primary" style="width: 100%; justify-content: center;">Close</button>
+    </div>
+  </div>
+
   <script>
     // State
     const state = {
@@ -472,6 +481,30 @@
       elements.verifyLoader.style.display = "block";
       elements.verifyBtn.disabled = true;
 
+      const loadingMessages = [
+        "Processing Claim", 
+        "Decomposing Claim", 
+        "Finding Sources", 
+        "Processing Sources", 
+        "Analyzing Verdict", 
+        "Gemini failed, falling back to Nemotron", 
+        "Piecing it all together"
+      ];
+      let msgIndex = 0;
+      const loadingStatus = document.getElementById("loadingStatus");
+      loadingStatus.style.display = "block";
+      loadingStatus.textContent = loadingMessages[msgIndex];
+      loadingStatus.style.opacity = "1";
+      
+      const msgInterval = setInterval(() => {
+          loadingStatus.style.opacity = "0.5";
+          setTimeout(() => {
+              msgIndex = Math.min(msgIndex + 1, loadingMessages.length - 1);
+              loadingStatus.textContent = loadingMessages[msgIndex];
+              loadingStatus.style.opacity = "1";
+          }, 250);
+      }, 5000);
+
       try {
         const res = await fetch("/api/verify", {
           method: "POST",
@@ -482,6 +515,12 @@
         if (!res.ok) throw new Error("Verification failed");
         
         const data = await res.json();
+        
+        if (data.is_geopolitical === false) {
+          document.getElementById('domainModal').style.display = 'flex';
+          return;
+        }
+
         state.currentResult = data;
         
         // Render Dashboard
@@ -498,6 +537,8 @@
         elements.btnText.style.display = "block";
         elements.verifyLoader.style.display = "none";
         elements.verifyBtn.disabled = false;
+        clearInterval(msgInterval);
+        document.getElementById("loadingStatus").style.display = "none";
       }
     }
 
@@ -538,11 +579,11 @@
       }
 
       // The Story Panel
-      if (data.the_story) {
-         elements.storyBackground.textContent = data.the_story.background || "No background available.";
-         elements.storyCurrent.textContent = data.the_story.current_situation || "No current situation available.";
-         elements.storyActors.textContent = (data.the_story.key_actors || []).join(", ") || "None identified.";
-         elements.storyAgree.textContent = (data.the_story.sources_agree_on || []).join(", ") || "No strong agreement found.";
+      if (data.story) {
+         elements.storyBackground.textContent = data.story.background || "No background available.";
+         elements.storyCurrent.textContent = data.story.current_situation || "No current situation available.";
+         elements.storyActors.textContent = (data.story.key_actors || []).map(a => `${a.name} (${a.role})`).join(', ') || 'None identified.';
+         elements.storyAgree.textContent = data.story.sources_agreeing_on || "No strong agreement found.";
       } else {
          elements.storyBackground.textContent = (data.context && data.context.background_summary) || data.evidence_summary || "No background available.";
          elements.storyCurrent.textContent = data.reasoning || "No current situation available.";

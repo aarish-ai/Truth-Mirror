@@ -39,7 +39,7 @@ class QueryGenerator:
                     "num_predict": 300
                 }
             }
-            resp = requests.post(url, json=payload, timeout=10)
+            resp = requests.post(url, json=payload, timeout=120)
             resp.raise_for_status()
             return resp.json().get("response")
         except Exception as e:

@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import requests
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +11,7 @@ class LocalDecomposer:
         self,
         ollama_base_url: str = None,
         model: str = None,
-        timeout: int = 15
+        timeout: int = 120
     ):
         self.ollama_base_url = ollama_base_url or os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
         self.model = model or os.environ.get("OLLAMA_MODEL", "qwen2.5:3b")
@@ -18,7 +19,7 @@ class LocalDecomposer:
 
     def decompose(self, claim: str) -> list[str]:
         prompt = f"""Break this claim into simple sub-claims, separating temporal elements from core factual elements.
-Return ONLY a JSON array of strings. No explanation. No markdown.
+Return ONLY a JSON array. Do not wrap it in a JSON object. Do not include markdown formatting or conversational text.
 
 Ensure the temporal context evaluates the truthfulness for that specific date. Explicitly note if the action is currently ongoing versus historical, making it a "tense-aware" decomposition.
 
@@ -54,17 +55,27 @@ Output:"""
             data = response.json()
             response_text = data.get("response", "").strip()
             
-            # Strip markdown code fences if present
-            if response_text.startswith("```"):
-                lines = response_text.splitlines()
-                if len(lines) >= 2:
-                    if lines[0].startswith("```"):
-                        lines = lines[1:]
-                    if lines and lines[-1].strip().startswith("```"):
-                        lines = lines[:-1]
-                    response_text = "\n".join(lines).strip()
+            subclaims = []
+            try:
+                parsed = json.loads(response_text)
+                if isinstance(parsed, dict):
+                    for k, v in parsed.items():
+                        if isinstance(v, list):
+                            subclaims = v
+                            break
+                elif isinstance(parsed, list):
+                    subclaims = parsed
+            except Exception:
+                start = response_text.find('[')
+                end = response_text.rfind(']')
+                if start != -1 and end != -1 and end > start:
+                    try:
+                        subclaims = json.loads(response_text[start:end+1])
+                    except Exception:
+                        pass
             
-            subclaims = json.loads(response_text)
+            if not subclaims:
+                raise ValueError("Response is not a valid JSON array or could not be parsed")
             
             # Validation
             if not isinstance(subclaims, list):

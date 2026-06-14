@@ -14,9 +14,10 @@ except ImportError:
     PubMedConnector = None
 
 try:
-    from truth_mirror.retrieval_news import NewsConnector
+    from truth_mirror.retrieval_news import GDELTConnector, GoogleNewsRSSConnector
 except ImportError:
-    NewsConnector = None
+    GDELTConnector = None
+    GoogleNewsRSSConnector = None
 
 try:
     from truth_mirror.retrieval_fact import FactCheckConnector
@@ -41,8 +42,10 @@ class FreeSourceRetrieval(EvidenceRetriever):
         self._news_connectors: list = []
         self._acad_connectors: list = []
 
-        if NewsConnector:
-            self._news_connectors.append(NewsConnector(self.config))
+        if GDELTConnector:
+            self._news_connectors.append(GDELTConnector(self.config))
+        if GoogleNewsRSSConnector:
+            self._news_connectors.append(GoogleNewsRSSConnector(self.config))
         if FactCheckConnector:
             self._news_connectors.append(FactCheckConnector(self.config))
 

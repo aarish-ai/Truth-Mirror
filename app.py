@@ -58,7 +58,9 @@ class TruthMirrorHandler(BaseHTTPRequestHandler):
             return
         result = self.pipeline.verify(claim)
         if isinstance(result, GeopoliticalResult):
-            self._write_json(asdict(result), status=200)
+            res_dict = asdict(result)
+            res_dict["final_verdict"] = res_dict.get("verdict")
+            self._write_json(res_dict, status=200)
         else:
             self._write_json(self.pipeline.to_json(result), status=200)
 

@@ -1,5 +1,6 @@
 import os
 import json
+import re
 import logging
 import requests
 
@@ -15,13 +16,17 @@ class GeoQueryGenerator:
         self,
         ollama_base_url: str = None,
         model: str = None,
-        timeout: int = 15
+        timeout: int = 120
     ):
+        from datetime import datetime
+        self.current_date_str = datetime.now().strftime("%d %B %Y")
         self.ollama_base_url = ollama_base_url or os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
         self.model = model or os.environ.get("OLLAMA_MODEL", "qwen2.5:3b")
         self.timeout = timeout
 
     def generate(self, sub_claim: str, involved_parties: list[str], claim_subtype: str) -> list[str]:
+        if sub_claim.lower().startswith("the period in question") or sub_claim.lower().startswith("the action is currently"):
+            return []
         """
         Uses Ollama to generate exactly 3 search queries:
         1. News query
@@ -31,7 +36,8 @@ class GeoQueryGenerator:
         """
         parties_str = ", ".join(involved_parties) if involved_parties else "Unknown"
         
-        prompt = f"""You are a geopolitical intelligence search query generator.
+        date_instruction = f"Today's date is {self.current_date_str}. Generate queries that prioritize the most recent reporting and events up to this date. For claims about recent or ongoing events, include date-scoped queries (e.g. \"Iran Israel June 2026\", \"Trump Iran strikes cancelled June 2026\").\n\n"
+        prompt = date_instruction + f"""You are a geopolitical intelligence search query generator.
 Given a sub-claim, involved parties, and claim subtype, generate exactly 3 distinct search queries to retrieve maximum relevant information.
 Return ONLY a JSON array of 3 strings. No markdown formatting, no explanations.
 
@@ -66,8 +72,25 @@ Output JSON Array of 3 strings:
             data = response.json()
             response_text = data.get("response", "").strip()
             
-            # Extract queries
-            queries = json.loads(response_text)
+            # Extract queries robustly
+            queries = []
+            try:
+                parsed = json.loads(response_text)
+                if isinstance(parsed, dict):
+                    for k, v in parsed.items():
+                        if isinstance(v, list):
+                            queries = v
+                            break
+                elif isinstance(parsed, list):
+                    queries = parsed
+            except Exception:
+                start = response_text.find('[')
+                end = response_text.rfind(']')
+                if start != -1 and end != -1 and end > start:
+                    try:
+                        queries = json.loads(response_text[start:end+1])
+                    except Exception:
+                        pass
             
             # Ensure we always get exactly 3 queries
             if isinstance(queries, list) and len(queries) >= 3:

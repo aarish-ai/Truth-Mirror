@@ -61,7 +61,7 @@ Do not include any other text, markdown formatting, or explanations. Only output
         }
         
         try:
-            response = requests.post(url, json=payload, timeout=15)
+            response = requests.post(url, json=payload, timeout=120)
             response.raise_for_status()
             
             result_text = response.json().get("response", "").strip()

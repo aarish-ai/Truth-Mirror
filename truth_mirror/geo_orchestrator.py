@@ -29,6 +29,30 @@ class GeopoliticalPipeline:
         self.synthesizer = GeoSynthesizer()
         self.eval_logger = EvalLogger()
 
+        try:
+            from truth_mirror.retrieval_news import GDELTConnector, GoogleNewsRSSConnector
+            if hasattr(self.retriever, '_news_connectors'):
+                self.retriever._news_connectors.append(GoogleNewsRSSConnector())
+                self.retriever._news_connectors.append(GDELTConnector())
+        except ImportError:
+            pass
+
+        try:
+            from truth_mirror.retrieval_nonwestern import (
+                AlJazeeraConnector,
+                TASSConnector,
+                CGTNConnector,
+                DawnConnector
+            )
+            if hasattr(self.retriever, '_news_connectors'):
+                for connector_cls in [AlJazeeraConnector, TASSConnector, CGTNConnector, DawnConnector]:
+                    try:
+                        self.retriever._news_connectors.append(connector_cls())
+                    except Exception:
+                        pass
+        except ImportError:
+            pass
+
     def _parallel_retrieve(self, queries: List[str], claim_subtype: str) -> List[EvidenceItem]:
         """
         Fetches evidence for all generated queries in parallel.
@@ -121,6 +145,7 @@ class GeopoliticalPipeline:
             evidence_count=len(all_evidence),
             sub_claims=sub_claims
         )
+        result.evidence_by_region = by_perspective
         
         # 6. Logging
         self.eval_logger.log_geo_run(result)

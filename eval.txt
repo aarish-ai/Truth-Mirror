@@ -399,3 +399,204 @@ The Genocide of Gaza was started due to Gaza Aggression
   Synthesis: The provided evidence confirms that various bodies, NGOs, and international figures have referred to Israel's actions or the situation in Gaza as 'genocide' (Source 1, 3). It also details events of the 'Gaza war,' including Israeli attacks and a blockade leading to famine (Source 2, 4). However, none of the sources provide any information or mention that the 'Genocide of Gaza' or the 'Gaza war' was started due to 'Gaza Aggression.' The evidence describes the conflict and its impacts without attributing its origin to 'Gaza Aggression.'
 =================================================================
 
+=================================================================
+--- GEOPOLITICAL INTELLIGENCE RUN ---
+1. Original Claim:
+Iran has launched airstrikes on Israel
+
+2. Is Geopolitical: True
+3. Final Verdict: Unclear (Confidence: 0.0)
+   Reasoning: Synthesis failed due to API or parsing error: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\nPlease retry in 21.33747759s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '21s'}]}}
+   Source Agreement: none
+
+4. Story: None
+
+5. Dispute Detected: False
+=================================================================
+
+=================================================================
+--- GEOPOLITICAL INTELLIGENCE RUN ---
+1. Original Claim:
+Iran launched airstrikes on Israel
+
+2. Is Geopolitical: True
+3. Final Verdict: Supported (Confidence: 0.9)
+   Reasoning: Multiple Wikipedia sources, particularly the '2026 Iranian strikes on Israel' article, explicitly state that Iran launched airstrikes focused on Israel as part of retaliatory actions in 2026. Other sources provide consistent contextual information about the broader conflict.
+   Source Agreement: high
+
+4. Story Headline: Iran Launched Airstrikes on Israel in 2026 Following US-Israeli Attacks
+   Background: The relationship between Iran and Israel has been characterized by a long-standing proxy conflict (Source 11), which escalated into direct military confrontations. Tensions notably heightened with an Israeli airstrike on the Iranian embassy complex in Damascus on April 1, 2024, which resulted in the deaths of Iranian generals (Source 3, 34). This incident was followed by Iran launching a series of missiles at Israel on October 1, 2024 (Source 10, 34). Further direct conflict, known as the 'Twelve-Day War' in 2025, involved Israeli airstrikes against Iran (Source 8, 15) before a ceasefire took effect on June 24, 2025 (Source 12). The most significant escalation leading to the claimed event was the onset of the '2026 Iran war' on February 28, 2026, initiated by surprise joint US-Israeli airstrikes targeting military sites and cities across Iran, including the assassination of Iranian supreme leadership (Source 5, 6, 7, 9, 13, 17, 18).
+   Current Situation: Following the coordinated US-Israeli strikes on February 28, 2026, the Islamic Republic of Iran launched a multi-day retaliatory campaign (Source 1). These retaliatory actions included airstrikes that targeted countries across the Persian Gulf, with a primary focus on Israel (Source 4). This marked a direct military confrontation between Iran and Israel as an integral part of the ongoing 2026 Iran war (Source 5).
+
+5. Dispute Detected: False
+=================================================================
+
+=================================================================
+--- GEOPOLITICAL INTELLIGENCE RUN ---
+1. Original Claim:
+Iran launched airstrikes on Israel
+
+2. Is Geopolitical: True
+3. Final Verdict: Unclear (Confidence: 0.0)
+   Reasoning: Synthesis failed due to API or parsing error: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+   Source Agreement: none
+
+4. Story: None
+
+5. Dispute Detected: False
+=================================================================
+
+=================================================================
+--- GEOPOLITICAL INTELLIGENCE RUN ---
+1. Original Claim:
+Iran launched airstrikes on Israel
+
+2. Is Geopolitical: True
+3. Final Verdict: Unclear (Confidence: 0.0)
+   Reasoning: Synthesis failed due to API or parsing error: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+   Source Agreement: none
+
+4. Story: None
+
+5. Dispute Detected: False
+=================================================================
+
+=================================================================
+--- GEOPOLITICAL INTELLIGENCE RUN ---
+1. Original Claim:
+Iran launched airstrikes on Israel
+
+2. Is Geopolitical: True
+3. Final Verdict: Unclear (Confidence: 0.0)
+   Reasoning: Synthesis failed due to API or parsing error: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}
+   Source Agreement: none
+
+4. Story: None
+
+5. Dispute Detected: False
+=================================================================
+
+=================================================================
+--- GEOPOLITICAL INTELLIGENCE RUN ---
+1. Original Claim:
+Iran is Bombing Israel
+
+2. Is Geopolitical: True
+3. Final Verdict: Unclear (Confidence: 0.0)
+   Reasoning: Synthesis failed due to API or parsing error: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}
+   Source Agreement: none
+
+4. Story: None
+
+5. Dispute Detected: False
+=================================================================
+
+=================================================================
+--- GEOPOLITICAL INTELLIGENCE RUN ---
+1. Original Claim:
+Iran is Bombing Israel
+
+2. Is Geopolitical: True
+3. Final Verdict: False (Confidence: 1.0)
+   Reasoning: No provided evidence confirms the claim that Iran is bombing Israel. The only relevant source (Evidence 6) suggests a future scenario (2026) where Israel, alongside the U.S., strikes Iran, which is the inverse of the claim.
+   Source Agreement: none
+
+4. Story Headline: Claim of Iran Bombing Israel Lacks Evidence; Future Scenario Suggests Inverse Action
+   Background: The relationship between Iran and Israel has historically been marked by significant geopolitical tension and proxy conflicts. Iran has been characterized as a supporter of groups, such as Hezbollah, that are committed to the destruction of Israel (Evidence 18). This long-standing animosity forms the backdrop for various regional conflicts, including the broader Israeli-Palestinian conflict (Evidence 2, 3, 4, 5, 9, 15, 21).
+   Current Situation: Based on the available evidence, there is no confirmation of Iran currently bombing Israel, nor any past incidents described. The provided sources do not detail any such event. Instead, one source, a 'Timeline of the second Trump presidency (2026 Q1)' (Evidence 6), refers to a future 'U. S.-Israeli war' and a 'Strike on School in Iran' in March 2026. This suggests potential military action by the U.S. and Israel against Iran, rather than Iran bombing Israel, indicating an inverse scenario in a future context.
+
+5. Dispute Detected: False
+=================================================================
+
+=================================================================
+--- GEOPOLITICAL INTELLIGENCE RUN ---
+1. Original Claim:
+Israel is Bombing Iran
+
+2. Is Geopolitical: True
+3. Final Verdict: Unclear (Confidence: 0.45)
+   Reasoning: All provided evidence consists solely of Wikipedia entries describing future events (2025-2026) as historical facts, with no independent verification from news agencies, governments, NGOs, or on-the-ground reporting. The sources are internally consistent but externally implausible as they document wars that have not yet occurred relative to the current date. No real-time evidence confirms active Israeli bombing of Iran at present.
+   Source Agreement: moderate
+
+4. Story Headline: Wikipedia entries describe future Israel-Iran wars as historical fact; no verified current bombing confirmed
+   Background: Iran and Israel have been engaged in a proxy conflict since 1985, with periodic escalations including the April 2024 Iranian missile strikes on Israel and alleged Israeli strikes on Iranian consular facilities in Damascus. Tensions remain high due to Iran's nuclear program and support for anti-Israel proxies.
+   Current Situation: The provided sources exclusively cite Wikipedia articles dated 2025-2026 describing two major conflicts—the Twelve-Day War (June 2025) and the 2026 Iran War (February 2026)—as completed historical events. No credible real-time sources (news wires, government statements, satellite imagery, NGO reports) are provided to confirm active Israeli bombing of Iran as of the current date.
+
+5. Dispute Detected: True
+   Ground Truth (Conf: medium): As of the current date, there is no independently verified evidence that Israel is actively bombing Iran. The Wikipedia entries appear to describe speculative or fictional future scenarios rather than documented historical events. The April 2024 reciprocal strikes remain the most recent confirmed direct engagement.
+   Reasoning: The totality of evidence consists solely of Wikipedia articles describing future events as past tense history—a strong indicator of unreliable sourcing. Standard intelligence practice requires multi-source verification (government statements, independent media, technical intelligence) for active conflict claims. The documented April 2024 exchanges are the last independently verified direct strikes.
+   Contested Claims: ['Whether Israel is currently bombing Iran (present tense claim)', 'Whether the Twelve-Day War (June 2025) and 2026 Iran War have actually occurred', 'Whether Wikipedia entries for future-dated wars constitute reliable evidence']
+   Narratives:
+     - [Provided Wikipedia Sources] Israel bombed Iran in June 2025 (Twelve-Day War) and again from February 2026 onward (2026 Iran War) with US participation
+     - [Independent Verification (Absent)] No independent confirmation of active Israeli bombing of Iran as of current date
+
+=================================================================
+
+=================================================================
+--- GEOPOLITICAL INTELLIGENCE RUN ---
+1. Original Claim:
+Iran is bombing Israel
+
+2. Is Geopolitical: True
+3. Final Verdict: Partially Unsupported (Confidence: 0.9)
+   Reasoning: No credible evidence from any geopolitical alignment supports the claim that Iran is directly bombing Israel. Available sources instead indicate Iran's involvement in regional conflicts through proxy groups like Hezbollah, which is hostile to Israel.
+   Source Agreement: high
+
+4. Story Headline: No Evidence of Direct Iranian Bombing of Israel; Proxy Involvement Highlighted
+   Background: Tensions between Iran and Israel are a long-standing feature of Middle Eastern geopolitics, often manifesting through proxy conflicts rather than direct military confrontation. Historically, groups allied with Iran, such as Hezbollah, have expressed a commitment to the destruction of Israel (Source 9). Iran itself has been noted for its involvement in various proxy wars across the region (Source 16), utilizing these alliances to project influence and challenge adversaries.
+   Current Situation: Based on the available evidence, there is no indication that Iran is currently engaged in direct bombing operations against Israel. Instead, intelligence suggests that potential armed clashes in the region are more likely to involve Lebanese Hezbollah and Israel (State Media Russia 1). Hezbollah's actions are also seen as a factor that could escalate broader security tensions between the United States and Iran (State Media Russia 2). The relationship between Iran and Hezbollah is characterized by military strengthening and strategic alliances (Source 9).
+
+5. Dispute Detected: False
+=================================================================
+
+=================================================================
+--- GEOPOLITICAL INTELLIGENCE RUN ---
+1. Original Claim:
+Iran is bombing Israel as of June 2026
+
+2. Is Geopolitical: True
+3. Final Verdict: False (Confidence: 0.9)
+   Reasoning: The most temporally relevant evidence from March 2026 indicates a U.S.-Israeli war involving strikes on Iran, directly contradicting the claim that Iran was bombing Israel in June 2026. No available sources confirm Iran bombing Israel.
+   Source Agreement: none
+
+4. Story Headline: Claim of Iran Bombing Israel in June 2026 Contradicted by Evidence of U.S.-Israeli Strikes on Iran
+   Background: The relationship between Iran and Israel has been marked by decades of profound geopolitical tension and proxy conflicts across the Middle East (Source 12, 21). Iran has historically supported groups committed to the destruction of Israel, such as Hezbollah (Source 12), fueling a persistent state of animosity. International efforts have frequently focused on managing Iran's nuclear program and its regional influence, often against the backdrop of strained U.S.-Iran relations (Source 19).
+   Current Situation: Contrary to the claim that Iran was bombing Israel in June 2026, available evidence from early 2026 suggests a different scenario. A 'U. S.-Israeli war' was reportedly underway in March 2026, during which a U.S. strike on a school in Iran occurred, according to a New York Times report cited in the 'Timeline of the second Trump presidency (2026 Q1)' (Source 18). This indicates military actions by the U.S. and Israel *against* Iran, rather than Iran initiating bombing campaigns against Israel. There is no information within the provided sources to support the claim of Iran bombing Israel in June 2026.
+
+5. Dispute Detected: False
+=================================================================
+
+=================================================================
+--- GEOPOLITICAL INTELLIGENCE RUN ---
+1. Original Claim:
+There was a ware between Iran and Israel in 2025 and early 2026
+
+2. Is Geopolitical: True
+3. Final Verdict: Unclear (Confidence: 0.35)
+   Reasoning: The claim is supported only by multiple Wikipedia entries that describe 2025–2026 events in the past tense, but these appear to be speculative or future-dated entries written from a hypothetical post-2026 perspective. No primary sources, on-the-ground reporting, official statements, or independent journalism from any geopolitical alignment are provided. Temporal logic indicates that as of early 2025, a war in 'early 2026' has not yet occurred, making these entries unreliable as evidence of actual events.
+   Source Agreement: moderate
+
+4. Story Headline: Wikipedia entries describe hypothetical 2025–2026 Iran–Israel war; no primary confirmation
+   Background: Long-standing tensions between Iran and Israel escalated in April and October 2024 with direct Iranian missile strikes on Israel following Israeli attacks on Iranian facilities in Damascus. These exchanges established a new pattern of direct state-on-state confrontation after decades of proxy conflict.
+   Current Situation: The provided Wikipedia entries narrate a further escalation: U.S. strikes on Iranian nuclear sites on 22 June 2025, Iranian retaliation against U.S. bases in Qatar, direct Israel–Iran clashes on 24 June 2025, and a joint U.S.–Israeli operation on 28 February 2026 triggering a full-scale '2026 Iran war' with Iranian missile barrages closing Israeli airspace. However, all descriptions come from tertiary encyclopedia entries that read as future-history scenarios; no contemporaneous reporting, satellite verification, or official confirmation is included in the evidence.
+
+5. Dispute Detected: False
+=================================================================
+
+=================================================================
+--- GEOPOLITICAL INTELLIGENCE RUN ---
+1. Original Claim:
+Trump has cancelled Strikes on Iran
+
+2. Is Geopolitical: True
+3. Final Verdict: False (Confidence: 0.75)
+   Reasoning: The provided evidence consistently describes multiple U.S. strikes on Iran occurring in June 2025 (Operation Twelve-Day War) and February 2026 (2026 Iran War), plus a naval blockade in April 2026. The claim that Trump 'cancelled strikes' is contradicted by this timeline showing strikes were executed. One timeline excerpt mentions Trump stopping 'Project Freedom' (a naval operation to reopen the Strait of Hormuz) citing diplomatic progress, but this was not a cancellation of strikes on Iran.
+   Source Agreement: high
+
+4. Story Headline: Evidence Shows U.S. Strikes on Iran Proceeded in 2025 and 2026, Contradicting Cancellation Claim
+   Background: Tensions escalated through 2025 with Iran–U.S. negotiations beginning in April 2025 (Source 6). Despite diplomatic efforts, the U.S. and Israel launched the 'Twelve-Day War' on June 22, 2025, striking three Iranian nuclear facilities (Source 2, 5). This was followed by a larger conflict on February 28, 2026, when joint U.S.–Israeli airstrikes began the '2026 Iran War' targeting leadership and military infrastructure (Sources 7, 10, 12, 13). A U.S. naval blockade was imposed in April 2026 after failed Islamabad Talks (Source 8).
+   Current Situation: According to the sourced timeline, strikes were not cancelled but executed in two major waves (June 2025 and February 2026). A ceasefire was eventually reached (Source 12). One timeline note indicates Trump halted 'Project Freedom'—a naval operation to reopen the Strait of Hormuz—citing 'great progress' at a potential deal (Source 16), but this occurred after strikes had already taken place and pertained to a blockade/access operation, not the airstrikes themselves.
+
+5. Dispute Detected: False
+=================================================================
+
