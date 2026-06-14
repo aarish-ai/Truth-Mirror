@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Truth Mirror - Global Verification System</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <title>Truth Mirror - Global Verification System v2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #000000;
-      --panel-bg: #0A192F;
-      --panel-border: #1f2937;
+      --bg-color: #050505;
+      --panel-bg: rgba(17, 24, 39, 0.6);
+      --panel-border: rgba(255, 255, 255, 0.1);
       --text-main: #f3f4f6;
       --text-muted: #9ca3af;
       --accent: #3b82f6;
@@ -18,37 +17,38 @@
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
+      --glass-blur: blur(16px);
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Outfit', sans-serif;
       background-color: var(--bg-color);
+      background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
       color: var(--text-main);
       display: flex;
+      flex-direction: column;
       height: 100vh;
       overflow: hidden;
     }
 
-
-
-    /* Main Content */
     .main-content {
       flex: 1;
       display: flex;
       flex-direction: column;
       overflow-y: auto;
+      scroll-behavior: smooth;
     }
 
     .top-bar {
       padding: 1.5rem 2rem;
-      background: rgba(17, 24, 39, 0.8);
-      backdrop-filter: blur(10px);
+      background: rgba(5, 5, 5, 0.7);
+      backdrop-filter: var(--glass-blur);
       border-bottom: 1px solid var(--panel-border);
       display: flex;
-      gap: 1rem;
+      gap: 1.5rem;
       align-items: center;
       position: sticky;
       top: 0;
@@ -63,157 +63,277 @@
 
     input[type="text"] {
       flex: 1;
-      padding: 0.875rem 1.25rem;
-      border-radius: 8px;
-      border: 1px solid var(--panel-border);
-      background: var(--bg-color);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.05);
       color: var(--text-main);
-      font-size: 1rem;
+      font-size: 1.1rem;
+      font-family: 'Outfit', sans-serif;
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.3s ease;
     }
 
     input[type="text"]:focus {
       border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
     }
 
     .btn {
-      padding: 0.875rem 1.5rem;
-      border-radius: 8px;
+      padding: 1rem 2rem;
+      border-radius: 12px;
       border: none;
-      font-size: 0.95rem;
+      font-size: 1.05rem;
       font-weight: 600;
+      font-family: 'Outfit', sans-serif;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
     }
 
     .btn-primary {
-      background: var(--accent);
+      background: linear-gradient(135deg, var(--accent), #6366f1);
       color: white;
-      box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
     }
 
     .btn-primary:hover {
-      background: var(--accent-hover);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
     }
 
-    .btn-outline {
-      background: transparent;
-      border: 1px solid var(--panel-border);
-      color: var(--text-main);
-    }
-
-    .btn-outline:hover {
-      border-color: var(--text-muted);
-    }
-
-    /* Dashboard Grid */
     .dashboard {
-      padding: 2rem;
+      padding: 2.5rem;
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1.5rem;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
     }
 
     .panel {
       background: var(--panel-bg);
+      backdrop-filter: var(--glass-blur);
       border: 1px solid var(--panel-border);
-      border-radius: 12px;
-      padding: 1.5rem;
+      border-radius: 16px;
+      padding: 2rem;
       display: flex;
       flex-direction: column;
+      animation: fadeIn 0.5s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
-
-    .panel-full {
-      grid-column: 1 / -1;
-    }
-
-    .panel-header {
-      margin-bottom: 1.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     .panel-title {
-      font-size: 1.125rem;
+      font-size: 1.5rem;
       font-weight: 600;
-      margin: 0;
-    }
-
-    /* Panel 1 specific */
-    .verdict-box {
-      background: rgba(255,255,255,0.03);
-      padding: 2.5rem 1.5rem;
-      border-radius: 12px;
-      margin-bottom: 1.5rem;
-      border: 2px solid var(--panel-border);
-      text-align: center;
-      transition: border-color 0.3s ease;
-    }
-    
-    .verdict-box h3 { margin: 0 0 0.5rem 0; font-size: 2rem; font-weight: 700; }
-    .verdict-box p { margin: 0; color: var(--text-muted); font-size: 1.1rem; }
-
-    .alerts-container {
+      margin: 0 0 1.5rem 0;
       display: flex;
-      flex-direction: column;
+      align-items: center;
       gap: 0.75rem;
-      margin-top: 1.5rem;
     }
 
-    .alert {
-      padding: 0.75rem 1rem;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: flex-start;
-      gap: 0.5rem;
+    .panel-title::before {
+      content: "";
+      display: inline-block;
+      width: 4px;
+      height: 1.2em;
+      background: var(--accent);
+      border-radius: 2px;
     }
-    
-    .alert-warning { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); color: #fcd34d; }
-    .alert-danger { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #fca5a5; }
 
-    #stackedBarChart { height: 250px; width: 100%; }
-
-    /* Panel 2 specific */
-    #networkGraph { height: 450px; width: 100%; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; background: rgba(0,0,0,0.2); }
-
-    /* Panel 3 specific */
-    .hidden-story-item {
-      border: 1px solid var(--panel-border);
-      border-radius: 8px;
-      margin-bottom: 1rem;
+    /* Verdict Section */
+    .verdict-banner {
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 3rem 2rem;
+      text-align: center;
+      margin-bottom: 2rem;
+      transition: all 0.4s ease;
+      position: relative;
       overflow: hidden;
     }
+    
+    .verdict-banner::after {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+        pointer-events: none;
+    }
 
-    .story-header {
-      padding: 1rem 1.5rem;
-      background: rgba(255,255,255,0.02);
+    .verdict-value {
+      font-size: 3rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+    }
+
+    .verdict-one-line {
+      font-size: 1.25rem;
+      color: var(--text-main);
+      opacity: 0.9;
+      max-width: 800px;
+      margin: 0 auto 1.5rem auto;
+    }
+
+    .confidence-badge {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    /* Breakdown Grid */
+    .breakdown-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .breakdown-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .breakdown-card h4 {
+      margin: 0 0 1rem 0;
+      font-size: 1.1rem;
+    }
+
+    .breakdown-card p {
+      margin: 0;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Bloc Cards */
+    .bloc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .bloc-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .bloc-card:hover {
+      transform: translateY(-5px);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .bloc-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem 0;
+      color: var(--accent);
+    }
+
+    .bloc-stance {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: rgba(255,255,255,0.1);
+      margin-bottom: 1rem;
+    }
+
+    .bloc-content {
+      font-size: 0.95rem;
+      color: #d1d5db;
+      line-height: 1.6;
+    }
+
+    /* Accordion */
+    .accordion-item {
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .accordion-header {
+      padding: 1.25rem 1.5rem;
       cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      font-weight: 600;
       transition: background 0.2s;
     }
 
-    .story-header:hover {
-      background: rgba(255,255,255,0.05);
+    .accordion-header:hover {
+      background: rgba(255, 255, 255, 0.05);
     }
 
-    .story-content {
-      padding: 1.5rem;
-      border-top: 1px solid var(--panel-border);
-      display: none;
-      background: rgba(0,0,0,0.2);
+    .accordion-content {
+      padding: 0 1.5rem;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      color: var(--text-muted);
+      line-height: 1.6;
     }
 
-    .story-content.active { display: block; }
-    
+    .accordion-item.active .accordion-content {
+      padding: 0 1.5rem 1.5rem 1.5rem;
+      max-height: 1000px; /* arbitrary large value */
+    }
+
+    /* Sources Table */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+    }
+
+    tbody tr {
+      transition: background 0.2s;
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
     .loader {
       display: none;
       width: 24px;
@@ -226,284 +346,152 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .tag {
-      display: inline-block;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      background: rgba(255,255,255,0.1);
-    }
-    
     .empty-state {
       text-align: center;
-      padding: 3rem;
+      padding: 5rem 2rem;
       color: var(--text-muted);
     }
-
-    /* Evidence summary & reasoning panels */
-    .evidence-summary {
-      font-size: 0.9rem;
-      line-height: 1.75;
-      color: #d1d5db;
-      white-space: pre-wrap;
-      word-break: break-word;
-      max-height: 360px;
-      overflow-y: auto;
-      background: rgba(0,0,0,0.15);
-      border-radius: 8px;
-      padding: 1rem 1.25rem;
-    }
-
-    .reasoning-text {
-      font-size: 0.9rem;
-      line-height: 1.7;
-      color: #d1d5db;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .source-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      max-height: 250px;
-      overflow-y: auto;
-    }
-
-    .source-list li {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.5rem;
-      font-size: 0.85rem;
-      word-break: break-all;
-    }
-
-    .source-list li a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    .source-list li a:hover { text-decoration: underline; }
-
-    .meta-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.2rem 0.6rem;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      background: rgba(255,255,255,0.07);
-      color: var(--text-muted);
-    }
-
   </style>
 </head>
 <body>
-
-  <!-- Sidebar Removed -->
-
-  <!-- Main Content -->
   <main class="main-content">
     <div class="top-bar">
-      <div class="brand" style="display: flex; align-items: center; gap: 0.5rem; margin-right: 1.5rem;">
-        <h2 style="margin: 0; font-size: 1.25rem; font-weight: 600; background: linear-gradient(90deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Truth Mirror</h2>
+      <div class="brand">
+        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700; background: linear-gradient(90deg, #3b82f6, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Truth Mirror v2</h2>
       </div>
       <div class="search-box">
-        <input type="text" id="claimInput" placeholder="Enter a claim to analyze (e.g., 'The WHO declared mpox a global emergency in 2024')" />
+        <input type="text" id="claimInput" placeholder="Enter a geopolitical claim to analyze..." />
         <button class="btn btn-primary" id="verifyBtn">
           <span class="btn-text">Analyze</span>
           <div class="loader" id="verifyLoader"></div>
         </button>
       </div>
-      <div id="loadingStatus" style="display: none; margin-top: 0.5rem; font-size: 0.85rem; color: var(--accent); transition: opacity 0.5s;"></div>
-      <button class="btn btn-outline" id="exportBtn" disabled>
-        Export Report
-      </button>
+      <div id="loadingStatus" style="font-size: 0.9rem; color: var(--text-muted); min-width: 150px; text-align: right;"></div>
+    </div>
+
+    <div id="initialState" class="empty-state">
+      <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1.5rem;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <h2 style="font-size: 2rem; color: var(--text-main); margin-bottom: 0.5rem;">Intelligence Engine Ready</h2>
+      <p style="font-size: 1.1rem; max-width: 600px; margin: 0 auto;">Submit a claim to run deep parallel analysis across global sources, synthesize media perspectives, and extract hidden narratives.</p>
     </div>
 
     <div id="dashboard" class="dashboard" style="display: none;">
       
-      <!-- Panel 1: Verdict + Agreement Meter -->
-      <div class="panel panel-full" style="align-items: center; position: relative;">
-        <div class="panel-header" style="width: 100%; justify-content: center; position: relative;">
-          <h3 class="panel-title" style="text-align: center;">Verdict Summary</h3>
-          <span id="claimTypeBadge" class="meta-badge" style="position: absolute; right: 0;"></span>
-        </div>
-        <div id="verdictBox" class="verdict-box" style="width: 100%; max-width: 800px;">
-          <h3 id="verdictTitle">Evaluating...</h3>
-          <p id="verdictConfidence">Confidence: --</p>
-        </div>
-
-        <div style="width: 100%; max-width: 800px; margin-bottom: 1rem;">
-          <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem; text-align: center;">Agreement Meter</h4>
-          <div style="background: rgba(255,255,255,0.1); border-radius: 8px; height: 24px; overflow: hidden; position: relative;">
-            <div id="agreementMeterBar" style="background: var(--accent); height: 100%; width: 0%; transition: width 0.5s ease;"></div>
-          </div>
-          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
-            <span>Highly Contested</span>
-            <span>Unanimous Agreement</span>
-          </div>
-        </div>
-
-        <div class="alerts-container" id="alertsContainer" style="width: 100%; max-width: 800px;"></div>
+      <!-- Panel 1: Verdict -->
+      <div class="verdict-banner" id="verdictBanner">
+        <div class="verdict-value" id="verdictValue">EVALUATING</div>
+        <div class="verdict-one-line" id="verdictOneLine">Processing full intelligence report...</div>
+        <div class="confidence-badge" id="confidenceBadge">Confidence: --</div>
       </div>
 
-      <!-- Panel 2: THE STORY -->
-      <div class="panel panel-full" id="theStoryPanel">
-        <div class="panel-header">
-          <h3 class="panel-title">The Story</h3>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-          <div>
-            <h4 style="color: var(--accent); margin-bottom: 0.5rem;">Background</h4>
-            <div id="storyBackground" style="color: #d1d5db; font-size: 0.9rem; line-height: 1.6;">Loading...</div>
+      <!-- Panel 2: Breakdown -->
+      <div class="panel">
+        <h3 class="panel-title">Verdict Breakdown</h3>
+        <p style="color: #d1d5db; line-height: 1.6; margin-bottom: 2rem; font-size: 1.1rem;" id="fullReasoning"></p>
+        
+        <div class="breakdown-grid">
+          <div class="breakdown-card" style="border-top: 3px solid var(--success);">
+            <h4 style="color: var(--success);">Verified Facts</h4>
+            <p id="whatIsTrue"></p>
           </div>
-          <div>
-            <h4 style="color: var(--accent); margin-bottom: 0.5rem;">Current Situation</h4>
-            <div id="storyCurrent" style="color: #d1d5db; font-size: 0.9rem; line-height: 1.6;">Loading...</div>
+          <div class="breakdown-card" style="border-top: 3px solid var(--danger);">
+            <h4 style="color: var(--danger);">Disproven Elements</h4>
+            <p id="whatIsFalse"></p>
           </div>
-          <div>
-            <h4 style="color: var(--accent); margin-bottom: 0.5rem;">Key Actors</h4>
-            <div id="storyActors" style="color: #d1d5db; font-size: 0.9rem; line-height: 1.6;">Loading...</div>
-          </div>
-          <div>
-            <h4 style="color: var(--success); margin-bottom: 0.5rem;">Sources Agree On</h4>
-            <div id="storyAgree" style="color: #d1d5db; font-size: 0.9rem; line-height: 1.6;">Loading...</div>
+          <div class="breakdown-card" style="border-top: 3px solid var(--warning);">
+            <h4 style="color: var(--warning);">Unclear / Disputed</h4>
+            <p id="whatIsUnclear"></p>
           </div>
         </div>
       </div>
 
-      <!-- Panel 3: DISPUTE ANALYSIS -->
-      <div class="panel panel-full" id="disputePanel" style="display: none;">
-        <div class="panel-header">
-          <h3 class="panel-title" style="color: var(--danger);">Dispute Analysis</h3>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-          <div style="background: rgba(16, 185, 129, 0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);">
-            <h4 style="color: var(--success); margin-top: 0; margin-bottom: 0.5rem;">Undisputed Facts</h4>
-            <ul id="undisputedFacts" style="margin: 0; padding-left: 1.2rem; color: #d1d5db; font-size: 0.9rem;"></ul>
-          </div>
-          <div style="background: rgba(239, 68, 68, 0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);">
-            <h4 style="color: var(--danger); margin-top: 0; margin-bottom: 0.5rem;">Contested Claims</h4>
-            <ul id="contestedClaims" style="margin: 0; padding-left: 1.2rem; color: #d1d5db; font-size: 0.9rem;"></ul>
-          </div>
-        </div>
-        <div id="narrativesGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-          <!-- Narratives injected here -->
-        </div>
-        <div style="background: rgba(59, 130, 246, 0.1); padding: 1.2rem; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3);">
-          <h4 style="color: #60a5fa; margin-top: 0; margin-bottom: 0.5rem;">Most Likely Ground Truth</h4>
-          <div id="groundTruthText" style="color: #d1d5db; font-size: 0.95rem; line-height: 1.6;"></div>
-        </div>
+      <!-- Panel 3: Perspectives -->
+      <div class="panel">
+        <h3 class="panel-title">Media Bloc Perspectives</h3>
+        <div class="bloc-grid" id="blocGrid"></div>
       </div>
 
-      <!-- Panel 4: Source Perspective Map -->
-      <div class="panel panel-full">
-        <div class="panel-header">
-          <h3 class="panel-title">Source Perspective Map</h3>
+      <!-- Panel 4: Hidden Stories -->
+      <div class="panel">
+        <h3 class="panel-title">Hidden Stories & Omissions</h3>
+        <div id="hiddenStoriesContainer"></div>
+      </div>
+
+      <!-- Panel 5: Sources -->
+      <div class="panel">
+        <h3 class="panel-title">Source Analysis (<span id="sourceCount">0</span>)</h3>
+        <div class="table-container">
+          <table id="sourcesTable">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Alignment</th>
+                <th>Stance</th>
+                <th>Confidence</th>
+                <th>Key Emphases</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
-        <div id="stackedBarChart"></div>
       </div>
 
     </div>
-    
-    <div id="initialState" class="empty-state" style="margin: auto;">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.5; margin-bottom: 1rem;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      <h2>Ready for Analysis</h2>
-      <p>Submit a claim above to discover diverse global perspectives.</p>
-    </div>
-
   </main>
 
-  <!-- Geopolitics Domain Modal -->
-  <div id="domainModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
-    <div style="background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; padding: 2.5rem 2rem; max-width: 550px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-      <p style="font-size: 1.1rem; line-height: 1.6; margin-top: 0; margin-bottom: 2rem; color: var(--text-main);">Hi, I'm G! The agent working behind this website, I see that you have entered a query that is not currently in my domain. I am built for Geopolitical claim testing only. Thank you for understanding. If you see that this is an error kindly contact at aarishmuhammad.pk@gmail.com</p>
-      <button onclick="document.getElementById('domainModal').style.display = 'none'" class="btn btn-primary" style="width: 100%; justify-content: center;">Close</button>
-    </div>
-  </div>
-
   <script>
-    // State
-    const state = {
-      currentResult: null
-    };
-
-    // DOM Elements
     const elements = {
       claimInput: document.getElementById("claimInput"),
       verifyBtn: document.getElementById("verifyBtn"),
       verifyLoader: document.getElementById("verifyLoader"),
       btnText: document.querySelector(".btn-text"),
-      exportBtn: document.getElementById("exportBtn"),
-      dashboard: document.getElementById("dashboard"),
+      loadingStatus: document.getElementById("loadingStatus"),
       initialState: document.getElementById("initialState"),
-      verdictTitle: document.getElementById("verdictTitle"),
-      verdictConfidence: document.getElementById("verdictConfidence"),
-      alertsContainer: document.getElementById("alertsContainer"),
-      stackedBarChart: document.getElementById("stackedBarChart"),
-      agreementMeterBar: document.getElementById("agreementMeterBar"),
-      storyBackground: document.getElementById("storyBackground"),
-      storyCurrent: document.getElementById("storyCurrent"),
-      storyActors: document.getElementById("storyActors"),
-      storyAgree: document.getElementById("storyAgree"),
-      disputePanel: document.getElementById("disputePanel"),
-      undisputedFacts: document.getElementById("undisputedFacts"),
-      contestedClaims: document.getElementById("contestedClaims"),
-      narrativesGrid: document.getElementById("narrativesGrid"),
-      groundTruthText: document.getElementById("groundTruthText")
+      dashboard: document.getElementById("dashboard"),
+      
+      verdictBanner: document.getElementById("verdictBanner"),
+      verdictValue: document.getElementById("verdictValue"),
+      verdictOneLine: document.getElementById("verdictOneLine"),
+      confidenceBadge: document.getElementById("confidenceBadge"),
+      
+      fullReasoning: document.getElementById("fullReasoning"),
+      whatIsTrue: document.getElementById("whatIsTrue"),
+      whatIsFalse: document.getElementById("whatIsFalse"),
+      whatIsUnclear: document.getElementById("whatIsUnclear"),
+      
+      blocGrid: document.getElementById("blocGrid"),
+      hiddenStoriesContainer: document.getElementById("hiddenStoriesContainer"),
+      
+      sourceCount: document.getElementById("sourceCount"),
+      sourcesTableBody: document.querySelector("#sourcesTable tbody")
     };
 
-    // Event Listeners
     elements.verifyBtn.addEventListener("click", verifyClaim);
     elements.claimInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") verifyClaim();
     });
-    elements.exportBtn.addEventListener("click", exportReport);
 
-    window.addEventListener("resize", () => {
-      if (state.currentResult) {
-        drawStackedBar(state.currentResult);
-      }
-    });
+    // Toggle Accordion function
+    window.toggleAccordion = function(element) {
+      const parent = element.parentElement;
+      parent.classList.toggle('active');
+    };
 
     async function verifyClaim() {
       const claim = elements.claimInput.value.trim();
       if (!claim) return;
 
-      // Loading state
       elements.btnText.style.display = "none";
       elements.verifyLoader.style.display = "block";
       elements.verifyBtn.disabled = true;
 
-      const loadingMessages = [
-        "Processing Claim", 
-        "Decomposing Claim", 
-        "Finding Sources", 
-        "Processing Sources", 
-        "Analyzing Verdict", 
-        "Gemini failed, falling back to Nemotron", 
-        "Piecing it all together"
-      ];
-      let msgIndex = 0;
-      const loadingStatus = document.getElementById("loadingStatus");
-      loadingStatus.style.display = "block";
-      loadingStatus.textContent = loadingMessages[msgIndex];
-      loadingStatus.style.opacity = "1";
-      
-      const msgInterval = setInterval(() => {
-          loadingStatus.style.opacity = "0.5";
-          setTimeout(() => {
-              msgIndex = Math.min(msgIndex + 1, loadingMessages.length - 1);
-              loadingStatus.textContent = loadingMessages[msgIndex];
-              loadingStatus.style.opacity = "1";
-          }, 250);
-      }, 5000);
+      const msgs = ["Classifying...", "Generating Queries...", "Retrieving Sources...", "Analyzing Stances via Ollama...", "Synthesizing Perspectives...", "Extracting Hidden Stories...", "Generating Verdict..."];
+      let mIdx = 0;
+      elements.loadingStatus.textContent = msgs[mIdx];
+      const mInt = setInterval(() => {
+        mIdx = Math.min(mIdx + 1, msgs.length - 1);
+        elements.loadingStatus.textContent = msgs[mIdx];
+      }, 4000);
 
       try {
         const res = await fetch("/api/verify", {
@@ -513,23 +501,14 @@
         });
         
         if (!res.ok) throw new Error("Verification failed");
-        
         const data = await res.json();
         
         if (data.is_geopolitical === false) {
-          document.getElementById('domainModal').style.display = 'flex';
+          alert("Claim rejected: " + data.rejection_reason);
           return;
         }
 
-        state.currentResult = data;
-        
-        // Render Dashboard
-        elements.initialState.style.display = "none";
-        elements.dashboard.style.display = "grid";
-        elements.exportBtn.disabled = false;
-        
-        renderVerdict(data);
-        drawStackedBar(data);
+        renderDashboard(data);
         
       } catch (err) {
         alert("Error verifying claim: " + err.message);
@@ -537,388 +516,110 @@
         elements.btnText.style.display = "block";
         elements.verifyLoader.style.display = "none";
         elements.verifyBtn.disabled = false;
-        clearInterval(msgInterval);
-        document.getElementById("loadingStatus").style.display = "none";
+        clearInterval(mInt);
+        elements.loadingStatus.textContent = "";
       }
     }
 
-    function renderVerdict(data) {
-      elements.verdictTitle.textContent = data.final_verdict || "Analysis Complete";
+    function renderDashboard(data) {
+      elements.initialState.style.display = "none";
+      elements.dashboard.style.display = "grid";
 
-      // Claim type badge
-      const claimTypeBadge = document.getElementById('claimTypeBadge');
-      if (claimTypeBadge && data.claim_type) {
-        claimTypeBadge.textContent = '🏷 ' + data.claim_type;
-      }
-
-      // Verdict color
-      const verdictLower = (data.final_verdict || "").toLowerCase();
-      if (verdictLower.includes('supported') && !verdictLower.includes('un')) {
-        elements.verdictTitle.style.color = 'var(--success)';
-        elements.verdictTitle.parentElement.style.borderColor = 'var(--success)';
-      } else if (verdictLower.includes('contradicted') || verdictLower.includes('unsupported')) {
-        elements.verdictTitle.style.color = 'var(--danger)';
-        elements.verdictTitle.parentElement.style.borderColor = 'var(--danger)';
+      const vdata = data.verdict_data || {};
+      
+      // Verdict Banner
+      elements.verdictValue.textContent = vdata.verdict || data.verdict || "UNVERIFIABLE";
+      elements.verdictOneLine.textContent = vdata.one_line_verdict || "No clear verdict generated.";
+      elements.confidenceBadge.textContent = `${vdata.confidence_label || 'LOW'} CONFIDENCE (${((vdata.confidence || 0)*100).toFixed(0)}%)`;
+      
+      const v = elements.verdictValue.textContent;
+      if (v.includes("SUPPORTED") && !v.includes("PARTIALLY")) {
+        elements.verdictBanner.style.borderColor = "var(--success)";
+        elements.verdictValue.style.color = "var(--success)";
+      } else if (v.includes("CONTRADICTED")) {
+        elements.verdictBanner.style.borderColor = "var(--danger)";
+        elements.verdictValue.style.color = "var(--danger)";
       } else {
-        elements.verdictTitle.style.color = 'var(--warning)';
-        elements.verdictTitle.parentElement.style.borderColor = 'var(--warning)';
+        elements.verdictBanner.style.borderColor = "var(--warning)";
+        elements.verdictValue.style.color = "var(--warning)";
       }
 
-      elements.verdictConfidence.textContent = `Confidence: ${((data.confidence || 0) * 100).toFixed(1)}%`;
+      // Breakdown
+      elements.fullReasoning.textContent = vdata.full_reasoning || "No reasoning provided.";
+      elements.whatIsTrue.textContent = vdata.what_is_true || "N/A";
+      elements.whatIsFalse.textContent = vdata.what_is_false || "N/A";
+      elements.whatIsUnclear.textContent = vdata.what_is_unclear || "N/A";
 
-      // Agreement Meter
-      if (elements.agreementMeterBar) {
-        let agreePercent = (data.confidence || 0) * 100;
-        if (data.geo_divergence_detected || data.has_dispute) {
-            agreePercent = Math.min(agreePercent, 50);
-        }
-        elements.agreementMeterBar.style.width = agreePercent + '%';
-        if (agreePercent < 40) elements.agreementMeterBar.style.background = 'var(--danger)';
-        else if (agreePercent < 70) elements.agreementMeterBar.style.background = 'var(--warning)';
-        else elements.agreementMeterBar.style.background = 'var(--success)';
-      }
-
-      // The Story Panel
-      if (data.story) {
-         elements.storyBackground.textContent = data.story.background || "No background available.";
-         elements.storyCurrent.textContent = data.story.current_situation || "No current situation available.";
-         elements.storyActors.textContent = (data.story.key_actors || []).map(a => `${a.name} (${a.role})`).join(', ') || 'None identified.';
-         elements.storyAgree.textContent = data.story.sources_agreeing_on || "No strong agreement found.";
-      } else {
-         elements.storyBackground.textContent = (data.context && data.context.background_summary) || data.evidence_summary || "No background available.";
-         elements.storyCurrent.textContent = data.reasoning || "No current situation available.";
-         elements.storyActors.textContent = (data.context && data.context.entities ? data.context.entities.map(e => e.name).join(", ") : "None identified.");
-         elements.storyAgree.textContent = "Data unavailable.";
-      }
-
-      // Dispute Analysis Panel
-      const hasDispute = data.has_dispute || data.geo_divergence_detected || false;
-      if (hasDispute) {
-         elements.disputePanel.style.display = "block";
-         if (data.dispute_analysis) {
-             elements.undisputedFacts.innerHTML = (data.dispute_analysis.undisputed_facts || []).map(f => `<li>${f}</li>`).join('') || "<li>None</li>";
-             elements.contestedClaims.innerHTML = (data.dispute_analysis.contested_claims || []).map(c => `<li>${c}</li>`).join('') || "<li>None</li>";
-             elements.groundTruthText.textContent = data.dispute_analysis.most_likely_ground_truth || "Unknown.";
-             
-             let narrativesHtml = "";
-             if (data.dispute_analysis.narratives) {
-                 data.dispute_analysis.narratives.forEach(n => {
-                     narrativesHtml += `<div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; border: 1px solid var(--panel-border);">
-                        <h5 style="margin-top: 0; margin-bottom: 0.5rem; color: var(--accent);">${n.name || 'Narrative'}</h5>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">${n.core_argument || n.description || ''}</p>
-                     </div>`;
-                 });
-             }
-             elements.narrativesGrid.innerHTML = narrativesHtml || "<div style='color: var(--text-muted); font-size: 0.9rem;'>No narratives structured yet.</div>";
-         } else {
-             elements.undisputedFacts.innerHTML = "<li>Awaiting detailed dispute data.</li>";
-             elements.contestedClaims.innerHTML = "<li>Awaiting detailed dispute data.</li>";
-             elements.groundTruthText.textContent = "Awaiting detailed dispute data.";
-             
-             let narrativesHtml = "";
-             if (data.narrative_perspectives) {
-                 Object.entries(data.narrative_perspectives).forEach(([k, v]) => {
-                     narrativesHtml += `<div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; border: 1px solid var(--panel-border);">
-                        <h5 style="margin-top: 0; margin-bottom: 0.5rem; color: var(--accent);">${k}</h5>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">${v}</p>
-                     </div>`;
-                 });
-             }
-             elements.narrativesGrid.innerHTML = narrativesHtml || "<div style='color: var(--text-muted); font-size: 0.9rem;'>No narratives detected.</div>";
-         }
-      } else {
-         elements.disputePanel.style.display = "none";
-      }
-
-      // Alerts
-      let alertsHtml = '';
-      if (data.warnings && data.warnings.length) {
-        alertsHtml += data.warnings.map(w => `<div class="alert alert-warning">⚠️ ${w}</div>`).join('');
-      }
-      if (data.missing_information && data.missing_information.length) {
-        alertsHtml += data.missing_information.map(m => `<div class="alert alert-danger">ℹ️ Missing: ${m}</div>`).join('');
-      }
-      if (!alertsHtml) {
-        alertsHtml = `<div class="alert" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #6ee7b7;">✅ No warnings detected.</div>`;
-      }
-      elements.alertsContainer.innerHTML = alertsHtml;
-    }
-
-    function drawStackedBar(data) {
-      const containerId = "stackedBarChart";
-      const container = d3.select("#" + containerId);
-      container.selectAll("*").remove();
-      
-      const width = document.getElementById(containerId).clientWidth;
-      const height = 250;
-      
-      if (!data.evidence_by_region || Object.keys(data.evidence_by_region).length === 0) {
-        container.append("div").attr("class", "empty-state").style("padding", "2rem 0").text("No geographic evidence available.");
-        return;
-      }
-      
-      const regions = Object.keys(data.evidence_by_region);
-      const stances = ["supports", "contradicts", "neutral", "insufficient"];
-      
-      const chartData = regions.map(region => {
-        const row = { region };
-        stances.forEach(s => row[s] = 0);
-        data.evidence_by_region[region].forEach(ev => {
-          if (stances.includes(ev.stance)) {
-            row[ev.stance]++;
-          } else {
-            row["insufficient"]++;
-          }
-        });
-        return row;
-      });
-
-      const color = d3.scaleOrdinal()
-        .domain(stances)
-        .range(["#10b981", "#ef4444", "#9ca3af", "#4b5563"]);
-
-      const svg = container.append("svg")
-        .attr("width", width)
-        .attr("height", height);
-        
-      const margin = {top: 20, right: 120, bottom: 40, left: 40};
-      const innerWidth = width - margin.left - margin.right;
-      const innerHeight = height - margin.top - margin.bottom;
-
-      const series = d3.stack().keys(stances)(chartData);
-      
-      const x = d3.scaleBand()
-        .domain(chartData.map(d => d.region))
-        .range([0, innerWidth])
-        .padding(0.3);
-        
-      const maxVal = d3.max(series, d => d3.max(d, d => d[1]));
-      const y = d3.scaleLinear()
-        .domain([0, maxVal || 1]).nice()
-        .range([innerHeight, 0]);
-
-      const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-      
-      g.append("g")
-        .selectAll("g")
-        .data(series)
-        .join("g")
-        .attr("fill", d => color(d.key))
-        .selectAll("rect")
-        .data(d => d)
-        .join("rect")
-        .attr("x", d => x(d.data.region))
-        .attr("y", d => y(d[1]))
-        .attr("height", d => y(d[0]) - y(d[1]))
-        .attr("width", x.bandwidth())
-        .append("title")
-        .text(function() {
-          const parentData = d3.select(this.parentNode).datum();
-          return `${parentData.key}: ${d3.select(this).datum()[1] - d3.select(this).datum()[0]}`;
-        });
-
-      // X Axis
-      g.append("g")
-        .attr("transform", `translate(0,${innerHeight})`)
-        .call(d3.axisBottom(x))
-        .selectAll("text")
-        .style("fill", "var(--text-main)")
-        .style("font-family", "Inter")
-        .style("font-size", "12px");
-        
-      g.selectAll(".domain, .tick line").attr("stroke", "var(--panel-border)");
-
-      // Y Axis
-      g.append("g")
-        .call(d3.axisLeft(y).ticks(Math.max(2, maxVal)).tickFormat(d3.format("d")))
-        .selectAll("text")
-        .style("fill", "var(--text-main)")
-        .style("font-family", "Inter");
-        
-      // Legend
-      const legend = svg.append("g")
-        .attr("font-family", "Inter")
-        .attr("font-size", 12)
-        .attr("text-anchor", "start")
-        .selectAll("g")
-        .data(stances.slice().reverse())
-        .join("g")
-        .attr("transform", (d, i) => `translate(${width - margin.right + 20},${margin.top + i * 20})`);
-
-      legend.append("rect")
-        .attr("x", 0)
-        .attr("width", 15)
-        .attr("height", 15)
-        .attr("fill", color);
-
-      legend.append("text")
-        .attr("x", 24)
-        .attr("y", 9.5)
-        .attr("dy", "0.32em")
-        .style("fill", "var(--text-main)")
-        .text(d => d.charAt(0).toUpperCase() + d.slice(1));
-    }
-
-    function drawNetworkGraph(data) {
-      const containerId = "networkGraph";
-      const width = document.getElementById(containerId).clientWidth;
-      const height = 450;
-      
-      const svg = d3.select("#" + containerId).selectAll("*").remove();
-      
-      const nodes = [];
-      const links = [];
-      
-      nodes.push({ id: "claim", label: "Main Claim", group: "claim", radius: 25 });
-      
-      if (data.sub_claims) {
-        data.sub_claims.forEach((sc, i) => {
-          const scId = "sc_" + i;
-          nodes.push({ id: scId, label: sc.text, group: "subclaim", radius: 18 });
-          links.push({ source: "claim", target: scId });
-          
-          if (sc.evidence) {
-            sc.evidence.forEach((ev, j) => {
-              const evId = "ev_" + i + "_" + j;
-              nodes.push({ 
-                id: evId, 
-                label: ev.source_title, 
-                group: "evidence", 
-                stance: ev.stance, 
-                radius: 12 
-              });
-              links.push({ source: scId, target: evId });
-            });
-          }
-        });
-      }
-      
-      if (nodes.length === 1) {
-        d3.select("#" + containerId).append("div").attr("class", "empty-state").style("margin-top", "100px").text("Not enough data to build network.");
-        return;
-      }
-
-      const svgContainer = d3.select("#" + containerId).append("svg")
-        .attr("width", width)
-        .attr("height", height);
-
-      const simulation = d3.forceSimulation(nodes)
-        .force("link", d3.forceLink(links).id(d => d.id).distance(60))
-        .force("charge", d3.forceManyBody().strength(-200))
-        .force("center", d3.forceCenter(width / 2, height / 2))
-        .force("collide", d3.forceCollide().radius(d => d.radius + 5).iterations(2));
-
-      const link = svgContainer.append("g")
-        .attr("stroke", "rgba(255,255,255,0.2)")
-        .selectAll("line")
-        .data(links)
-        .join("line")
-        .attr("stroke-width", 1.5);
-
-      const colorStance = {
-        "supports": "#10b981",
-        "contradicts": "#ef4444",
-        "neutral": "#9ca3af",
-        "insufficient": "#4b5563"
-      };
-
-      const node = svgContainer.append("g")
-        .attr("stroke", "#1f2937")
-        .attr("stroke-width", 2)
-        .selectAll("circle")
-        .data(nodes)
-        .join("circle")
-        .attr("r", d => d.radius)
-        .attr("fill", d => {
-          if (d.group === "claim") return "#3b82f6";
-          if (d.group === "subclaim") return "#8b5cf6";
-          return colorStance[d.stance] || "#6b7280";
-        })
-        .call(drag(simulation));
-
-      node.append("title")
-        .text(d => d.label);
-
-      simulation.on("tick", () => {
-        link
-          .attr("x1", d => d.source.x)
-          .attr("y1", d => d.source.y)
-          .attr("x2", d => d.target.x)
-          .attr("y2", d => d.target.y);
-
-        node
-          .attr("cx", d => d.x = Math.max(d.radius, Math.min(width - d.radius, d.x)))
-          .attr("cy", d => d.y = Math.max(d.radius, Math.min(height - d.radius, d.y)));
-      });
-
-      function drag(simulation) {
-        function dragstarted(event) {
-          if (!event.active) simulation.alphaTarget(0.3).restart();
-          event.subject.fx = event.subject.x;
-          event.subject.fy = event.subject.y;
-        }
-        function dragged(event) {
-          event.subject.fx = event.x;
-          event.subject.fy = event.y;
-        }
-        function dragended(event) {
-          if (!event.active) simulation.alphaTarget(0);
-          event.subject.fx = null;
-          event.subject.fy = null;
-        }
-        return d3.drag()
-          .on("start", dragstarted)
-          .on("drag", dragged)
-          .on("end", dragended);
-      }
-    }
-
-    function renderHiddenStories(data) {
-      elements.hiddenStoryContainer.innerHTML = "";
-      const stories = data.hidden_story_items || [];
-      elements.hiddenStoryCount.textContent = `${stories.length} Detected`;
-      
-      if (stories.length === 0) {
-        elements.hiddenStoryContainer.innerHTML = `<div class="empty-state">No hidden stories or significant omissions detected.</div>`;
-        return;
-      }
-
-      stories.forEach((story, i) => {
-        const item = document.createElement('div');
-        item.className = 'hidden-story-item';
-        
-        item.innerHTML = `
-          <div class="story-header" onclick="this.nextElementSibling.classList.toggle('active')">
-            <div style="font-weight: 600; font-size: 1.05rem;">${story.source_title || 'Unknown Source'}</div>
-            <div style="color: var(--text-muted); font-size: 0.9rem;">${story.publisher || ''} • ${story.perspective_label || 'Unknown Perspective'}</div>
-          </div>
-          <div class="story-content">
-            <p style="margin-top: 0; line-height: 1.6; color: #d1d5db;">${story.excerpt || 'No excerpt available.'}</p>
-            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-              <span class="tag">Type: ${story.source_type}</span>
-              <span class="tag">Stance: ${story.stance}</span>
-              ${story.url_or_id ? `<a href="${story.url_or_id}" target="_blank" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">View Source ↗</a>` : ''}
+      // Perspectives
+      elements.blocGrid.innerHTML = "";
+      if (data.perspective_groups) {
+        data.perspective_groups.forEach(pg => {
+          elements.blocGrid.innerHTML += `
+            <div class="bloc-card">
+              <h4 class="bloc-title">${pg.group_label}</h4>
+              <span class="bloc-stance">${pg.collective_stance}</span>
+              <div class="bloc-content">
+                <p style="margin-top:0">${pg.collective_narrative}</p>
+                <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+                  <strong>Emphasizes:</strong> ${pg.what_they_emphasize}<br>
+                  <strong>Omits:</strong> ${pg.what_they_omit}
+                </div>
+              </div>
             </div>
-          </div>
-        `;
-        elements.hiddenStoryContainer.appendChild(item);
-      });
-    }
+          `;
+        });
+      }
 
-    function exportReport() {
-      if (!state.currentResult) return;
-      const jsonStr = JSON.stringify(state.currentResult, null, 2);
-      const blob = new Blob([jsonStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "truth_mirror_report.json";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
+      // Hidden Stories
+      elements.hiddenStoriesContainer.innerHTML = "";
+      if (data.hidden_stories && data.hidden_stories.length > 0) {
+        data.hidden_stories.forEach(hs => {
+          elements.hiddenStoriesContainer.innerHTML += `
+            <div class="accordion-item">
+              <div class="accordion-header" onclick="toggleAccordion(this)">
+                <span>🕵️ ${hs.title}</span>
+                <span style="font-size: 0.8rem; color: var(--accent);">Expand ▼</span>
+              </div>
+              <div class="accordion-content">
+                <p style="margin-top: 1rem;">${hs.explanation}</p>
+                <p><strong>Significance:</strong> ${hs.significance}</p>
+                <div style="display: flex; gap: 2rem; font-size: 0.85rem; margin-top: 1rem;">
+                  <div><strong style="color: var(--success);">Hinted By:</strong> ${hs.which_sources_hint_at_this.join(", ")}</div>
+                  <div><strong style="color: var(--danger);">Suppressed By:</strong> ${hs.which_sources_suppress_this.join(", ")}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+      } else {
+        elements.hiddenStoriesContainer.innerHTML = "<p style='color: var(--text-muted);'>No hidden narratives extracted.</p>";
+      }
 
+      // Sources Table
+      elements.sourceCount.textContent = data.total_sources || 0;
+      elements.sourcesTableBody.innerHTML = "";
+      if (data.source_analyses) {
+        data.source_analyses.forEach(sa => {
+          let sColor = "var(--text-muted)";
+          if(sa.stance === "SUPPORTS") sColor = "var(--success)";
+          if(sa.stance === "CONTRADICTS") sColor = "var(--danger)";
+          if(sa.stance === "PARTIALLY_SUPPORTS") sColor = "var(--warning)";
+          
+          elements.sourcesTableBody.innerHTML += `
+            <tr>
+              <td>
+                <div style="font-weight: 600;">${sa.source_name}</div>
+                <a href="${sa.url}" target="_blank" style="font-size: 0.8rem; color: var(--accent); text-decoration: none;">View Source ↗</a>
+              </td>
+              <td>${sa.alignment}</td>
+              <td style="color: ${sColor}; font-weight: 600;">${sa.stance}</td>
+              <td>${(sa.stance_confidence * 100).toFixed(0)}%</td>
+              <td style="font-size: 0.85rem; color: var(--text-muted); max-width: 300px;">${sa.what_emphasized}</td>
+            </tr>
+          `;
+        });
+      }
+    }
   </script>
 </body>
 </html>

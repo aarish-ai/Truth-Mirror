@@ -600,3 +600,20 @@ Trump has cancelled Strikes on Iran
 5. Dispute Detected: False
 =================================================================
 
+=================================================================
+--- GEOPOLITICAL INTELLIGENCE RUN ---
+1. Original Claim:
+Trump has stopped the Strikes On Iran
+
+2. Is Geopolitical: True
+3. Final Verdict: False (Confidence: 0.95)
+   Reasoning: All available sources confirm U.S.-Israeli strikes on Iran began February 28, 2026, and continued for months. Source 8 explicitly states Israel conducted new strikes on Iran on June 7, 2026 'despite Trump admonition,' proving strikes were not stopped. Source 6 shows Trump demanding 'unconditional surrender' on March 6, 2026, not halting operations. No source indicates Trump ordered a cessation of strikes.
+   Source Agreement: high
+
+4. Story Headline: Evidence Shows U.S.-Israeli Strikes on Iran Began February 2026 and Continued, Contradicting Claim Trump Stopped Them
+   Background: Tensions escalated following the breakdown of U.S.-Iran negotiations in early 2026. President Trump sent a letter to Supreme Leader Khamenei with a 60-day deadline for an agreement (Source 2). After the deadline passed, the U.S. initiated its largest military buildup in the region since 1979 (Source 1), culminating in coordinated U.S.-Israeli strikes on Iranian nuclear and military sites at Fordow, Isfahan, and Natanz on February 28, 2026 (Sources 7, 11, 12, 18).
+   Current Situation: The strikes sparked the '2026 Iran War,' triggering Iranian retaliatory strikes on Israel, Oman, Bahrain, Qatar, and UAE interests (Sources 13, 14, 15, 16, 17). On March 6, 2026, Trump posted 'There will be no deal with Iran except UNCONDITIONAL SURRENDER!' (Source 6). A U.S. naval blockade was imposed on April 13, 2026 (Source 9). As of June 7, 2026, Israeli strikes on Iran continued 'despite Trump admonition' (Source 8), indicating the conflict remained active and strikes were not stopped.
+
+5. Dispute Detected: False
+=================================================================
+

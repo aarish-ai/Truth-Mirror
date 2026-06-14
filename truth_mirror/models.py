@@ -133,21 +133,34 @@ class GeoDisputeAnalysis:
 
 @dataclass(slots=True)
 class GeopoliticalResult:
-    original_claim: str
-    is_geopolitical: bool
-    rejection_reason: str = ""   # populated if not geopolitical
+    claim: str = ""
+    original_claim: str = ""
+    is_geopolitical: bool = True
+    rejection_reason: str = ""
+    
+    source_analyses: list = field(default_factory=list)
+    total_sources: int = 0
+    
+    perspective_groups: list = field(default_factory=list)
+    
+    consensus_points: list = field(default_factory=list)
+    disputed_points: list = field(default_factory=list)
+    
+    hidden_stories: list = field(default_factory=list)
+    
+    verdict_data: dict = field(default_factory=dict)
+    
+    background: str = ""
+    current_situation: str = ""
     verdict: str = "Unclear"
+    final_verdict: str = "Unclear"
     confidence: float = 0.0
-    verdict_reasoning: str = ""
-    source_agreement_level: str = "none"
-    story: GeoStory | None = None
-    has_dispute: bool = False
-    dispute_analysis: GeoDisputeAnalysis | None = None
-    key_sources: list[dict] = field(default_factory=list)
-    missing_evidence: list[str] = field(default_factory=list)
-    evidence_by_region: dict[str, list[EvidenceItem]] = field(default_factory=dict)
-    sub_claims: list[str] = field(default_factory=list)
-    evidence_count: int = 0
     generated_at: str = field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
+
+    def to_json(self) -> dict:
+        from dataclasses import asdict
+        d = asdict(self)
+        d["final_verdict"] = self.verdict
+        return d

@@ -1,0 +1,70 @@
+SOURCE_REGISTRY = {
+    "reuters.com":        {"name": "Reuters",           "category": "wire_service",   "country": "International", "alignment": "western",      "tier": 1},
+    "apnews.com":         {"name": "AP News",            "category": "wire_service",   "country": "International", "alignment": "western",      "tier": 1},
+    "bbc.com":            {"name": "BBC",                "category": "western_msm",    "country": "UK",            "alignment": "western",      "tier": 1},
+    "bbc.co.uk":          {"name": "BBC",                "category": "western_msm",    "country": "UK",            "alignment": "western",      "tier": 1},
+    "theguardian.com":    {"name": "The Guardian",       "category": "western_msm",    "country": "UK",            "alignment": "western",      "tier": 1},
+    "nytimes.com":        {"name": "New York Times",     "category": "western_msm",    "country": "USA",           "alignment": "western",      "tier": 1},
+    "washingtonpost.com": {"name": "Washington Post",    "category": "western_msm",    "country": "USA",           "alignment": "western",      "tier": 1},
+    "cnn.com":            {"name": "CNN",                "category": "western_msm",    "country": "USA",           "alignment": "western",      "tier": 2},
+    "foxnews.com":        {"name": "Fox News",           "category": "western_msm",    "country": "USA",           "alignment": "western",      "tier": 2},
+    "politico.com":       {"name": "Politico",           "category": "western_msm",    "country": "USA",           "alignment": "western",      "tier": 2},
+    "france24.com":       {"name": "France 24",          "category": "western_msm",    "country": "France",        "alignment": "western",      "tier": 2},
+    "dw.com":             {"name": "Deutsche Welle",     "category": "western_msm",    "country": "Germany",       "alignment": "western",      "tier": 2},
+    "aljazeera.com":      {"name": "Al Jazeera",         "category": "gulf_media",     "country": "Qatar",         "alignment": "gulf",         "tier": 2},
+    "alarabiya.net":      {"name": "Al Arabiya",         "category": "gulf_media",     "country": "Saudi Arabia",  "alignment": "gulf",         "tier": 2},
+    "arabnews.com":       {"name": "Arab News",          "category": "gulf_media",     "country": "Saudi Arabia",  "alignment": "gulf",         "tier": 2},
+    "tass.com":           {"name": "TASS",               "category": "state_media",    "country": "Russia",        "alignment": "eastern",      "tier": 2},
+    "rt.com":             {"name": "RT",                 "category": "state_media",    "country": "Russia",        "alignment": "eastern",      "tier": 3},
+    "cgtn.com":           {"name": "CGTN",               "category": "state_media",    "country": "China",         "alignment": "eastern",      "tier": 2},
+    "xinhuanet.com":      {"name": "Xinhua",             "category": "state_media",    "country": "China",         "alignment": "eastern",      "tier": 2},
+    "globaltimes.cn":     {"name": "Global Times",       "category": "state_media",    "country": "China",         "alignment": "eastern",      "tier": 3},
+    "presstv.ir":         {"name": "Press TV",           "category": "state_media",    "country": "Iran",          "alignment": "iran",         "tier": 3},
+    "irna.ir":            {"name": "IRNA",               "category": "state_media",    "country": "Iran",          "alignment": "iran",         "tier": 2},
+    "timesofisrael.com":  {"name": "Times of Israel",    "category": "regional_media", "country": "Israel",        "alignment": "israel",       "tier": 2},
+    "haaretz.com":        {"name": "Haaretz",            "category": "regional_media", "country": "Israel",        "alignment": "israel",       "tier": 2},
+    "jpost.com":          {"name": "Jerusalem Post",     "category": "regional_media", "country": "Israel",        "alignment": "israel",       "tier": 2},
+    "dawn.com":           {"name": "Dawn",               "category": "regional_media", "country": "Pakistan",      "alignment": "south_asian",  "tier": 2},
+    "geo.tv":             {"name": "Geo TV",             "category": "regional_media", "country": "Pakistan",      "alignment": "south_asian",  "tier": 2},
+    "thehindu.com":       {"name": "The Hindu",          "category": "regional_media", "country": "India",         "alignment": "south_asian",  "tier": 2},
+    "middleeasteye.net":  {"name": "Middle East Eye",    "category": "independent",    "country": "UK",            "alignment": "independent",  "tier": 2},
+    "theintercept.com":   {"name": "The Intercept",      "category": "independent",    "country": "USA",           "alignment": "independent",  "tier": 2},
+    "bellingcat.com":     {"name": "Bellingcat",         "category": "osint",          "country": "International", "alignment": "independent",  "tier": 1},
+    "en.wikipedia.org":   {"name": "Wikipedia",          "category": "encyclopedia",   "country": "International", "alignment": "neutral",      "tier": 3},
+}
+
+ALIGNMENT_GROUP_LABELS = {
+    "western":     "Western Media",
+    "eastern":     "Russian & Chinese State Media",
+    "gulf":        "Gulf & Arab Media",
+    "iran":        "Iranian State Media",
+    "israel":      "Israeli Media",
+    "south_asian": "South Asian Media",
+    "independent": "Independent & Investigative Media",
+    "neutral":     "Reference Sources",
+}
+
+def get_source_metadata(url: str) -> dict:
+    """
+    Given a URL, return source metadata from the registry.
+    Falls back to inferred metadata if domain is not in the registry.
+    """
+    from urllib.parse import urlparse
+    domain = urlparse(url).netloc.replace("www.", "")
+    if domain in SOURCE_REGISTRY:
+        return SOURCE_REGISTRY[domain]
+    # Infer from TLD or domain keywords
+    inferred = {"name": domain, "category": "unknown", "country": "Unknown", "alignment": "unknown", "tier": 3}
+    if any(x in domain for x in [".gov", ".mil"]):
+        inferred["category"] = "official"
+        inferred["alignment"] = "official"
+        inferred["tier"] = 1
+    elif ".ir" in domain:
+        inferred["alignment"] = "iran"
+    elif ".il" in domain:
+        inferred["alignment"] = "israel"
+    elif ".ru" in domain:
+        inferred["alignment"] = "eastern"
+    elif ".cn" in domain:
+        inferred["alignment"] = "eastern"
+    return inferred

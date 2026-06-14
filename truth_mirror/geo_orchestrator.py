@@ -1,5 +1,11 @@
 """Orchestrator for the Geopolitical Intelligence Engine."""
 
+import os
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 from typing import List
@@ -78,9 +84,17 @@ class GeopoliticalPipeline:
         return all_results
 
     def verify(self, claim: str) -> GeopoliticalResult:
-        """
-        Executes the geopolitical pipeline and returns a GeopoliticalResult.
-        """
+        import asyncio
+        return asyncio.run(self.run_async(claim))
+
+    async def run_async(self, claim: str) -> GeopoliticalResult:
+        import asyncio
+        from datetime import datetime
+        from truth_mirror.source_analyzer import SourceAnalyzer
+        from truth_mirror.perspective_synthesizer import PerspectiveSynthesizer
+        from truth_mirror.hidden_story_extractor import HiddenStoryExtractor
+        from truth_mirror.verdict_engine import VerdictEngine
+        
         # 1. Classification
         class_res = self.classifier.classify(claim)
         if not class_res.get("is_geopolitical", False):
@@ -98,14 +112,25 @@ class GeopoliticalPipeline:
         # 2. Decomposition
         sub_claims = self.decomposer.decompose(claim)
         
-        # 3. Query Generation & Retrieval
-        all_evidence = []
+        # 3. Query Generation
+        all_queries = []
         for sub_claim in sub_claims:
-            queries = self.query_generator.generate(sub_claim, involved_parties, claim_subtype)
-            evidence = self._parallel_retrieve(queries, claim_subtype)
-            all_evidence.extend(evidence)
+            all_queries.extend(self.query_generator.generate(sub_claim, involved_parties, claim_subtype))
             
-        # Deduplicate evidence based on URL or title
+        current_year = datetime.now().year
+        perspective_queries = [
+            f"{claim} western media coverage {current_year}",
+            f"{claim} Russia China reaction {current_year}",
+            f"{claim} Arab Gulf media {current_year}",
+            f"{claim} official statement government {current_year}",
+            f"{claim} independent analysis {current_year}",
+        ]
+        all_queries.extend(perspective_queries)
+        
+        # Parallel Retrieval
+        all_evidence = self._parallel_retrieve(all_queries, claim_subtype)
+        
+        # Deduplicate evidence
         seen = set()
         deduped_evidence = []
         for item in all_evidence:
@@ -113,41 +138,141 @@ class GeopoliticalPipeline:
             if key not in seen:
                 seen.add(key)
                 deduped_evidence.append(item)
-        all_evidence = deduped_evidence
+                
+        # Convert to raw dictionaries for SourceAnalyzer
+        from dataclasses import asdict
+        raw_results = [asdict(e) for e in deduped_evidence]
         
-        # 4. Perspective Tagging
-        self.perspective_tagger.tag(all_evidence, involved_parties)
+        # Stage 2: Per-source stance analysis
+        ollama_model = getattr(self.decomposer, "model", "qwen2.5:3b")
+        analyzer = SourceAnalyzer(ollama_model=ollama_model)
+        source_analyses = await analyzer.analyze_all(raw_results, claim, max_concurrent=5)
+        source_analyses = [s for s in source_analyses if s.summary]
         
-        # Group by perspective
-        by_perspective = {}
-        for item in all_evidence:
-            by_perspective.setdefault(item.perspective_label, []).append(item)
-            
-        # Format for synthesizer
-        lines = []
-        for perspective, items in by_perspective.items():
-            lines.append(f"[{perspective.upper()}]")
-            for idx, item in enumerate(items, 1):
-                lines.append(f"  {idx}. {item.source_title} ({item.publisher}) - {item.url_or_id}")
-                if item.excerpt:
-                    excerpt_trunc = item.excerpt[:300] + ("..." if len(item.excerpt) > 300 else "")
-                    lines.append(f"     Excerpt: {excerpt_trunc}")
+        consensus_points, disputed_points = compute_consensus_disputes(source_analyses)
         
-        evidence_by_perspective_str = "\n".join(lines) if lines else "No evidence retrieved."
+        gemini_client = getattr(self.synthesizer, "client", None)
         
-        # 5. Synthesis
-        parties_str = ", ".join(involved_parties) if involved_parties else "Unknown"
-        result = self.synthesizer.synthesize(
+        # Stage 3: Perspective synthesis
+        synthesizer = PerspectiveSynthesizer()
+        perspective_groups = await synthesizer.synthesize(source_analyses, claim, gemini_client)
+        
+        # Stage 4: Hidden story extraction
+        extractor = HiddenStoryExtractor()
+        hidden_stories = await extractor.extract(source_analyses, perspective_groups, claim, gemini_client)
+        
+        # Stage 5: Verdict generation
+        engine = VerdictEngine()
+        verdict = await engine.generate(source_analyses, perspective_groups, hidden_stories, claim, gemini_client)
+        
+        # Stage 6: Generate background and current_situation narratives
+        background, current_situation = await generate_background_narrative(claim, source_analyses, gemini_client)
+        
+        result = GeopoliticalResult(
             claim=claim,
-            claim_subtype=claim_subtype,
-            involved_parties=parties_str,
-            evidence_by_perspective=evidence_by_perspective_str,
-            evidence_count=len(all_evidence),
-            sub_claims=sub_claims
+            original_claim=claim,
+            is_geopolitical=True,
+            source_analyses=[s.__dict__ for s in source_analyses],
+            total_sources=len(source_analyses),
+            perspective_groups=[p.__dict__ for p in perspective_groups],
+            consensus_points=consensus_points,
+            disputed_points=disputed_points,
+            hidden_stories=[h.__dict__ for h in hidden_stories],
+            verdict_data=verdict.__dict__,
+            background=background,
+            current_situation=current_situation,
+            verdict=verdict.verdict,
+            final_verdict=verdict.verdict,
+            confidence=verdict.confidence
         )
-        result.evidence_by_region = by_perspective
         
-        # 6. Logging
-        self.eval_logger.log_geo_run(result)
-        
+        # self.eval_logger.log_geo_run(result)
         return result
+
+async def generate_background_narrative(claim: str, source_analyses: list, gemini_client) -> tuple[str, str]:
+    prompt = f"Analyze these sources and provide a brief background and current situation for this claim: {claim}\n"
+    prompt += "Return JSON: {\"background\": \"...\", \"current_situation\": \"...\"}\n"
+    
+    import json
+    import asyncio
+    try:
+        from google.genai import types
+    except ImportError:
+        types = None
+
+    def run_sync():
+        data = None
+        if gemini_client and types:
+            try:
+                response = gemini_client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        temperature=0.2,
+                    )
+                )
+                raw_json = response.text
+                if raw_json.startswith("```json"):
+                    raw_json = raw_json.strip("` \n").removeprefix("json")
+                data = json.loads(raw_json)
+            except Exception:
+                pass
+                
+        if data is None:
+            import os, json, urllib.request, re
+            api_key = os.environ.get("OPENROUTER_API_KEY")
+            if api_key and api_key != "your_openrouter_api_key_here":
+                req_data = json.dumps({
+                    "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+                    "messages": [{"role": "user", "content": prompt}]
+                }).encode('utf-8')
+                req = urllib.request.Request("https://openrouter.ai/api/v1/chat/completions", data=req_data, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"})
+                with urllib.request.urlopen(req) as response:
+                    resp_data = json.loads(response.read().decode('utf-8'))
+                    raw_json = resp_data["choices"][0]["message"]["content"]
+                    match = re.search(r'\{.*\}', raw_json, re.DOTALL)
+                    if match:
+                        raw_json = match.group(0)
+                    data = json.loads(raw_json)
+        return data
+
+    try:
+        data = await asyncio.to_thread(run_sync)
+        if data:
+            return data.get("background", ""), data.get("current_situation", "")
+    except Exception:
+        pass
+    return "Background unavailable.", "Current situation unavailable."
+
+def compute_consensus_disputes(source_analyses: list) -> tuple[list[str], list[str]]:
+    claims_dict = {}
+    for s in source_analyses:
+        for claim in s.key_claims:
+            claim_lower = claim.lower()
+            found = False
+            for existing in claims_dict.keys():
+                if len(existing) > 10 and (existing in claim_lower or claim_lower in existing):
+                    claims_dict[existing].append(s.stance)
+                    found = True
+                    break
+            if not found:
+                claims_dict[claim_lower] = [s.stance]
+                
+    consensus = []
+    disputed = []
+    
+    total_sources = len(source_analyses)
+    if total_sources == 0:
+        return [], []
+        
+    for claim, stances in claims_dict.items():
+        if len(stances) >= max(3, total_sources * 0.2):
+            has_support = any(st in ["SUPPORTS", "PARTIALLY_SUPPORTS"] for st in stances)
+            has_contradict = "CONTRADICTS" in stances
+            if has_support and has_contradict:
+                disputed.append(claim.capitalize())
+            elif has_support or has_contradict:
+                consensus.append(claim.capitalize())
+                
+    return consensus, disputed
