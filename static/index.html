@@ -504,7 +504,13 @@
         const data = await res.json();
         
         if (data.is_geopolitical === false) {
-          alert("Claim rejected: " + data.rejection_reason);
+          elements.initialState.innerHTML = `
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1.5rem;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+            <h2 style="font-size: 2rem; color: var(--danger); margin-bottom: 0.5rem;">Out of Scope</h2>
+            <p style="font-size: 1.1rem; max-width: 600px; margin: 0 auto; color: var(--text-muted);">${data.rejection_reason}</p>
+          `;
+          elements.initialState.style.display = "block";
+          elements.dashboard.style.display = "none";
           return;
         }
 

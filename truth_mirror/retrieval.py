@@ -11,8 +11,11 @@ from dataclasses import asdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+import logging
 
 from truth_mirror.models import EvidenceItem
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -91,10 +94,12 @@ class EvidenceRetriever:
             )
         )
         try:
+            logger.info(f"[WikipediaConnector] Querying: {query}")
             req = urllib.request.Request(search_url, headers={"User-Agent": "TruthMirror/0.1"})
             with urllib.request.urlopen(req, timeout=self.config.timeout_seconds) as response:
                 payload = json.loads(response.read().decode("utf-8"))
-        except Exception:
+        except Exception as e:
+            logger.warning(f"[WikipediaConnector] Failed for query '{query}': {e}")
             return []
         items: list[EvidenceItem] = []
         for result in payload.get("query", {}).get("search", []):
@@ -114,6 +119,7 @@ class EvidenceRetriever:
                     independence_key="wikipedia",
                 )
             )
+        logger.info(f"[WikipediaConnector] Retrieved {len(items)} items for: {query}")
         return items
 
     def _query_wikinews(self, query: str) -> list[EvidenceItem]:
@@ -125,11 +131,13 @@ class EvidenceRetriever:
             )
         )
         try:
+            logger.info(f"[WikinewsConnector] Querying: {query}")
             req = urllib.request.Request(feed_url, headers={"User-Agent": "TruthMirror/0.2"})
             with urllib.request.urlopen(req, timeout=self.config.timeout_seconds) as response:
                 xml_bytes = response.read()
             root = ET.fromstring(xml_bytes)
-        except Exception:
+        except Exception as e:
+            logger.warning(f"[WikinewsConnector] Failed for query '{query}': {e}")
             return []
 
         items: list[EvidenceItem] = []
@@ -153,6 +161,7 @@ class EvidenceRetriever:
                     independence_key="wikinews",
                 )
             )
+        logger.info(f"[WikinewsConnector] Retrieved {len(items)} items for: {query}")
         return items
 
     def _query_crossref(self, query: str) -> list[EvidenceItem]:
@@ -161,10 +170,12 @@ class EvidenceRetriever:
             + urllib.parse.urlencode({"query.title": query, "rows": self.config.max_results // 2})
         )
         try:
+            logger.info(f"[CrossrefConnector] Querying: {query}")
             req = urllib.request.Request(api_url, headers={"User-Agent": "TruthMirror/0.2"})
             with urllib.request.urlopen(req, timeout=self.config.timeout_seconds) as response:
                 payload = json.loads(response.read().decode("utf-8"))
-        except Exception:
+        except Exception as e:
+            logger.warning(f"[CrossrefConnector] Failed for query '{query}': {e}")
             return []
 
         items: list[EvidenceItem] = []
@@ -193,5 +204,6 @@ class EvidenceRetriever:
                     independence_key=f"crossref:{publisher.lower()}",
                 )
             )
+        logger.info(f"[CrossrefConnector] Retrieved {len(items)} items for: {query}")
         return items
 

@@ -7,6 +7,9 @@ import arxiv
 
 from truth_mirror.models import EvidenceItem
 from truth_mirror.retrieval import RetrievalConfig
+import logging
+
+logger = logging.getLogger(__name__)
 
 class SemanticScholarConnector:
     def __init__(self, config: RetrievalConfig | None = None):
@@ -19,10 +22,12 @@ class SemanticScholarConnector:
             "fields": "title,authors,year,url,abstract,venue"
         })
         try:
+            logger.info(f"[SemanticScholarConnector] Querying: {query}")
             req = urllib.request.Request(url, headers={"User-Agent": "TruthMirror/0.1"})
             with urllib.request.urlopen(req, timeout=self.config.timeout_seconds) as response:
                 payload = json.loads(response.read().decode("utf-8"))
-        except Exception:
+        except Exception as e:
+            logger.warning(f"[SemanticScholarConnector] Failed for query '{query}': {e}")
             return []
         
         items = []
@@ -46,6 +51,7 @@ class SemanticScholarConnector:
                 language="en",
                 independence_key=f"semanticscholar:{venue.lower()}"
             ))
+        logger.info(f"[SemanticScholarConnector] Retrieved {len(items)} items for: {query}")
         return items
 
 class ArxivConnector:
@@ -65,6 +71,7 @@ class ArxivConnector:
 
         items = []
         try:
+            logger.info(f"[ArxivConnector] Querying: {query}")
             client = arxiv.Client()
             search = arxiv.Search(
                 query=query,
@@ -86,8 +93,10 @@ class ArxivConnector:
                     language="en",
                     independence_key="arxiv:preprint"
                 ))
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"[ArxivConnector] Failed for query '{query}': {e}")
+        
+        logger.info(f"[ArxivConnector] Retrieved {len(items)} items for: {query}")
         return items
 
 class PubMedConnector:
@@ -102,10 +111,12 @@ class PubMedConnector:
             "retmax": self.config.max_results
         })
         try:
+            logger.info(f"[PubMedConnector] Querying E-Search: {query}")
             req = urllib.request.Request(search_url, headers={"User-Agent": "TruthMirror/0.1"})
             with urllib.request.urlopen(req, timeout=self.config.timeout_seconds) as response:
                 payload = json.loads(response.read().decode("utf-8"))
-        except Exception:
+        except Exception as e:
+            logger.warning(f"[PubMedConnector] E-Search failed for query '{query}': {e}")
             return []
             
         id_list = payload.get("esearchresult", {}).get("idlist", [])
@@ -118,10 +129,12 @@ class PubMedConnector:
             "retmode": "json"
         })
         try:
+            logger.info(f"[PubMedConnector] Querying E-Summary: {query}")
             req = urllib.request.Request(summary_url, headers={"User-Agent": "TruthMirror/0.1"})
             with urllib.request.urlopen(req, timeout=self.config.timeout_seconds) as response:
                 summary_payload = json.loads(response.read().decode("utf-8"))
-        except Exception:
+        except Exception as e:
+            logger.warning(f"[PubMedConnector] E-Summary failed for query '{query}': {e}")
             return []
             
         items = []
@@ -148,4 +161,5 @@ class PubMedConnector:
                 independence_key=f"pubmed:{source.lower()}"
             ))
             
+        logger.info(f"[PubMedConnector] Retrieved {len(items)} items for: {query}")
         return items

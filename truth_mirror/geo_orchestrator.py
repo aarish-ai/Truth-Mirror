@@ -29,7 +29,7 @@ class GeopoliticalPipeline:
         self.query_generator = GeoQueryGenerator()
         
         # Configure the retriever (max_results per connector is also set to 8 by default)
-        self.retriever = FreeSourceRetrieval(config=RetrievalConfig(max_results=8))
+        self.retriever = FreeSourceRetrieval(config=RetrievalConfig(max_results=8), disable_academic=True)
         
         self.perspective_tagger = PerspectiveTagger()
         self.synthesizer = GeoSynthesizer()
@@ -83,11 +83,11 @@ class GeopoliticalPipeline:
                     
         return all_results
 
-    def verify(self, claim: str) -> GeopoliticalResult:
+    def verify(self, claim: str, scope_gate=None) -> GeopoliticalResult:
         import asyncio
-        return asyncio.run(self.run_async(claim))
+        return asyncio.run(self.run_async(claim, scope_gate))
 
-    async def run_async(self, claim: str) -> GeopoliticalResult:
+    async def run_async(self, claim: str, scope_gate=None) -> GeopoliticalResult:
         import asyncio
         from datetime import datetime
         from truth_mirror.source_analyzer import SourceAnalyzer
@@ -95,19 +95,13 @@ class GeopoliticalPipeline:
         from truth_mirror.hidden_story_extractor import HiddenStoryExtractor
         from truth_mirror.verdict_engine import VerdictEngine
         
-        # 1. Classification
-        class_res = self.classifier.classify(claim)
-        if not class_res.get("is_geopolitical", False):
-            result = GeopoliticalResult(
-                original_claim=claim,
-                is_geopolitical=False,
-                rejection_reason=class_res.get("reason", "Not classified as geopolitical.")
-            )
-            self.eval_logger.log_geo_run(result)
-            return result
-            
-        involved_parties = class_res.get("involved_parties", [])
-        claim_subtype = class_res.get("claim_subtype", "unknown")
+        # 1. Classification (now provided by scope gate)
+        if scope_gate:
+            involved_parties = scope_gate.involved_parties
+            claim_subtype = scope_gate.claim_subtype
+        else:
+            involved_parties = []
+            claim_subtype = "unknown"
         
         # 2. Decomposition
         sub_claims = self.decomposer.decompose(claim)
@@ -139,14 +133,10 @@ class GeopoliticalPipeline:
                 seen.add(key)
                 deduped_evidence.append(item)
                 
-        # Convert to raw dictionaries for SourceAnalyzer
-        from dataclasses import asdict
-        raw_results = [asdict(e) for e in deduped_evidence]
-        
         # Stage 2: Per-source stance analysis
         ollama_model = getattr(self.decomposer, "model", "qwen2.5:3b")
         analyzer = SourceAnalyzer(ollama_model=ollama_model)
-        source_analyses = await analyzer.analyze_all(raw_results, claim, max_concurrent=5)
+        source_analyses = await analyzer.analyze_all(deduped_evidence, claim, max_concurrent=5)
         source_analyses = [s for s in source_analyses if s.summary]
         
         consensus_points, disputed_points = compute_consensus_disputes(source_analyses)

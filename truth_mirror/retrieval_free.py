@@ -35,8 +35,10 @@ class FreeSourceRetrieval(EvidenceRetriever):
     entirely.  For all other claim types the original order is preserved.
     """
 
-    def __init__(self, cache_path: str = ".tm_cache.json", config: RetrievalConfig | None = None):
+    def __init__(self, cache_path: str = ".tm_cache.json", config: RetrievalConfig | None = None, disable_academic: bool = False):
         super().__init__(cache_path=cache_path, config=config)
+
+        self.disable_academic = disable_academic
 
         # Build typed connector pools so we can reorder on demand.
         self._news_connectors: list = []
@@ -49,14 +51,15 @@ class FreeSourceRetrieval(EvidenceRetriever):
         if FactCheckConnector:
             self._news_connectors.append(FactCheckConnector(self.config))
 
-        if SemanticScholarConnector:
-            self._acad_connectors.append(SemanticScholarConnector(self.config))
-        # ArxivConnector is intentionally omitted for news-first claim types;
-        # for academic claims it is included last.
-        if ArxivConnector:
-            self._acad_connectors.append(ArxivConnector(self.config))
-        if PubMedConnector:
-            self._acad_connectors.append(PubMedConnector(self.config))
+        if not self.disable_academic:
+            if SemanticScholarConnector:
+                self._acad_connectors.append(SemanticScholarConnector(self.config))
+            # ArxivConnector is intentionally omitted for news-first claim types;
+            # for academic claims it is included last.
+            if ArxivConnector:
+                self._acad_connectors.append(ArxivConnector(self.config))
+            if PubMedConnector:
+                self._acad_connectors.append(PubMedConnector(self.config))
 
     def _ordered_connectors(self, claim_type: str) -> list:
         """Return connectors in the correct priority order for *claim_type*."""
@@ -79,7 +82,7 @@ class FreeSourceRetrieval(EvidenceRetriever):
 
         # Base results: Wikipedia and Wikinews are always included.
         # For news-first claim types also skip Crossref (academic bibliography).
-        if claim_type in NEWS_FIRST_CLAIM_TYPES:
+        if claim_type in NEWS_FIRST_CLAIM_TYPES or self.disable_academic:
             results = (
                 self._query_wikipedia(query)
                 + self._query_wikinews(query)

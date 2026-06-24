@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import List
 
 from truth_mirror.source_registry import get_source_metadata
+from truth_mirror.models import EvidenceItem
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +38,10 @@ class SourceAnalyzer:
         self.model = ollama_model
         self.ollama_base_url = ollama_base_url or os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
 
-    async def analyze(self, article: dict, claim: str, session: aiohttp.ClientSession) -> SourceAnalysis:
-        url = article.get("url") or article.get("url_or_id", "")
-        title = article.get("title") or article.get("source_title", "")
-        snippet = article.get("snippet") or article.get("excerpt", "")
+    async def analyze(self, article: EvidenceItem, claim: str, session: aiohttp.ClientSession) -> SourceAnalysis:
+        url = article.url_or_id or ""
+        title = article.source_title or ""
+        snippet = article.excerpt or ""
         
         meta = get_source_metadata(url)
         
@@ -105,6 +106,9 @@ Rules:
                 else:
                     raise ValueError("Could not parse JSON")
                     
+            
+            stance = parsed.get("stance", "INCONCLUSIVE")
+            logger.info(f"Successfully analyzed source: {url} -> stance={stance}")
             return SourceAnalysis(
                 url=url,
                 title=title,
@@ -115,7 +119,7 @@ Rules:
                 reliability_tier=meta["tier"],
                 snippet=snippet,
                 summary=parsed.get("summary", ""),
-                stance=parsed.get("stance", "INCONCLUSIVE"),
+                stance=stance,
                 stance_confidence=float(parsed.get("stance_confidence", 0.0)),
                 stance_reasoning=parsed.get("stance_reasoning", ""),
                 key_claims=parsed.get("key_claims", []),
@@ -125,7 +129,7 @@ Rules:
             )
             
         except Exception as e:
-            logger.warning(f"Failed to analyze source {{url}}: {{e}}")
+            logger.warning(f"Failed to analyze source {url}: {e}")
             return SourceAnalysis(
                 url=url,
                 title=title,
@@ -138,14 +142,14 @@ Rules:
                 summary="",
                 stance="INCONCLUSIVE",
                 stance_confidence=0.0,
-                stance_reasoning=f"Error analyzing source: {{str(e)}}",
+                stance_reasoning=f"Error analyzing source: {str(e)}",
                 key_claims=[],
                 what_emphasized="",
                 what_omitted="",
                 hidden_implication=""
             )
 
-    async def analyze_all(self, articles: List[dict], claim: str, max_concurrent: int = 5) -> List[SourceAnalysis]:
+    async def analyze_all(self, articles: List[EvidenceItem], claim: str, max_concurrent: int = 5) -> List[SourceAnalysis]:
         semaphore = asyncio.Semaphore(max_concurrent)
         
         async def sem_analyze(article, session):

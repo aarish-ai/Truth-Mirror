@@ -12,6 +12,7 @@ class NonWesternRSSConnector:
 
     def fetch_recent_articles(self) -> List[Dict[str, str]]:
         try:
+            logger.info(f"[{self.source_name}Connector] Querying: {self.feed_url}")
             feed = feedparser.parse(self.feed_url)
             results = []
             for entry in feed.entries[:10]:
@@ -22,9 +23,10 @@ class NonWesternRSSConnector:
                     "source": self.source_name,
                     "perspective_label": self.perspective_label
                 })
+            logger.info(f"[{self.source_name}Connector] Retrieved {len(results)} items")
             return results
         except Exception as e:
-            logger.error(f"Error fetching RSS for {self.source_name}: {e}")
+            logger.warning(f"[{self.source_name}Connector] Failed to fetch RSS: {e}")
             return []
 
 class AlJazeeraConnector(NonWesternRSSConnector):

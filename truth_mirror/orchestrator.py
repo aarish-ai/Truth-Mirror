@@ -51,20 +51,20 @@ class TruthMirrorPipeline:
         self.search_planner = SearchPlanner(self.retriever, self.query_generator)
 
     def verify(self, claim: str) -> VerificationResult:
-        from truth_mirror.geo_classifier import GeoClassifier
-        classifier = GeoClassifier()
-        class_res = classifier.classify(claim)
-        if class_res.get("is_geopolitical", False):
-            from truth_mirror.geo_orchestrator import GeopoliticalPipeline
-            geo_pipeline = GeopoliticalPipeline()
-            return geo_pipeline.verify(claim)
-        else:
-            from truth_mirror.models import GeopoliticalResult
+        from truth_mirror.claim_scope_gate import gate_claim, ClaimScopeResult
+        from truth_mirror.models import GeopoliticalResult
+        
+        gate_res = gate_claim(claim)
+        if not gate_res.is_in_scope:
             return GeopoliticalResult(
                 original_claim=claim,
                 is_geopolitical=False,
-                rejection_reason=class_res.get("reason", "Not classified as geopolitical.")
+                rejection_reason=gate_res.rejection_reason
             )
+            
+        from truth_mirror.geo_orchestrator import GeopoliticalPipeline
+        geo_pipeline = GeopoliticalPipeline()
+        return geo_pipeline.verify(claim, gate_res)
 
         warnings: list[str] = []
         missing_info: list[str] = []

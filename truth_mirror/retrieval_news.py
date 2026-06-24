@@ -10,6 +10,9 @@ from datetime import datetime, timezone
 
 from truth_mirror.models import EvidenceItem
 from truth_mirror.caching import EvidenceCache
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class GDELTConnector:
@@ -38,10 +41,12 @@ class GDELTConnector:
         )
 
         try:
+            logger.info(f"[GDELTConnector] Querying: {query}")
             req = urllib.request.Request(api_url, headers={"User-Agent": "TruthMirror/1.0"})
             with urllib.request.urlopen(req, timeout=self.timeout_seconds) as response:
                 payload = json.loads(response.read().decode("utf-8"))
-        except Exception:
+        except Exception as e:
+            logger.warning(f"[GDELTConnector] Failed for query '{query}': {e}")
             return []
 
         items: list[EvidenceItem] = []
@@ -78,6 +83,7 @@ class GDELTConnector:
             from dataclasses import asdict
             self.cache.set(cache_key, [asdict(item) for item in items])
 
+        logger.info(f"[GDELTConnector] Retrieved {len(items)} items for: {query}")
         return items
 
 
@@ -106,11 +112,13 @@ class RSSAggregator:
 
         for publisher, url in self.feeds:
             try:
+                logger.info(f"[RSSAggregator] Querying {publisher}: {query}")
                 req = urllib.request.Request(url, headers={"User-Agent": "TruthMirror/1.0"})
                 with urllib.request.urlopen(req, timeout=self.timeout_seconds) as response:
                     xml_bytes = response.read()
                 root = ET.fromstring(xml_bytes)
-            except Exception:
+            except Exception as e:
+                logger.warning(f"[RSSAggregator] Failed for query '{query}' from {publisher}: {e}")
                 continue
 
             for node in root.findall("./channel/item"):
@@ -148,6 +156,7 @@ class RSSAggregator:
             from dataclasses import asdict
             self.cache.set(cache_key, [asdict(item) for item in items])
 
+        logger.info(f"[RSSAggregator] Retrieved {len(items)} items for: {query}")
         return items
 
 class BaseConnector:
@@ -166,11 +175,13 @@ class GoogleNewsRSSConnector(BaseConnector):
     def retrieve(self, query: str) -> list[EvidenceItem]:
         api_url = f"https://news.google.com/rss/search?q={urllib.parse.quote(query)}"
         try:
+            logger.info(f"[GoogleNewsRSSConnector] Querying: {query}")
             req = urllib.request.Request(api_url, headers={"User-Agent": "TruthMirror/1.0"})
             with urllib.request.urlopen(req, timeout=self.timeout_seconds) as response:
                 xml_bytes = response.read()
             root = ET.fromstring(xml_bytes)
-        except Exception:
+        except Exception as e:
+            logger.warning(f"[GoogleNewsRSSConnector] Failed for query '{query}': {e}")
             return []
 
         items: list[EvidenceItem] = []
@@ -196,4 +207,5 @@ class GoogleNewsRSSConnector(BaseConnector):
                 )
             )
             
+        logger.info(f"[GoogleNewsRSSConnector] Retrieved {len(items)} items for: {query}")
         return items
