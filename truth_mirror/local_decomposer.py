@@ -102,5 +102,5 @@ Output:"""
             return valid_subclaims
             
         except Exception as e:
-            logger.warning(f"Failed to decompose claim: {e}")
+            logger.info(f"Fallback to original claim (decomposition failed): {e}")
             return [claim]

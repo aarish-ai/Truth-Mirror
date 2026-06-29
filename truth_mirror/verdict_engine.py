@@ -74,16 +74,16 @@ SOURCE STANCE BREAKDOWN:
 BLOC NARRATIVES:
 {formatted_bloc_narratives}
 
-HIDDEN STORY TITLES:
+HIDDEN STORY TITLES & OMISSIONS:
 {hidden_story_titles}
 
 Based on all of the above, issue a final verdict in this JSON format:
 {{
-  "verdict": "SUPPORTED | PARTIALLY_SUPPORTED | CONTRADICTED | MISLEADING | UNVERIFIABLE",
+  "verdict": "SUPPORTED | PARTIALLY_SUPPORTED | CONTRADICTED | MISLEADING | UNVERIFIABLE | MEDIA_BLACKOUT",
   "confidence": 0.0,
   "confidence_label": "HIGH | MODERATE | LOW",
   "one_line_verdict": "Single sentence plain English verdict.",
-  "full_reasoning": "3-5 sentences explaining the verdict and what evidence drove it.",
+  "full_reasoning": "3-5 sentences explaining the verdict and what evidence drove it. EXPLICITLY incorporate any profound Hidden Stories or narrative omissions into your reasoning.",
   "what_is_true": "The verified parts of the claim.",
   "what_is_false": "The disproven parts of the claim.",
   "what_is_unclear": "What remains unconfirmed.",
@@ -98,6 +98,7 @@ Verdict definitions:
 - CONTRADICTED: Multiple credible independent sources directly disprove the claim
 - MISLEADING: Claim uses true facts in a way that creates a false overall impression
 - UNVERIFIABLE: Insufficient credible independent evidence to confirm or deny
+- MEDIA_BLACKOUT: Widespread, coordinated silence or refusal to engage with the claim in a way that signals narrative control or suppression (e.g., all sources are 'INCONCLUSIVE' rather than 'CONTRADICTING').
 - Weight independent sources (wire services, OSINT, independent journalism) more heavily than state media
 - State media on both sides corroborating = weaker signal than independent sources corroborating
 - Return ONLY the JSON object, no other text.
@@ -105,7 +106,8 @@ Verdict definitions:
         def run_sync():
             data = None
             if gemini_client and types:
-                for attempt in range(2):
+                import time
+                for attempt in range(4):
                     try:
                         response = gemini_client.models.generate_content(
                             model="gemini-2.5-flash",
@@ -122,11 +124,10 @@ Verdict definitions:
                         break
                     except Exception as e:
                         logger.warning(f"Gemini verdict engine failed on attempt {attempt+1}: {e}")
-                        import time
-                        time.sleep(2)
+                        time.sleep(2 ** attempt)
             
             if data is None:
-                import os, json, urllib.request, re
+                import os, urllib.request, re
                 api_key = os.environ.get("OPENROUTER_API_KEY")
                 if api_key and api_key != "your_openrouter_api_key_here":
                     req_data = json.dumps({

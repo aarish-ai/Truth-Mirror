@@ -7,7 +7,8 @@ import logging
 from typing import Optional, List, Dict, Any
 
 try:
-    import google.generativeai as genai
+    from google import genai
+    from google.genai import types
     from dotenv import load_dotenv
     DEPENDENCIES_MET = True
 except ImportError:
@@ -29,8 +30,7 @@ class NarrativeClusterer:
         load_dotenv()
         self.api_key = os.getenv("GEMINI_API_KEY")
         if self.api_key:
-            genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel('gemini-2.5-flash')
+            self.client = genai.Client(api_key=self.api_key)
             self.enabled = True
         else:
             logger.warning("GEMINI_API_KEY not found. Gemini integration disabled.")
@@ -81,9 +81,10 @@ You must respond ONLY with a valid JSON object using the exact schema below. Do 
 }}
 """
         try:
-            response = self.model.generate_content(
-                prompt,
-                generation_config=genai.GenerationConfig(
+            response = self.client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+                config=types.GenerateContentConfig(
                     response_mime_type="application/json",
                     temperature=0.1
                 )

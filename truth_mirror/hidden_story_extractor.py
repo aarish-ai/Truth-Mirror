@@ -92,7 +92,8 @@ Return a JSON array. Be intellectually rigorous. Do not speculate wildly — gro
         def run_sync():
             data = None
             if gemini_client and types:
-                for attempt in range(2):
+                import time
+                for attempt in range(4):
                     try:
                         response = gemini_client.models.generate_content(
                             model="gemini-2.5-flash",
@@ -109,11 +110,10 @@ Return a JSON array. Be intellectually rigorous. Do not speculate wildly — gro
                         break
                     except Exception as e:
                         logger.warning(f"Gemini hidden story extraction failed on attempt {attempt+1}: {e}")
-                        import time
-                        time.sleep(2)
+                        time.sleep(2 ** attempt)
             
             if data is None:
-                import os, json, urllib.request, re
+                import os, urllib.request, re
                 api_key = os.environ.get("OPENROUTER_API_KEY")
                 if api_key and api_key != "your_openrouter_api_key_here":
                     req_data = json.dumps({

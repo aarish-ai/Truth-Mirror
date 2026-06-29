@@ -123,39 +123,41 @@ class EvidenceRetriever:
         return items
 
     def _query_wikinews(self, query: str) -> list[EvidenceItem]:
-        # Wikinews RSS gives a second source family for recent-event claims.
-        feed_url = (
-            "https://en.wikinews.org/w/index.php?"
+        search_url = (
+            "https://en.wikinews.org/w/api.php?"
             + urllib.parse.urlencode(
-                {"title": "Special:Search", "search": query, "fulltext": 1, "feed": "rss"}
+                {
+                    "action": "query",
+                    "list": "search",
+                    "srsearch": query,
+                    "utf8": 1,
+                    "format": "json",
+                    "srlimit": self.config.max_results // 2,
+                }
             )
         )
         try:
             logger.info(f"[WikinewsConnector] Querying: {query}")
-            req = urllib.request.Request(feed_url, headers={"User-Agent": "TruthMirror/0.2"})
+            req = urllib.request.Request(search_url, headers={"User-Agent": "TruthMirror/0.2"})
             with urllib.request.urlopen(req, timeout=self.config.timeout_seconds) as response:
-                xml_bytes = response.read()
-            root = ET.fromstring(xml_bytes)
+                payload = json.loads(response.read().decode("utf-8"))
         except Exception as e:
             logger.warning(f"[WikinewsConnector] Failed for query '{query}': {e}")
             return []
 
         items: list[EvidenceItem] = []
-        for node in root.findall("./channel/item")[: self.config.max_results // 2]:
-            title = (node.findtext("title") or "").strip()
-            link = (node.findtext("link") or "").strip()
-            description = re.sub(r"<[^>]+>", "", node.findtext("description") or "").strip()
-            pub_date = (node.findtext("pubDate") or datetime.now(timezone.utc).date().isoformat()).strip()
-            if not title or not link:
-                continue
+        for result in payload.get("query", {}).get("search", []):
+            title = result.get("title", "")
+            snippet = re.sub(r"<[^>]+>", "", result.get("snippet", "")).strip()
+            page_url = "https://en.wikinews.org/wiki/" + urllib.parse.quote(title.replace(" ", "_"))
             items.append(
                 EvidenceItem(
                     source_title=title,
                     source_type="journalism",
                     publisher="Wikinews",
-                    date=pub_date,
-                    url_or_id=link,
-                    excerpt=description[:500],
+                    date=datetime.now(timezone.utc).date().isoformat(),
+                    url_or_id=page_url,
+                    excerpt=snippet[:500],
                     author="unknown",
                     language="en",
                     independence_key="wikinews",

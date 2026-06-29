@@ -90,7 +90,7 @@ Rules:
         req_url = f"{self.ollama_base_url.rstrip('/')}/api/generate"
         
         try:
-            async with session.post(req_url, json=payload, timeout=60) as resp:
+            async with session.post(req_url, json=payload, timeout=120) as resp:
                 resp.raise_for_status()
                 data = await resp.json()
                 
@@ -129,7 +129,7 @@ Rules:
             )
             
         except Exception as e:
-            logger.warning(f"Failed to analyze source {url}: {e}")
+            logger.warning(f"Failed to analyze source {url}: {type(e).__name__} - {e}")
             return SourceAnalysis(
                 url=url,
                 title=title,
