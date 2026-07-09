@@ -76,7 +76,7 @@ class FreeSourceRetrieval(EvidenceRetriever):
             return self._acad_connectors + self._news_connectors
 
     def retrieve(self, query: str, claim_type: str = "mixed or ambiguous claim") -> List[EvidenceItem]:
-        cache_key = f"{claim_type}::{query.strip().lower()}"
+        cache_key = f"{self.CACHE_VERSION}:{claim_type}::{query.strip().lower()}"
         if cache_key in self._cache:
             return [self._normalize_cached_item(EvidenceItem(**item)) for item in self._cache[cache_key]]
 

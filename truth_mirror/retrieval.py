@@ -25,6 +25,8 @@ class RetrievalConfig:
 
 
 class EvidenceRetriever:
+    CACHE_VERSION = "v2.2"
+
     def __init__(self, cache_path: str = ".tm_cache.json", config: RetrievalConfig | None = None):
         self.cache_file = Path(cache_path)
         self.config = config or RetrievalConfig()
@@ -34,7 +36,9 @@ class EvidenceRetriever:
         if not self.cache_file.exists():
             return {}
         try:
-            return json.loads(self.cache_file.read_text(encoding="utf-8"))
+            cache_data = json.loads(self.cache_file.read_text(encoding="utf-8"))
+            logger.info(f"Loaded {len(cache_data)} items from cache version {self.CACHE_VERSION}")
+            return cache_data
         except json.JSONDecodeError:
             return {}
 
@@ -42,7 +46,7 @@ class EvidenceRetriever:
         self.cache_file.write_text(json.dumps(self._cache, indent=2), encoding="utf-8")
 
     def retrieve(self, query: str) -> list[EvidenceItem]:
-        key = query.strip().lower()
+        key = f"{self.CACHE_VERSION}:{query.strip().lower()}"
         if key in self._cache:
             return [self._normalize_cached_item(EvidenceItem(**item)) for item in self._cache[key]]
         results = (

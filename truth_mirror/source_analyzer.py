@@ -4,8 +4,10 @@ import logging
 import asyncio
 import aiohttp
 from dataclasses import dataclass
+from dataclasses import dataclass
 from typing import List
 from dotenv import load_dotenv
+import random
 
 load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -105,8 +107,9 @@ Rules:
                         async with session.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=openrouter_payload, timeout=timeout_cfg) as response:
                             if response.status == 429:
                                 wait_time = (2 ** attempt) + 1
-                                logger.warning(f"[SourceAnalyzer] Rate limited on attempt {attempt+1}. Waiting {wait_time}s before retry.")
-                                await asyncio.sleep(wait_time)
+                                jitter = random.uniform(0.1, 1.0)
+                                logger.warning(f"[SourceAnalyzer] Rate limited on attempt {attempt+1}. Waiting {wait_time + jitter:.2f}s before retry.")
+                                await asyncio.sleep(wait_time + jitter)
                                 if attempt == max_retries - 1:
                                     openrouter_failed = True
                                 continue
@@ -139,7 +142,7 @@ Rules:
                     }
                 }
                 req_url = f"{self.ollama_base_url.rstrip('/')}/api/generate"
-                timeout_cfg = aiohttp.ClientTimeout(total=120)
+                timeout_cfg = aiohttp.ClientTimeout(total=300)
                 async with session.post(req_url, json=payload, timeout=timeout_cfg) as resp:
                     resp.raise_for_status()
                     data = await resp.json()

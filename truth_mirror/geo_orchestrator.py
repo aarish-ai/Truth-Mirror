@@ -9,6 +9,9 @@ except ImportError:
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 from typing import List
+import logging
+
+logger = logging.getLogger(__name__)
 
 from truth_mirror.geo_classifier import GeoClassifier
 from truth_mirror.local_decomposer import LocalDecomposer
@@ -47,17 +50,27 @@ class GeopoliticalPipeline:
             from truth_mirror.retrieval_nonwestern import (
                 AlJazeeraConnector,
                 TASSConnector,
-                CGTNConnector,
-                DawnConnector
+                CGTNConnector
             )
+            connectors_to_inject = [AlJazeeraConnector, TASSConnector, CGTNConnector]
+            
+            # Optionally import DawnConnector if it exists
+            try:
+                from truth_mirror.retrieval_nonwestern import DawnConnector
+                connectors_to_inject.append(DawnConnector)
+            except ImportError:
+                pass
+
             if hasattr(self.retriever, '_news_connectors'):
-                for connector_cls in [AlJazeeraConnector, TASSConnector, CGTNConnector, DawnConnector]:
+                for connector_cls in connectors_to_inject:
                     try:
                         self.retriever._news_connectors.append(connector_cls())
-                    except Exception:
-                        pass
-        except ImportError:
-            pass
+                    except Exception as e:
+                        logger.warning(f"Failed to inject connector {connector_cls.__name__}: {e}")
+        except ImportError as e:
+            logger.warning(f"Failed to import non-western connectors: {e}")
+            
+        logger.info(f"[GeopoliticalPipeline] Initialized with {len(self.retriever._news_connectors)} news connectors and {len(self.retriever._acad_connectors)} academic connectors.")
 
     def _parallel_retrieve(self, queries: List[str], claim_subtype: str) -> List[EvidenceItem]:
         """
@@ -102,9 +115,13 @@ class GeopoliticalPipeline:
         else:
             involved_parties = []
             claim_subtype = "unknown"
+            
+        await asyncio.sleep(2)
         
         # 2. Decomposition
         sub_claims = self.decomposer.decompose(claim)
+        
+        await asyncio.sleep(2)
         
         # 3. Query Generation
         all_queries = []
@@ -113,11 +130,10 @@ class GeopoliticalPipeline:
             
         current_year = datetime.now().year
         perspective_queries = [
-            f"{claim} western media coverage {current_year}",
-            f"{claim} Russia China reaction {current_year}",
-            f"{claim} Arab Gulf media {current_year}",
-            f"{claim} official statement government {current_year}",
-            f"{claim} independent analysis {current_year}",
+            f"{claim} Western media Reuters AP",
+            f"{claim} Russian Chinese media TASS CGTN",
+            f"{claim} Middle East Al Jazeera",
+            f"{claim} official government statement"
         ]
         all_queries.extend(perspective_queries)
         
@@ -136,7 +152,7 @@ class GeopoliticalPipeline:
         # Stage 2: Per-source stance analysis
         ollama_model = getattr(self.decomposer, "model", "qwen2.5:3b")
         analyzer = SourceAnalyzer(ollama_model=ollama_model)
-        source_analyses = await analyzer.analyze_all(deduped_evidence, claim, max_concurrent=5)
+        source_analyses = await analyzer.analyze_all(deduped_evidence, claim, max_concurrent=3)
         source_analyses = [s for s in source_analyses if s.summary]
         
         consensus_points, disputed_points = compute_consensus_disputes(source_analyses)
@@ -210,7 +226,7 @@ async def generate_background_narrative(claim: str, source_analyses: list, gemin
                 pass
                 
         if data is None:
-            import os, json, urllib.request, re
+            import os, json, urllib.request, re, time, random
             api_key = os.environ.get("OPENROUTER_API_KEY")
             if api_key and api_key != "your_openrouter_api_key_here":
                 req_data = json.dumps({
@@ -218,13 +234,55 @@ async def generate_background_narrative(claim: str, source_analyses: list, gemin
                     "messages": [{"role": "user", "content": prompt}]
                 }).encode('utf-8')
                 req = urllib.request.Request("https://openrouter.ai/api/v1/chat/completions", data=req_data, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"})
-                with urllib.request.urlopen(req) as response:
+                
+                for attempt in range(4):
+                    try:
+                        with urllib.request.urlopen(req) as response:
+                            resp_data = json.loads(response.read().decode('utf-8'))
+                            raw_json = resp_data["choices"][0]["message"]["content"]
+                            match = re.search(r'\{.*\}', raw_json, re.DOTALL)
+                            if match:
+                                raw_json = match.group(0)
+                            data = json.loads(raw_json)
+                            break
+                    except Exception as e:
+                        wait_time = (2 ** attempt) + random.uniform(0, 1)
+                        logger.warning(f"OpenRouter background generation failed on attempt {attempt+1}. Waiting {wait_time:.2f}s before retry. Error: {e}")
+                        time.sleep(wait_time)
+                        
+        if data is None:
+            logger.warning("Falling back to local Ollama for background generation.")
+            ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/") + "/api/generate"
+            payload = {
+                "model": "qwen2.5:3b",
+                "prompt": prompt,
+                "stream": False,
+                "format": "json",
+                "options": {"temperature": 0.1}
+            }
+            ollama_req = urllib.request.Request(ollama_url, data=json.dumps(payload).encode('utf-8'), headers={"Content-Type": "application/json"})
+            try:
+                with urllib.request.urlopen(ollama_req, timeout=120) as response:
                     resp_data = json.loads(response.read().decode('utf-8'))
-                    raw_json = resp_data["choices"][0]["message"]["content"]
-                    match = re.search(r'\{.*\}', raw_json, re.DOTALL)
-                    if match:
-                        raw_json = match.group(0)
-                    data = json.loads(raw_json)
+                    raw_json = resp_data.get("response", "").strip()
+                    raw_json = raw_json.removeprefix("```json").removesuffix("```").strip()
+                    raw_json = raw_json.removeprefix("```").removesuffix("```").strip()
+                    try:
+                        data = json.loads(raw_json)
+                    except Exception:
+                        start = raw_json.find('{')
+                        end = raw_json.rfind('}')
+                        if start != -1 and end != -1:
+                            data = json.loads(raw_json[start:end+1])
+                        else:
+                            raise ValueError("Could not extract JSON object from Ollama response")
+                            
+                    if isinstance(data, list):
+                        data = data[0] if len(data) > 0 else {}
+                    if not isinstance(data, dict):
+                        data = {}
+            except Exception as e:
+                logger.error(f"Local Ollama fallback failed: {e}")
         return data
 
     try:

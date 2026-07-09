@@ -92,7 +92,7 @@ Return a JSON array of these objects. No other text.
                         time.sleep(2 ** attempt)
             
             if data is None:
-                import os, urllib.request, re
+                import os, urllib.request, re, time, random
                 api_key = os.environ.get("OPENROUTER_API_KEY")
                 if api_key and api_key != "your_openrouter_api_key_here":
                     req_data = json.dumps({
@@ -100,13 +100,55 @@ Return a JSON array of these objects. No other text.
                         "messages": [{"role": "user", "content": prompt + "\n\nRespond ONLY with the exact JSON array. No other text."}]
                     }).encode('utf-8')
                     req = urllib.request.Request("https://openrouter.ai/api/v1/chat/completions", data=req_data, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"})
-                    with urllib.request.urlopen(req) as response:
+                    
+                    for attempt in range(4):
+                        try:
+                            with urllib.request.urlopen(req) as response:
+                                resp_data = json.loads(response.read().decode('utf-8'))
+                                raw_json = resp_data["choices"][0]["message"]["content"]
+                                match = re.search(r'\[.*\]', raw_json, re.DOTALL)
+                                if match:
+                                    raw_json = match.group(0)
+                                data = json.loads(raw_json)
+                                break
+                        except Exception as e:
+                            wait_time = (2 ** attempt) + random.uniform(0, 1)
+                            logger.warning(f"OpenRouter perspective synthesis failed on attempt {attempt+1}. Waiting {wait_time:.2f}s before retry. Error: {e}")
+                            time.sleep(wait_time)
+                            
+            if data is None:
+                logger.warning("Falling back to local Ollama for perspective synthesis.")
+                ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/") + "/api/generate"
+                payload = {
+                    "model": "qwen2.5:3b",
+                    "prompt": prompt + "\n\nRespond ONLY with the exact JSON array. No other text.",
+                    "stream": False,
+                    "format": "json",
+                    "options": {"temperature": 0.1}
+                }
+                ollama_req = urllib.request.Request(ollama_url, data=json.dumps(payload).encode('utf-8'), headers={"Content-Type": "application/json"})
+                try:
+                    with urllib.request.urlopen(ollama_req, timeout=120) as response:
                         resp_data = json.loads(response.read().decode('utf-8'))
-                        raw_json = resp_data["choices"][0]["message"]["content"]
-                        match = re.search(r'\[.*\]', raw_json, re.DOTALL)
-                        if match:
-                            raw_json = match.group(0)
-                        data = json.loads(raw_json)
+                        raw_json = resp_data.get("response", "").strip()
+                        raw_json = raw_json.removeprefix("```json").removesuffix("```").strip()
+                        raw_json = raw_json.removeprefix("```").removesuffix("```").strip()
+                        try:
+                            data = json.loads(raw_json)
+                        except Exception:
+                            start = raw_json.find('[')
+                            end = raw_json.rfind(']')
+                            if start != -1 and end != -1:
+                                data = json.loads(raw_json[start:end+1])
+                            else:
+                                raise ValueError("Could not extract JSON array from Ollama response")
+                                
+                        if isinstance(data, dict):
+                            data = [data]
+                        if isinstance(data, list) and len(data) > 0 and isinstance(data[0], str):
+                            data = []
+                except Exception as e:
+                    logger.error(f"Local Ollama fallback failed: {e}")
             return data
 
         try:

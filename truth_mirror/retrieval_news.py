@@ -197,13 +197,13 @@ class GoogleNewsRSSConnector(BaseConnector):
             items.append(
                 EvidenceItem(
                     source_title=title,
-                    source_type="news",
+                    source_type="journalism",
                     publisher="Google News",
                     date=pub_date,
                     url_or_id=link,
                     excerpt=description[:500],
                     language="en",
-                    independence_key="news:google_news",
+                    independence_key=f"news:{urllib.parse.urlparse(link).netloc.replace('www.', '')}",
                 )
             )
             

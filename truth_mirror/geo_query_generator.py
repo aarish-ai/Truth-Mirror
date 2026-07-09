@@ -155,13 +155,8 @@ Output JSON Array of 3 strings:
 
     def _get_fallback_queries(self, sub_claim: str, involved_parties: list[str]) -> list[str]:
         """Deterministic fallback queries."""
-        q1 = f"{sub_claim} international news"
-        
-        parties = " ".join(involved_parties) if involved_parties else ""
-        q2 = f"official statement {parties} {sub_claim}".strip()
-        
-        # Add a regional slant if there are parties
-        primary_party = involved_parties[0] if involved_parties else "regional"
-        q3 = f"local media perspective {primary_party} {sub_claim}".strip()
+        q1 = f"{sub_claim} Reuters AP News"
+        q2 = f"{sub_claim} Al Jazeera TASS CGTN"
+        q3 = f"{sub_claim} independent analysis"
         
         return [q1, q2, q3]

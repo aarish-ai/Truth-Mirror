@@ -50,7 +50,13 @@ def get_source_metadata(url: str) -> dict:
     Falls back to inferred metadata if domain is not in the registry.
     """
     from urllib.parse import urlparse
-    domain = urlparse(url).netloc.replace("www.", "")
+    domain = urlparse(url).netloc
+    
+    # Strip common feed subdomains
+    for prefix in ["www.", "feeds.", "rss.", "news."]:
+        if domain.startswith(prefix):
+            domain = domain[len(prefix):]
+            
     if domain in SOURCE_REGISTRY:
         return SOURCE_REGISTRY[domain]
     # Infer from TLD or domain keywords
