@@ -3,6 +3,11 @@ import json
 import re
 import logging
 import requests
+import time
+from dotenv import load_dotenv
+
+load_dotenv()
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 logger = logging.getLogger(__name__)
 
@@ -54,23 +59,64 @@ Claim Subtype: {claim_subtype}
 Output JSON Array of 3 strings:
 """
         try:
-            url = f"{self.ollama_base_url.rstrip('/')}/api/generate"
-            payload = {
-                "model": self.model,
-                "prompt": prompt,
-                "stream": False,
-                "format": "json",
-                "options": {
-                    "temperature": 0.1,
-                    "num_predict": 150
+            response_text = None
+            openrouter_failed = False
+            
+            if OPENROUTER_API_KEY:
+                headers = {
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://truthmirror.app",
+                    "X-Title": "Truth Mirror"
                 }
-            }
-            
-            response = requests.post(url, json=payload, timeout=self.timeout)
-            response.raise_for_status()
-            
-            data = response.json()
-            response_text = data.get("response", "").strip()
+                payload = {
+                    "model": "qwen/qwen3-next-80b-a3b-instruct:free",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.1,
+                    "response_format": {"type": "json_object"}
+                }
+                
+                max_retries = 3
+                for attempt in range(max_retries):
+                    try:
+                        response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=30)
+                        if response.status_code == 429:
+                            wait_time = (2 ** attempt) + 1
+                            logger.warning(f"[GeoQueryGenerator] Rate limited on attempt {attempt+1}. Waiting {wait_time}s before retry.")
+                            time.sleep(wait_time)
+                            if attempt == max_retries - 1:
+                                openrouter_failed = True
+                            continue
+                        response.raise_for_status()
+                        response_text = response.json()["choices"][0]["message"]["content"]
+                        openrouter_failed = False
+                        break
+                    except Exception as e:
+                        logger.warning(f"OpenRouter failed ({e}), falling back to local Ollama.")
+                        openrouter_failed = True
+                        break
+            else:
+                logger.warning("OPENROUTER_API_KEY not set. Using local Ollama.")
+                openrouter_failed = True
+                
+            if openrouter_failed:
+                url = f"{self.ollama_base_url.rstrip('/')}/api/generate"
+                payload = {
+                    "model": self.model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "format": "json",
+                    "options": {
+                        "temperature": 0.1,
+                        "num_predict": 150
+                    }
+                }
+                
+                response = requests.post(url, json=payload, timeout=self.timeout)
+                response.raise_for_status()
+                
+                data = response.json()
+                response_text = data.get("response", "").strip()
             
             # Extract queries robustly
             queries = []

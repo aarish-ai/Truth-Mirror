@@ -69,26 +69,85 @@ Rules:
 - Only set in_temporal_scope to false if the claim is clearly and specifically about a historical period before 2015.
 """
 
-    parsed = None
     import os
-    base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-    req_url = f"{base_url.rstrip('/')}/api/generate"
-    payload = {
-        "model": ollama_model,
-        "prompt": prompt,
-        "stream": False,
-        "format": "json",
-        "options": {"temperature": 0.0}
-    }
+    from dotenv import load_dotenv
+    import time
+    
+    load_dotenv()
+    OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-    try:
-        req_data = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(req_url, data=req_data, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=30) as response:
-            resp_data = json.loads(response.read().decode("utf-8"))
-            parsed = json.loads(resp_data.get("response", ""))
-    except Exception as e:
-        logger.warning(f"gate_claim LLM call failed: {e}")
+    parsed = None
+    openrouter_failed = False
+    
+    if OPENROUTER_API_KEY:
+        openrouter_payload = {
+            "model": "qwen/qwen3-next-80b-a3b-instruct:free",
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.1,
+            "response_format": {"type": "json_object"}
+        }
+        
+        headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://truthmirror.app",
+            "X-Title": "Truth Mirror"
+        }
+        
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                req_data = json.dumps(openrouter_payload).encode("utf-8")
+                req = urllib.request.Request(
+                    "https://openrouter.ai/api/v1/chat/completions", 
+                    data=req_data, 
+                    headers=headers
+                )
+                with urllib.request.urlopen(req, timeout=30) as response:
+                    resp_data = json.loads(response.read().decode("utf-8"))
+                    content = resp_data["choices"][0]["message"]["content"]
+                    parsed = json.loads(content)
+                    openrouter_failed = False
+                    break
+            except urllib.error.HTTPError as e:
+                if e.code == 429:
+                    wait_time = (2 ** attempt) + 1
+                    logger.warning(f"[ClaimScopeGate] Rate limited on attempt {attempt+1}. Waiting {wait_time}s.")
+                    time.sleep(wait_time)
+                    if attempt == max_retries - 1:
+                        openrouter_failed = True
+                    continue
+                else:
+                    logger.warning(f"OpenRouter HTTP Error ({e.code}), falling back to local Ollama.")
+                    openrouter_failed = True
+                    break
+            except Exception as e:
+                logger.warning(f"OpenRouter failed ({e}), falling back to local Ollama.")
+                openrouter_failed = True
+                break
+    else:
+        logger.warning("OPENROUTER_API_KEY not set. Using local Ollama.")
+        openrouter_failed = True
+        
+    if openrouter_failed:
+        base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+        req_url = f"{base_url.rstrip('/')}/api/generate"
+        payload = {
+            "model": ollama_model,
+            "prompt": prompt,
+            "stream": False,
+            "format": "json",
+            "options": {"temperature": 0.0}
+        }
+
+        try:
+            req_data = json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(req_url, data=req_data, headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=30) as response:
+                resp_data = json.loads(response.read().decode("utf-8"))
+                parsed = json.loads(resp_data.get("response", ""))
+        except Exception as e:
+            logger.warning(f"gate_claim LLM call failed: {e}")
 
     if parsed:
         is_geopol = bool(parsed.get("is_geopolitical", False))

@@ -79,7 +79,7 @@ HIDDEN STORY TITLES & OMISSIONS:
 
 Based on all of the above, issue a final verdict in this JSON format:
 {{
-  "verdict": "SUPPORTED | PARTIALLY_SUPPORTED | CONTRADICTED | MISLEADING | UNVERIFIABLE | MEDIA_BLACKOUT",
+  "verdict": "SUPPORTED | PARTIALLY_SUPPORTED | CONTRADICTED | MISLEADING | UNVERIFIABLE | MEDIA BLACKOUT",
   "confidence": 0.0,
   "confidence_label": "HIGH | MODERATE | LOW",
   "one_line_verdict": "Single sentence plain English verdict.",
@@ -98,7 +98,7 @@ Verdict definitions:
 - CONTRADICTED: Multiple credible independent sources directly disprove the claim
 - MISLEADING: Claim uses true facts in a way that creates a false overall impression
 - UNVERIFIABLE: Insufficient credible independent evidence to confirm or deny
-- MEDIA_BLACKOUT: Widespread, coordinated silence or refusal to engage with the claim in a way that signals narrative control or suppression (e.g., all sources are 'INCONCLUSIVE' rather than 'CONTRADICTING').
+- MEDIA BLACKOUT: Widespread, coordinated silence or refusal to engage with the claim in a way that signals narrative control or suppression (e.g., all sources are 'INCONCLUSIVE' rather than 'CONTRADICTING').
 - Weight independent sources (wire services, OSINT, independent journalism) more heavily than state media
 - State media on both sides corroborating = weaker signal than independent sources corroborating
 - Return ONLY the JSON object, no other text.

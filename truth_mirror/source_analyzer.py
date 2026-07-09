@@ -5,6 +5,10 @@ import asyncio
 import aiohttp
 from dataclasses import dataclass
 from typing import List
+from dotenv import load_dotenv
+
+load_dotenv()
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 from truth_mirror.source_registry import get_source_metadata
 from truth_mirror.models import EvidenceItem
@@ -76,35 +80,80 @@ Rules:
 - Be specific. Do not say "the source mentions X" — say what X actually is.
 """
         
-        payload = {
-            "model": self.model,
-            "prompt": prompt,
-            "stream": False,
-            "format": "json",
-            "options": {
-                "temperature": 0.1,
-                "num_predict": 300
-            }
-        }
-        
-        req_url = f"{self.ollama_base_url.rstrip('/')}/api/generate"
-        
         try:
-            async with session.post(req_url, json=payload, timeout=120) as resp:
-                resp.raise_for_status()
-                data = await resp.json()
+            parsed = None
+            openrouter_failed = False
+            
+            if OPENROUTER_API_KEY:
+                headers = {
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://truthmirror.app",
+                    "X-Title": "Truth Mirror"
+                }
+                openrouter_payload = {
+                    "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.1,
+                    "response_format": {"type": "json_object"}
+                }
                 
-            response_text = data.get("response", "").strip()
-            # Basic parsing
-            try:
-                parsed = json.loads(response_text)
-            except Exception:
-                start = response_text.find('{')
-                end = response_text.rfind('}')
-                if start != -1 and end != -1:
-                    parsed = json.loads(response_text[start:end+1])
-                else:
-                    raise ValueError("Could not parse JSON")
+                max_retries = 3
+                for attempt in range(max_retries):
+                    try:
+                        timeout_cfg = aiohttp.ClientTimeout(total=20)
+                        async with session.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=openrouter_payload, timeout=timeout_cfg) as response:
+                            if response.status == 429:
+                                wait_time = (2 ** attempt) + 1
+                                logger.warning(f"[SourceAnalyzer] Rate limited on attempt {attempt+1}. Waiting {wait_time}s before retry.")
+                                await asyncio.sleep(wait_time)
+                                if attempt == max_retries - 1:
+                                    openrouter_failed = True
+                                continue
+                            response.raise_for_status()
+                            data = await response.json()
+                            content = data["choices"][0]["message"]["content"]
+                            parsed = json.loads(content)
+                            openrouter_failed = False
+                            break
+                    except Exception as e:
+                        if attempt == max_retries - 1:
+                            logger.warning(f"OpenRouter failed for {url} ({e}), falling back to local Ollama.")
+                            openrouter_failed = True
+                            break
+                        else:
+                            await asyncio.sleep(1)
+            else:
+                logger.warning("OPENROUTER_API_KEY not set. Using local Ollama.")
+                openrouter_failed = True
+                
+            if openrouter_failed:
+                payload = {
+                    "model": self.model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "format": "json",
+                    "options": {
+                        "temperature": 0.1,
+                        "num_predict": 300
+                    }
+                }
+                req_url = f"{self.ollama_base_url.rstrip('/')}/api/generate"
+                timeout_cfg = aiohttp.ClientTimeout(total=120)
+                async with session.post(req_url, json=payload, timeout=timeout_cfg) as resp:
+                    resp.raise_for_status()
+                    data = await resp.json()
+                    
+                response_text = data.get("response", "").strip()
+                try:
+                    parsed = json.loads(response_text)
+                except Exception:
+                    start = response_text.find('{')
+                    end = response_text.rfind('}')
+                    if start != -1 and end != -1:
+                        parsed = json.loads(response_text[start:end+1])
+                    else:
+                        raise ValueError("Could not parse JSON")
                     
             
             stance = parsed.get("stance", "INCONCLUSIVE")
@@ -129,25 +178,8 @@ Rules:
             )
             
         except Exception as e:
-            logger.warning(f"Failed to analyze source {url}: {type(e).__name__} - {e}")
-            return SourceAnalysis(
-                url=url,
-                title=title,
-                source_name=meta["name"],
-                source_category=meta["category"],
-                source_country=meta["country"],
-                alignment=meta["alignment"],
-                reliability_tier=meta["tier"],
-                snippet=snippet,
-                summary="",
-                stance="INCONCLUSIVE",
-                stance_confidence=0.0,
-                stance_reasoning=f"Error analyzing source: {str(e)}",
-                key_claims=[],
-                what_emphasized="",
-                what_omitted="",
-                hidden_implication=""
-            )
+            logger.warning(f"[SourceAnalyzer] All retries failed for {url}: {e}")
+            return None
 
     async def analyze_all(self, articles: List[EvidenceItem], claim: str, max_concurrent: int = 5) -> List[SourceAnalysis]:
         semaphore = asyncio.Semaphore(max_concurrent)
@@ -158,6 +190,12 @@ Rules:
                 
         async with aiohttp.ClientSession() as session:
             tasks = [sem_analyze(art, session) for art in articles]
-            results = await asyncio.gather(*tasks)
+            raw_results = await asyncio.gather(*tasks)
             
-        return list(results)
+        results = [r for r in raw_results if r is not None]
+        logger.info(
+            f"[SourceAnalyzer] Completed: {len(results)} succeeded, "
+            f"{len(raw_results) - len(results)} failed out of "
+            f"{len(raw_results)} total sources."
+        )
+        return results
