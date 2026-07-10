@@ -41,7 +41,7 @@ class GeoQueryGenerator:
         """
         parties_str = ", ".join(involved_parties) if involved_parties else "Unknown"
         
-        date_instruction = f"Today's date is {self.current_date_str}. Generate queries that prioritize the most recent reporting and events up to this date. For claims about recent or ongoing events, include date-scoped queries (e.g. \"Iran Israel June 2026\", \"Trump Iran strikes cancelled June 2026\").\n\n"
+        date_instruction = "Generate search queries that are broad and timeline-agnostic. Do not include specific dates, months, or years in the queries.\n\n"
         prompt = date_instruction + f"""You are a geopolitical intelligence search query generator.
 Given a sub-claim, involved parties, and claim subtype, generate exactly 3 distinct search queries to retrieve maximum relevant information.
 Return ONLY a JSON array of 3 strings. No markdown formatting, no explanations.

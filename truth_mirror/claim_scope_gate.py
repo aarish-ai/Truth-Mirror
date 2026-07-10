@@ -137,7 +137,7 @@ Rules:
             for attempt in range(max_retries):
                 try:
                     api_key = get_current_key()
-                    gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}"
+                    gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
                     req_data = json.dumps(gemini_payload).encode("utf-8")
                     req = urllib.request.Request(gemini_url, data=req_data, headers={"Content-Type": "application/json"})
                     with urllib.request.urlopen(req, timeout=20) as response:

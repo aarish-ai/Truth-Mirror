@@ -34,9 +34,9 @@ class GeminiAnalyzer:
             return
             
         load_dotenv()
-        self.api_key = os.getenv("GEMINI_API_KEY")
-        if self.api_key:
-            self.client = genai.Client(api_key=self.api_key)
+        from truth_mirror.key_rotator import get_current_key
+        current_key = get_current_key()
+        if current_key:
             self.model_name = 'gemini-3.5-flash'
             self.enabled = True
         else:
@@ -96,8 +96,15 @@ You must respond ONLY with a valid JSON object using the exact schema below. Do 
 }}
 """
         try:
+            from truth_mirror.key_rotator import get_current_key
+            current_key = get_current_key()
+            if not current_key:
+                logger.warning("No Gemini API key available for synthesis.")
+                return None
+            client = genai.Client(api_key=current_key)
+
             # We use gemini-3.5-flash as it is free, fast, and supports JSON output natively
-            response = self.client.models.generate_content(
+            response = client.models.generate_content(
                 model=self.model_name,
                 contents=prompt,
                 config=types.GenerateContentConfig(

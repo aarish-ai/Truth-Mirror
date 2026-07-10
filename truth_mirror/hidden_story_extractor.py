@@ -1,4 +1,4 @@
-import os
+﻿import os
 import json
 import logging
 from dataclasses import dataclass
@@ -87,7 +87,7 @@ For each hidden story, respond in this JSON format:
   "significance": "Why this matters and what it changes about understanding the claim."
 }}
 
-Return a JSON array. Be intellectually rigorous. Do not speculate wildly — ground every hidden story in specific observable facts from the sources. But do not be timid: if the facts point somewhere the mainstream narrative ignores, say so clearly.
+Return a JSON array. Be intellectually rigorous. Do not speculate wildly â€” ground every hidden story in specific observable facts from the sources. But do not be timid: if the facts point somewhere the mainstream narrative ignores, say so clearly.
 """
         def run_sync():
             data = None
@@ -132,7 +132,7 @@ Return a JSON array. Be intellectually rigorous. Do not speculate wildly — gro
                 api_key = os.environ.get("OPENROUTER_API_KEY")
                 if api_key and api_key != "your_openrouter_api_key_here":
                     req_data = json.dumps({
-                        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+                        "model": "qwen/qwen3-next-80b-a3b-instruct:free",
                         "messages": [{"role": "user", "content": prompt + "\n\nRespond ONLY with the exact JSON array. No other text."}]
                     }).encode('utf-8')
                     req = urllib.request.Request("https://openrouter.ai/api/v1/chat/completions", data=req_data, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"})
@@ -173,3 +173,4 @@ Return a JSON array. Be intellectually rigorous. Do not speculate wildly — gro
         except Exception as e:
             logger.error(f"Hidden story extraction failed entirely: {e}")
             return []
+

@@ -26,13 +26,13 @@ class LocalDecomposer:
         prompt = f"""Break this claim into simple sub-claims, separating temporal elements from core factual elements.
 Return ONLY a JSON array. Do not wrap it in a JSON object. Do not include markdown formatting or conversational text.
 
-Ensure the temporal context evaluates the truthfulness for that specific date. Explicitly note if the action is currently ongoing versus historical, making it a "tense-aware" decomposition.
+Ensure the decomposition is timeline-agnostic and does not contain specific dates, months, or years. Keep queries broad and neutral.
 
-Example input: "Donald Trump is president of USA in June 2026"
-Example output: ["Donald Trump is president of the USA", "The period in question is June 2026"]
+Example input: "Donald Trump is president of USA in the current era"
+Example output: ["Donald Trump is president of the USA", "The period in question is the current era"]
 
-Example input: "Donald Trump was president in July 2016"
-Example output: ["Donald Trump is president of the USA", "The period in question is July 2016"]
+Example input: "Donald Trump was president in a past term"
+Example output: ["Donald Trump is president of the USA", "The period in question is a past term"]
 
 Example input: "A war is happening today"
 Example output: ["A war is happening", "The action is currently ongoing"]

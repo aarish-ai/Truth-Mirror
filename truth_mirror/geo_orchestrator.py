@@ -1,4 +1,4 @@
-"""Orchestrator for the Geopolitical Intelligence Engine."""
+﻿"""Orchestrator for the Geopolitical Intelligence Engine."""
 
 import os
 try:
@@ -248,7 +248,7 @@ async def generate_background_narrative(claim: str, source_analyses: list, gemin
             api_key = os.environ.get("OPENROUTER_API_KEY")
             if api_key and api_key != "your_openrouter_api_key_here":
                 req_data = json.dumps({
-                    "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+                    "model": "qwen/qwen3-next-80b-a3b-instruct:free",
                     "messages": [{"role": "user", "content": prompt}]
                 }).encode('utf-8')
                 req = urllib.request.Request("https://openrouter.ai/api/v1/chat/completions", data=req_data, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"})
@@ -311,3 +311,4 @@ def compute_consensus_disputes(source_analyses: list) -> tuple[list[str], list[s
                 consensus.append(claim.capitalize())
                 
     return consensus, disputed
+

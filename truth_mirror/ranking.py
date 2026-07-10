@@ -7,30 +7,28 @@ from pathlib import Path
 
 from truth_mirror.credibility import CredibilityRegistry
 from truth_mirror.models import EvidenceItem
-from sentence_transformers import SentenceTransformer, util
+import math
+from truth_mirror.embeddings import get_gemini_embedding
 
 REGISTRY = CredibilityRegistry.load(
     str(Path(__file__).with_name("credibility_registry.json"))
 )
 
-_encoder = None
-
-def get_encoder():
-    global _encoder
-    if _encoder is None:
-        from sentence_transformers import SentenceTransformer
-        _encoder = SentenceTransformer("all-MiniLM-L6-v2")
-    return _encoder
+def _cosine_similarity(a: list[float], b: list[float]) -> float:
+    dot_product = sum(x * y for x, y in zip(a, b))
+    norm_a = math.sqrt(sum(x * x for x in a))
+    norm_b = math.sqrt(sum(y * y for y in b))
+    if norm_a == 0.0 or norm_b == 0.0:
+        return 0.0
+    return dot_product / (norm_a * norm_b)
 
 def _semantic_similarity(a: str, b: str) -> float:
     if not a.strip() or not b.strip():
         return 0.0
-    from sentence_transformers import util
-    enc = get_encoder()
-    emb_a = enc.encode(a, convert_to_tensor=True)
-    emb_b = enc.encode(b, convert_to_tensor=True)
-    # Clamp between 0 and 1
-    return max(0.0, float(util.cos_sim(emb_a, emb_b)[0][0]))
+    emb_a = get_gemini_embedding(a)
+    emb_b = get_gemini_embedding(b)
+    return max(0.0, _cosine_similarity(emb_a, emb_b))
+
 
 
 def _recency_score(date_text: str) -> float:

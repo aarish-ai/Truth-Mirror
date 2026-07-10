@@ -1,36 +1,28 @@
-"""Stance analysis with optional NLI model and robust fallback."""
+"""Stance analysis with Gemini model and robust fallback."""
 
 from __future__ import annotations
 
 import math
 import re
+import json
+import urllib.request
+import urllib.error
+import time
+import logging
 from collections import Counter
 
 from truth_mirror.models import EvidenceItem
+from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
 
+logger = logging.getLogger(__name__)
 
 NEGATION_TERMS = {"not", "false", "hoax", "denied", "incorrect", "no evidence"}
 CONTRAST_TERMS = {"however", "but", "although", "yet"}
-
-try:
-    from transformers import pipeline  # type: ignore
-except Exception:  # pragma: no cover - optional dependency
-    pipeline = None
 
 
 class StanceAnalyzer:
     def __init__(self) -> None:
         self._clf = None
-        if pipeline is not None:
-            try:
-                # If available locally, this improves over lexical matching.
-                self._clf = pipeline(
-                    task="text-classification",
-                    model="cross-encoder/nli-deberta-v3-large",
-                    top_k=None,
-                )
-            except Exception:
-                self._clf = None
 
     @staticmethod
     def _token_overlap(claim: str, evidence_text: str) -> float:
@@ -76,39 +68,57 @@ class StanceAnalyzer:
         if sim < 0.25:
             return "insufficient"
             
-        if self._clf is None:
-            return self._fallback(claim, evidence_text)
-        try:
-            claim_has_neg = any(t in claim.lower() for t in NEGATION_TERMS)
-            ev_has_neg = any(t in evidence_text.lower() for t in NEGATION_TERMS)
-            
-            result = self._clf({"text": claim, "text_pair": evidence_text})
-            
-            if isinstance(result, list) and isinstance(result[0], list):
-                scores = {item['label'].lower(): item['score'] for item in result[0]}
-            elif isinstance(result, list) and isinstance(result[0], dict):
-                scores = {item['label'].lower(): item['score'] for item in result}
-            else:
-                return self._fallback(claim, evidence_text)
-                
-            contradicts_score = scores.get('contradiction', 0.0)
-            supports_score = scores.get('entailment', 0.0)
-            neutral_score = scores.get('neutral', 0.0)
-            
-            if not claim_has_neg and ev_has_neg:
-                contradicts_score += 0.15
-                
-            labels_scores = {
-                "contradicts": contradicts_score,
-                "supports": supports_score,
-                "neutral": neutral_score
-            }
-            top_label = max(labels_scores, key=labels_scores.get)
-            top_score = labels_scores[top_label]
-            
-            if top_score < 0.52:
-                return "insufficient"
-            return top_label
-        except Exception:
-            return self._fallback(claim, evidence_text)
+        prompt = f"""You are an expert fact-checking assistant. Analyze the relationship between the claim and the provided evidence.
+Claim: "{claim}"
+Evidence: "{evidence_text}"
 
+Determine if the evidence supports the claim, contradicts the claim, is neutral, or if there is insufficient evidence to determine.
+Respond strictly in JSON format with a single key "stance" whose value must be one of: "supports", "contradicts", "neutral", "insufficient".
+Do not include any explanation or additional text.
+"""
+        max_attempts = 3
+        parsed = None
+        for attempt in range(max_attempts):
+            api_key = get_current_key()
+            if not api_key:
+                rotate_gemini_key()
+                api_key = get_current_key()
+                if not api_key:
+                    break
+
+            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+            gemini_payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {
+                    "temperature": 0.1,
+                    "responseMimeType": "application/json"
+                }
+            }
+            try:
+                req_data = json.dumps(gemini_payload).encode("utf-8")
+                req = urllib.request.Request(gemini_url, data=req_data, headers={"Content-Type": "application/json"})
+                with urllib.request.urlopen(req, timeout=20) as response:
+                    resp_data = json.loads(response.read().decode("utf-8"))
+                    content = resp_data["candidates"][0]["content"]["parts"][0]["text"]
+                    parsed = json.loads(content)
+                    break
+            except urllib.error.HTTPError as e:
+                if e.code in (429, 403):
+                    wait_time = (2 ** attempt) + 1
+                    logger.warning(f"[StanceAnalyzer] Rate limited/forbidden ({e.code}). Rotating key and retrying in {wait_time}s.")
+                    rotate_gemini_key()
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    logger.warning(f"[StanceAnalyzer] HTTPError {e.code}: {e.reason}")
+                    break
+            except Exception as e:
+                logger.warning(f"[StanceAnalyzer] Exception in detect: {e}")
+                break
+
+        if parsed and isinstance(parsed, dict) and "stance" in parsed:
+            stance = parsed["stance"].strip().lower()
+            if stance in ("supports", "contradicts", "neutral", "insufficient"):
+                return stance
+
+        return self._fallback(claim, evidence_text)

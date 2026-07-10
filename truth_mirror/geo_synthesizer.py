@@ -1,4 +1,4 @@
-import os
+﻿import os
 import json
 import logging
 from typing import Any
@@ -27,20 +27,20 @@ You have access to evidence from multiple sources with different geopolitical al
 
 Your task is to analyze the following claim and produce a structured intelligence report.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
 ORIGINAL CLAIM: "{claim}"
 CLAIM TYPE: {claim_subtype}
 PARTIES INVOLVED: {involved_parties}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
 
 EVIDENCE BY PERSPECTIVE:
 {evidence_by_perspective}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
 
 INSTRUCTIONS:
 
-STEP 1 — VERDICT
+STEP 1 â€” VERDICT
 Determine the verdict for the original claim based on the evidence.
 Use ONLY these verdicts:
 - "Supported": Multiple credible, independent sources from DIFFERENT geopolitical
@@ -54,7 +54,7 @@ Use ONLY these verdicts:
 - "False": Multiple credible, independent sources across geopolitical alignments
   directly contradict the claim. The claim is demonstrably incorrect.
 
-STEP 2 — STORY (Contextual Narrative)
+STEP 2 â€” STORY (Contextual Narrative)
 Write a journalist-quality contextual background (200-400 words).
 This section explains:
 a) What is the background context of this claim? What tensions/history led here?
@@ -64,7 +64,7 @@ d) Who are the key actors and what are their stated positions?
 Be specific: cite which sources say what. Note where sources agree and where they diverge.
 Write in third-person journalistic style. Do NOT take sides.
 
-STEP 3 — DISPUTE ANALYSIS (only if sources meaningfully disagree)
+STEP 3 â€” DISPUTE ANALYSIS (only if sources meaningfully disagree)
 If significant narrative divergence exists between source groups, analyze:
 a) WHAT do sources agree on? (the undisputed facts)
 b) WHERE does the divergence begin? (the contested claims)
@@ -83,7 +83,7 @@ g) MOST LIKELY GROUND TRUTH: Based on the totality of evidence, what most probab
 Set "has_dispute" to false and omit dispute_analysis if all major source groups
 agree on the core facts.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
 
 CRITICAL REASONING RULES:
 1. If a country officially denies an action but satellite imagery, NGO reports, or
@@ -240,7 +240,7 @@ class GeoSynthesizer:
                 
                 # First API call with reasoning
                 response_or = client_or.chat.completions.create(
-                    model="nvidia/nemotron-3-ultra-550b-a55b:free",
+                    model="qwen/qwen3-next-80b-a3b-instruct:free",
                     messages=[
                         {
                             "role": "user",
@@ -265,7 +265,7 @@ class GeoSynthesizer:
                 
                 # Second API call
                 response2 = client_or.chat.completions.create(
-                    model="nvidia/nemotron-3-ultra-550b-a55b:free",
+                    model="qwen/qwen3-next-80b-a3b-instruct:free",
                     messages=messages,
                     extra_body={"reasoning": {"enabled": True}}
                 )
@@ -354,3 +354,4 @@ class GeoSynthesizer:
             sub_claims=sub_claims or [],
             evidence_count=evidence_count
         )
+

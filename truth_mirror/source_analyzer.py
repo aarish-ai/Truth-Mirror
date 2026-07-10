@@ -3,20 +3,35 @@ import json
 import logging
 import asyncio
 import aiohttp
-from dataclasses import dataclass
-from dataclasses import dataclass
-from typing import List
-from dotenv import load_dotenv
+import re
+import urllib.request
+import urllib.error
 import random
+from dataclasses import dataclass
+from typing import List, Optional
+from dotenv import load_dotenv
 
 load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 from truth_mirror.source_registry import get_source_metadata
 from truth_mirror.models import EvidenceItem
 
 logger = logging.getLogger(__name__)
+
+# Idea A: gemini-2.0-flash has 1500 RPD free (vs 20 RPD for 3.5-flash).
+# Use it ONLY for bulk repetitive source-labelling. gemini-3.5-flash is reserved for synthesis.
+BULK_ANALYSIS_MODEL = "gemini-2.0-flash"
+
+# Idea B: mini-batch size - 6 sources per Gemini call instead of 1 or 36
+MINI_BATCH_SIZE = 6
+
+_STOPWORDS = {
+    "the", "a", "an", "in", "on", "at", "to", "of", "and", "or", "is",
+    "was", "are", "were", "be", "been", "being", "it", "its", "this",
+    "that", "for", "with", "from", "by", "as", "not", "but", "also",
+}
+
 
 @dataclass
 class SourceAnalysis:
@@ -27,39 +42,144 @@ class SourceAnalysis:
     source_country: str
     alignment: str
     reliability_tier: int
-    
-    snippet: str                    
-    summary: str                    
-    
-    stance: str                     
-    stance_confidence: float        
-    stance_reasoning: str           
-    
-    key_claims: list[str]           
-    what_emphasized: str            
-    what_omitted: str               
-    hidden_implication: str         
+    snippet: str
+    summary: str
+    stance: str
+    stance_confidence: float
+    stance_reasoning: str
+    key_claims: list
+    what_emphasized: str
+    what_omitted: str
+    hidden_implication: str
 
-class SourceAnalyzer:
-    def __init__(self):
-        pass
 
-    async def analyze(self, article: EvidenceItem, claim: str, session: aiohttp.ClientSession) -> SourceAnalysis:
-        url = article.url_or_id or ""
-        title = article.source_title or ""
-        snippet = article.excerpt or ""
-        
-        meta = get_source_metadata(url)
-        
-        # Build prompt
-        prompt = f"""You are an intelligence analyst. Analyze the following news article in relation to the given claim.
+# Idea C - keyword pre-filter
+def _extract_claim_keywords(claim: str) -> set:
+    tokens = re.findall(r"[a-zA-Z]+", claim.lower())
+    return {t for t in tokens if len(t) > 3 and t not in _STOPWORDS}
+
+
+def _is_relevant(article, claim_keywords: set) -> bool:
+    if not claim_keywords:
+        return True
+    title = (article.source_title or "").lower()
+    snippet = (article.excerpt or "").lower()
+    text = title + " " + snippet
+    article_tokens = set(re.findall(r"[a-zA-Z]+", text))
+    return bool(claim_keywords & article_tokens)
+
+
+def _call_gemini_sync(prompt: str, model: str, timeout: int = 45) -> Optional[str]:
+    from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
+    import time
+
+    max_attempts = 5
+    for attempt in range(max_attempts):
+        api_key = get_current_key()
+        if not api_key:
+            logger.error("[SourceAnalyzer] No Gemini API key available.")
+            return None
+
+        url = (
+            f"https://generativelanguage.googleapis.com/v1beta/models/"
+            f"{model}:generateContent?key={api_key}"
+        )
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.1, "responseMimeType": "application/json"},
+        }
+        try:
+            req_data = json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(
+                url, data=req_data, headers={"Content-Type": "application/json"}
+            )
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                raw = json.loads(resp.read().decode("utf-8"))
+                return raw["candidates"][0]["content"]["parts"][0]["text"]
+        except urllib.error.HTTPError as e:
+            if e.code in (429, 403):
+                wait = (2 ** attempt) + random.uniform(0.5, 1.5)
+                logger.warning(
+                    f"[SourceAnalyzer] Gemini {model} HTTP {e.code} on attempt "
+                    f"{attempt + 1}. Rotating key, waiting {wait:.1f}s."
+                )
+                rotate_gemini_key()
+                time.sleep(wait)
+                continue
+            else:
+                logger.warning(f"[SourceAnalyzer] Gemini HTTP {e.code}: {e.reason}")
+                return None
+        except Exception as e:
+            logger.warning(f"[SourceAnalyzer] Gemini call exception: {e}")
+            return None
+
+    logger.error(f"[SourceAnalyzer] Exhausted all {max_attempts} Gemini attempts for {model}.")
+    return None
+
+
+def _call_openrouter_sync(prompt: str, timeout: int = 30) -> Optional[str]:
+    if not OPENROUTER_API_KEY:
+        return None
+    import time
+
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://truthmirror.app",
+        "X-Title": "Truth Mirror",
+    }
+    payload = {
+        "model": "qwen/qwen3-next-80b-a3b-instruct:free",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.1,
+        "response_format": {"type": "json_object"},
+    }
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        try:
+            req_data = json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(
+                "https://openrouter.ai/api/v1/chat/completions",
+                data=req_data,
+                headers=headers,
+            )
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                choices = data.get("choices") or []
+                if choices and choices[0].get("message", {}).get("content"):
+                    return choices[0]["message"]["content"]
+                return None
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                wait = (2 ** attempt) + random.uniform(0.5, 1.5)
+                logger.warning(
+                    f"[SourceAnalyzer] OpenRouter 429 on attempt {attempt + 1}. "
+                    f"Waiting {wait:.1f}s."
+                )
+                time.sleep(wait)
+                continue
+            else:
+                logger.warning(f"[SourceAnalyzer] OpenRouter HTTP {e.code}: {e.reason}")
+                return None
+        except Exception as e:
+            logger.warning(f"[SourceAnalyzer] OpenRouter exception: {e}")
+            return None
+    return None
+
+
+def _build_single_prompt(article, claim: str) -> str:
+    url = article.url_or_id or ""
+    title = article.source_title or ""
+    snippet = (article.excerpt or "")[:800]
+    meta = get_source_metadata(url)
+    return f"""You are an intelligence analyst. Analyze the following news article in relation to the given claim.
 
 CLAIM: {claim}
 
 SOURCE: {meta['name']} ({meta['country']}, {meta['alignment']})
 ARTICLE TITLE: {title}
 ARTICLE TEXT:
-{snippet[:800]}
+{snippet}
 
 Respond ONLY in this exact JSON format, no other text:
 {{
@@ -79,389 +199,252 @@ Rules:
 - PARTIALLY_SUPPORTS: source confirms some but not all aspects of the claim
 - INCONCLUSIVE: source is related but neither confirms nor denies
 - BACKGROUND_ONLY: source provides only historical context, not current verification
-- Be specific. Do not say "the source mentions X" — say what X actually is.
 """
-        
+
+
+def _build_mini_batch_prompt(claim: str, batch: list) -> str:
+    articles_text = ""
+    for i, article in enumerate(batch, 1):
+        url = article.url_or_id or ""
+        title = article.source_title or ""
+        excerpt = (article.excerpt or "")[:600]
         try:
-            parsed = None
-            gemini_failed = False
-            
-            from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
-            api_key = get_current_key()
-            if api_key:
-                gemini_payload = {
-                    "contents": [{"parts": [{"text": prompt}]}],
-                    "generationConfig": {
-                        "temperature": 0.1,
-                        "responseMimeType": "application/json"
-                    }
-                }
-                max_retries = 3
-                for attempt in range(max_retries):
-                    try:
-                        api_key = get_current_key()
-                        gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}"
-                        timeout_cfg = aiohttp.ClientTimeout(total=20)
-                        async with session.post(gemini_url, json=gemini_payload, timeout=timeout_cfg) as response:
-                            if response.status == 429:
-                                wait_time = (2 ** attempt) + 1
-                                jitter = random.uniform(0.1, 1.0)
-                                logger.warning(f"[SourceAnalyzer] Gemini rate limited on attempt {attempt+1}. Rotating key and waiting {wait_time + jitter:.2f}s before retry.")
-                                rotate_gemini_key()
-                                await asyncio.sleep(wait_time + jitter)
-                                if attempt == max_retries - 1:
-                                    gemini_failed = True
-                                continue
-                            response.raise_for_status()
-                            data = await response.json()
-                            content = data["candidates"][0]["content"]["parts"][0]["text"]
-                            parsed = json.loads(content)
-                            gemini_failed = False
-                            break
-                    except Exception as e:
-                        if attempt == max_retries - 1:
-                            logger.warning(f"Gemini failed for {url} ({e}), falling back to OpenRouter.")
-                            gemini_failed = True
-                            break
-                        else:
-                            await asyncio.sleep(1)
-            else:
-                logger.warning("GEMINI_API_KEY not set. Using OpenRouter.")
-                gemini_failed = True
-                
-            if gemini_failed:
-                if not OPENROUTER_API_KEY:
-                    logger.error("No API keys available for SourceAnalyzer.")
-                    return None
-                    
-                headers = {
-                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-                    "Content-Type": "application/json",
-                    "HTTP-Referer": "https://truthmirror.app",
-                    "X-Title": "Truth Mirror"
-                }
-                openrouter_payload = {
-                    "model": "qwen/qwen3-next-80b-a3b-instruct:free",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.1,
-                    "response_format": {"type": "json_object"}
-                }
-                max_retries = 3
-                for attempt in range(max_retries):
-                    try:
-                        timeout_cfg = aiohttp.ClientTimeout(total=30)
-                        async with session.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=openrouter_payload, timeout=timeout_cfg) as response:
-                            if response.status == 429:
-                                wait_time = (2 ** attempt) + 1
-                                jitter = random.uniform(0.1, 1.0)
-                                logger.warning(f"[SourceAnalyzer] OpenRouter rate limited on attempt {attempt+1}. Waiting {wait_time + jitter:.2f}s before retry.")
-                                await asyncio.sleep(wait_time + jitter)
-                                continue
-                            response.raise_for_status()
-                            data = await response.json()
-                            content = data["choices"][0]["message"]["content"]
-                            parsed = json.loads(content)
-                            break
-                    except Exception as e:
-                        if attempt == max_retries - 1:
-                            logger.warning(f"OpenRouter failed for {url} ({e}).")
-                            raise ValueError(f"All API fallbacks failed: {e}")
-                        else:
-                            await asyncio.sleep(1)
-                    
-            
-            stance = parsed.get("stance", "INCONCLUSIVE")
-            logger.info(f"Successfully analyzed source: {url} -> stance={stance}")
-            return SourceAnalysis(
-                url=url,
-                title=title,
-                source_name=meta["name"],
-                source_category=meta["category"],
-                source_country=meta["country"],
-                alignment=meta["alignment"],
-                reliability_tier=meta["tier"],
-                snippet=snippet,
-                summary=parsed.get("summary", ""),
-                stance=stance,
-                stance_confidence=float(parsed.get("stance_confidence", 0.0)),
-                stance_reasoning=parsed.get("stance_reasoning", ""),
-                key_claims=parsed.get("key_claims", []),
-                what_emphasized=parsed.get("what_emphasized", ""),
-                what_omitted=parsed.get("what_omitted", ""),
-                hidden_implication=parsed.get("hidden_implication", "")
-            )
-            
-        except Exception as e:
-            logger.warning(f"[SourceAnalyzer] All retries failed for {url}: {e}")
-            return None
-
-    async def _analyze_all_individual_fallback(self, articles: List[EvidenceItem], claim: str, max_concurrent: int = 5) -> List[SourceAnalysis]:
-        semaphore = asyncio.Semaphore(max_concurrent)
-        
-        async def sem_analyze(article, session):
-            async with semaphore:
-                return await self.analyze(article, claim, session)
-                
-        async with aiohttp.ClientSession() as session:
-            tasks = [sem_analyze(art, session) for art in articles]
-            raw_results = await asyncio.gather(*tasks)
-            
-        results = [r for r in raw_results if r is not None]
-        logger.info(
-            f"[SourceAnalyzer] Completed: {len(results)} succeeded, "
-            f"{len(raw_results) - len(results)} failed out of "
-            f"{len(raw_results)} total sources."
-        )
-        return results
-
-    async def analyze_all(self, articles: list, claim: str, max_concurrent: int = 5) -> list:
-        if not articles:
-            logger.warning("[SourceAnalyzer] No articles to analyze.")
-            return []
-
-        logger.info(
-            f"[SourceAnalyzer] Starting BATCH Gemini analysis of "
-            f"{len(articles)} articles for claim: {claim[:80]}"
+            meta = get_source_metadata(url)
+            source_name = meta.get("name", article.publisher or "Unknown")
+            country = meta.get("country", "Unknown")
+            alignment = meta.get("alignment", "unknown")
+        except Exception:
+            source_name = article.publisher or "Unknown"
+            country = "Unknown"
+            alignment = "unknown"
+        articles_text += (
+            f"\n--- ARTICLE {i} ---\n"
+            f"URL: {url}\n"
+            f"Source: {source_name} | Country: {country} | Alignment: {alignment}\n"
+            f"Title: {title}\n"
+            f"Text: {excerpt}\n"
         )
 
-        batch_prompt = self._build_batch_prompt(claim, articles)
-        import asyncio
-        results = await asyncio.to_thread(self._call_gemini_batch, claim, articles, batch_prompt)
-
-        if results is not None:
-            logger.info(
-                f"[SourceAnalyzer] Batch complete: {len(results)} analyses "
-                f"returned from {len(articles)} articles."
-            )
-            return results
-
-        logger.warning(
-            "[SourceAnalyzer] Gemini batch failed. Falling back to "
-            "per-source OpenRouter calls."
-        )
-        return await self._analyze_all_individual_fallback(articles, claim, max_concurrent)
-
-    def _build_batch_prompt(self, claim: str, articles: list) -> str:
-        articles_text = ""
-        for i, article in enumerate(articles, 1):
-            if hasattr(article, 'url_or_id'):
-                url = article.url_or_id or ""
-                title = article.source_title or ""
-                excerpt = (article.excerpt or "")[:800]
-                publisher = article.publisher or ""
-                source_type = article.source_type or ""
-            else:
-                url = article.get("url_or_id", article.get("url", ""))
-                title = article.get("source_title", article.get("title", ""))
-                excerpt = article.get("excerpt", article.get("snippet", ""))[:800]
-                publisher = article.get("publisher", "")
-                source_type = article.get("source_type", "")
-
-            try:
-                from truth_mirror.source_registry import get_source_metadata
-                meta = get_source_metadata(url)
-                alignment = meta.get("alignment", "unknown")
-                country = meta.get("country", "Unknown")
-                source_name = meta.get("name", publisher or "Unknown")
-            except Exception:
-                alignment = "unknown"
-                country = "Unknown"
-                source_name = publisher or "Unknown"
-
-            articles_text += (
-                f"\n--- ARTICLE {i} ---\n"
-                f"URL: {url}\n"
-                f"Source: {source_name} | Country: {country} | "
-                f"Alignment: {alignment}\n"
-                f"Title: {title}\n"
-                f"Text: {excerpt}\n"
-            )
-
-        prompt = f"""You are an intelligence analyst performing multi-source
-geopolitical analysis. You will be given {len(articles)} news articles
-and a claim to verify. For EACH article, produce a structured analysis.
+    return f"""You are an intelligence analyst performing multi-source geopolitical analysis.
+You will be given {len(batch)} news articles and a claim to verify.
+For EACH article, produce a structured analysis.
 
 CLAIM BEING VERIFIED: "{claim}"
 
 ARTICLES:
 {articles_text}
 
-For each article, produce one JSON object with these exact fields:
-{{
-  "article_index": <integer, 1-based, matching the ARTICLE N number above>,
-  "url": "<the URL from the article header>",
-  "source_name": "<source name from the article header>",
-  "alignment": "<alignment from the article header>",
-  "summary": "<1-2 sentence summary of what this article says about the claim>",
-  "stance": "<exactly one of: SUPPORTS, CONTRADICTS, PARTIALLY_SUPPORTS, INCONCLUSIVE, BACKGROUND_ONLY>",
-  "stance_confidence": <float between 0.0 and 1.0>,
-  "stance_reasoning": "<one sentence explaining why you assigned this stance>",
-  "key_claims": ["<specific factual claim made by this source>", "..."],
-  "what_emphasized": "<what facts or framings does this source push prominently>",
-  "what_omitted": "<what relevant information does this source notably leave out>",
-  "hidden_implication": "<any subtext, bias, or implied narrative; empty string if none>"
-}}
-
-Stance definitions:
-- SUPPORTS: article directly confirms the claim is true
-- CONTRADICTS: article directly denies or disproves the claim
-- PARTIALLY_SUPPORTS: article confirms some but not all aspects of the claim
-- INCONCLUSIVE: article is related but neither confirms nor denies the claim
-- BACKGROUND_ONLY: article provides only historical context, not current verification
-
-Rules:
-- Analyze EVERY article. Return exactly {len(articles)} objects in the array.
-- Do not skip any article even if the excerpt is short or irrelevant.
-  Set stance to INCONCLUSIVE for irrelevant articles.
-- Be specific. Reference actual content from the article text, not generic descriptions.
-- For what_omitted: think about what a source with this alignment WOULD be
-  expected to mention if the claim were true, and note if it is absent.
-- For hidden_implication: consider the SOURCE's known alignment and how their
-  framing choices reveal narrative bias.
-
-Return ONLY a JSON object with this structure, no other text:
+For each article, produce one JSON object. Return ONLY a JSON object:
 {{
   "analyses": [
-    {{ ...article 1 analysis... }},
-    {{ ...article 2 analysis... }}
+    {{
+      "article_index": <1-based integer>,
+      "url": "<URL from header>",
+      "source_name": "<source name>",
+      "alignment": "<alignment>",
+      "summary": "<1-2 sentence summary>",
+      "stance": "<SUPPORTS|CONTRADICTS|PARTIALLY_SUPPORTS|INCONCLUSIVE|BACKGROUND_ONLY>",
+      "stance_confidence": <0.0 to 1.0>,
+      "stance_reasoning": "<one sentence>",
+      "key_claims": ["<claim>"],
+      "what_emphasized": "<what this source highlights>",
+      "what_omitted": "<what relevant info is missing>",
+      "hidden_implication": "<subtext or empty string>"
+    }}
   ]
-}}"""
-        return prompt
+}}
 
-    def _call_gemini_batch(self, claim: str, articles: list, prompt: str) -> list | None:
-        try:
-            import os
-            from dotenv import load_dotenv
-            load_dotenv()
+Analyze EVERY article. Return exactly {len(batch)} objects. Set stance to INCONCLUSIVE for irrelevant articles."""
 
-            from google import genai
-            from google.genai import types
-            from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
 
-            max_batch_retries = 5
-            raw = None
-            for attempt in range(max_batch_retries):
-                api_key = get_current_key()
-                if not api_key:
-                    logger.warning(
-                        "[SourceAnalyzer] GEMINI_API_KEY not set. "
-                        "Cannot run batch analysis."
-                    )
-                    return None
+def _parse_batch_response(raw_text: str, batch: list) -> list:
+    results = []
+    try:
+        parsed = json.loads(raw_text)
+        analyses_raw = parsed.get("analyses", [])
+        if not isinstance(analyses_raw, list):
+            return results
+        for raw_item in analyses_raw:
+            if not isinstance(raw_item, dict):
+                continue
+            try:
+                idx = int(raw_item.get("article_index", 0)) - 1
+                original = batch[idx] if 0 <= idx < len(batch) else None
+                if original is not None:
+                    url = original.url_or_id or raw_item.get("url", "")
+                    title = original.source_title or raw_item.get("source_name", "")
+                    excerpt = (original.excerpt or "")[:500]
+                    src_type = original.source_type or "journalism"
+                else:
+                    url = raw_item.get("url", "")
+                    title = raw_item.get("source_name", "")
+                    excerpt = ""
+                    src_type = "journalism"
+                results.append(SourceAnalysis(
+                    url=url, title=title,
+                    source_name=raw_item.get("source_name", ""),
+                    source_category=src_type, source_country="",
+                    alignment=raw_item.get("alignment", "unknown"),
+                    reliability_tier=2, snippet=excerpt,
+                    summary=raw_item.get("summary", ""),
+                    stance=raw_item.get("stance", "INCONCLUSIVE"),
+                    stance_confidence=float(raw_item.get("stance_confidence", 0.5)),
+                    stance_reasoning=raw_item.get("stance_reasoning", ""),
+                    key_claims=raw_item.get("key_claims", []),
+                    what_emphasized=raw_item.get("what_emphasized", ""),
+                    what_omitted=raw_item.get("what_omitted", ""),
+                    hidden_implication=raw_item.get("hidden_implication", ""),
+                ))
+            except Exception as e:
+                logger.warning(f"[SourceAnalyzer] Failed to parse one batch item: {e}")
+    except Exception as e:
+        logger.warning(f"[SourceAnalyzer] Batch JSON parse failed: {e}")
+    return results
 
-                import urllib.request
-                import json
-                
-                gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}"
-                payload = {
-                    "contents": [{"parts": [{"text": prompt}]}],
-                    "generationConfig": {
-                        "temperature": 0.1,
-                        "responseMimeType": "application/json"
-                    }
-                }
-                
-                try:
-                    req_data = json.dumps(payload).encode("utf-8")
-                    req = urllib.request.Request(gemini_url, data=req_data, headers={"Content-Type": "application/json"})
-                    with urllib.request.urlopen(req, timeout=60) as response:
-                        raw_data = json.loads(response.read().decode("utf-8"))
-                        raw = raw_data["candidates"][0]["content"]["parts"][0]["text"]
-                    break
-                except urllib.error.HTTPError as e:
-                    if e.code == 429:
-                        logger.warning(f"[SourceAnalyzer] Gemini batch 429 rate limit. Rotating key...")
-                        rotated = rotate_gemini_key()
-                        if not rotated:
-                            logger.error("No more keys to rotate to or single key exhausted.")
-                            return None
-                        continue
-                    else:
-                        logger.warning(f"[SourceAnalyzer] Gemini batch HTTP error: {e.code} {e.reason}")
-                        return None
-                except Exception as e:
-                    logger.warning(f"[SourceAnalyzer] Gemini batch call failed: {e}")
-                    return None
+
+def _parse_single_response(raw_text: str, article) -> Optional[SourceAnalysis]:
+    try:
+        parsed = json.loads(raw_text)
+        url = article.url_or_id or ""
+        title = article.source_title or ""
+        snippet = (article.excerpt or "")[:500]
+        meta = get_source_metadata(url)
+        return SourceAnalysis(
+            url=url, title=title,
+            source_name=meta.get("name", article.publisher or ""),
+            source_category=article.source_type or "journalism",
+            source_country=meta.get("country", ""),
+            alignment=meta.get("alignment", "unknown"),
+            reliability_tier=meta.get("tier", 2),
+            snippet=snippet,
+            summary=parsed.get("summary", ""),
+            stance=parsed.get("stance", "INCONCLUSIVE"),
+            stance_confidence=float(parsed.get("stance_confidence", 0.5)),
+            stance_reasoning=parsed.get("stance_reasoning", ""),
+            key_claims=parsed.get("key_claims", []),
+            what_emphasized=parsed.get("what_emphasized", ""),
+            what_omitted=parsed.get("what_omitted", ""),
+            hidden_implication=parsed.get("hidden_implication", ""),
+        )
+    except Exception as e:
+        logger.warning(f"[SourceAnalyzer] Single-article parse failed: {e}")
+        return None
+
+
+class SourceAnalyzer:
+    def __init__(self):
+        pass
+
+    async def analyze(self, article, claim: str, session: aiohttp.ClientSession) -> Optional[SourceAnalysis]:
+        prompt = _build_single_prompt(article, claim)
+        raw = await asyncio.to_thread(_call_gemini_sync, prompt, BULK_ANALYSIS_MODEL)
+        if raw:
+            result = _parse_single_response(raw, article)
+            if result:
+                logger.info(f"Successfully analyzed source: {article.url_or_id} -> stance={result.stance}")
+                return result
+        raw = await asyncio.to_thread(_call_openrouter_sync, prompt)
+        if raw:
+            result = _parse_single_response(raw, article)
+            if result:
+                return result
+        logger.warning(f"[SourceAnalyzer] All retries failed for {article.url_or_id}")
+        return None
+
+    def _process_mini_batch(self, batch: list, claim: str) -> list:
+        prompt = _build_mini_batch_prompt(claim, batch)
+        raw = _call_gemini_sync(prompt, BULK_ANALYSIS_MODEL, timeout=45)
+        if raw:
+            results = _parse_batch_response(raw, batch)
+            if results:
+                logger.info(f"[SourceAnalyzer] Mini-batch of {len(batch)} -> {len(results)} results (gemini-2.0-flash).")
+                return results
+
+        raw = _call_openrouter_sync(prompt, timeout=40)
+        if raw:
+            results = _parse_batch_response(raw, batch)
+            if results:
+                logger.info(f"[SourceAnalyzer] Mini-batch of {len(batch)} -> {len(results)} results (OpenRouter).")
+                return results
+
+        logger.warning(f"[SourceAnalyzer] Mini-batch failed. Falling back to per-article calls for {len(batch)} articles.")
+        individual_results = []
+        for article in batch:
+            single_prompt = _build_single_prompt(article, claim)
+            raw = _call_gemini_sync(single_prompt, BULK_ANALYSIS_MODEL, timeout=20)
+            if not raw:
+                raw = _call_openrouter_sync(single_prompt, timeout=25)
+            if raw:
+                result = _parse_single_response(raw, article)
+                if result:
+                    individual_results.append(result)
+        return individual_results
+
+    async def analyze_all(self, articles: list, claim: str, max_concurrent: int = 1) -> list:
+        if not articles:
+            logger.warning("[SourceAnalyzer] No articles to analyze.")
+            return []
+
+        claim_keywords = _extract_claim_keywords(claim)
+        relevant, dropped = [], []
+        for a in articles:
+            if _is_relevant(a, claim_keywords):
+                relevant.append(a)
             else:
-                logger.error("Exhausted all batch retries for Gemini.")
-                return None
-            parsed = json.loads(raw)
+                dropped.append(a)
 
-            if "analyses" not in parsed:
-                logger.warning(
-                    "[SourceAnalyzer] Gemini batch response missing "
-                    "'analyses' key. Keys found: "
-                    f"{list(parsed.keys())}"
-                )
-                return None
+        logger.info(
+            f"[SourceAnalyzer] Pre-filter: {len(relevant)} relevant, "
+            f"{len(dropped)} dropped from {len(articles)} total. "
+            f"Claim keywords: {claim_keywords}"
+        )
+        if dropped:
+            dropped_titles = [getattr(a, "source_title", "") or "" for a in dropped[:5]]
+            logger.info(f"[SourceAnalyzer] Dropped articles (sample): {dropped_titles}")
 
-            analyses_raw = parsed["analyses"]
-            if not isinstance(analyses_raw, list):
-                logger.warning(
-                    "[SourceAnalyzer] Gemini batch 'analyses' is not a list."
-                )
-                return None
+        if not relevant:
+            logger.warning("[SourceAnalyzer] All articles were filtered out.")
+            return []
 
-            results = []
-            for raw_item in analyses_raw:
-                if not isinstance(raw_item, dict):
-                    continue
-                try:
-                    idx = int(raw_item.get("article_index", 0)) - 1
-                    original = articles[idx] if 0 <= idx < len(articles) else None
+        batches = [relevant[i: i + MINI_BATCH_SIZE] for i in range(0, len(relevant), MINI_BATCH_SIZE)]
+        logger.info(
+            f"[SourceAnalyzer] Processing {len(relevant)} articles in "
+            f"{len(batches)} mini-batch(es) of up to {MINI_BATCH_SIZE} using {BULK_ANALYSIS_MODEL}."
+        )
 
-                    if original is not None:
-                        if hasattr(original, 'url_or_id'):
-                            pub = original.publisher or ""
-                            src_type = original.source_type or "journalism"
-                            excerpt = (original.excerpt or "")[:500]
-                            date = getattr(original, 'date', "")
-                            url = original.url_or_id or raw_item.get("url", "")
-                            title = original.source_title or raw_item.get("source_name", "")
-                        else:
-                            pub = original.get("publisher", "")
-                            src_type = original.get("source_type", "journalism")
-                            excerpt = original.get("excerpt", "")[:500]
-                            date = original.get("date", "")
-                            url = original.get("url_or_id", raw_item.get("url", ""))
-                            title = original.get("source_title", raw_item.get("source_name", ""))
-                    else:
-                        pub = raw_item.get("source_name", "")
-                        src_type = "journalism"
-                        excerpt = ""
-                        date = ""
-                        url = raw_item.get("url", "")
-                        title = raw_item.get("source_name", "")
+        semaphore = asyncio.Semaphore(max_concurrent)
 
-                    analysis = SourceAnalysis(
-                        url=url,
-                        title=title,
-                        source_name=raw_item.get("source_name", pub),
-                        source_category=src_type,
-                        source_country="",
-                        alignment=raw_item.get("alignment", "unknown"),
-                        reliability_tier=2,
-                        snippet=excerpt,
-                        summary=raw_item.get("summary", ""),
-                        stance=raw_item.get("stance", "INCONCLUSIVE"),
-                        stance_confidence=float(raw_item.get("stance_confidence", 0.5)),
-                        stance_reasoning=raw_item.get("stance_reasoning", ""),
-                        key_claims=raw_item.get("key_claims", []),
-                        what_emphasized=raw_item.get("what_emphasized", ""),
-                        what_omitted=raw_item.get("what_omitted", ""),
-                        hidden_implication=raw_item.get("hidden_implication", ""),
-                    )
-                    results.append(analysis)
-                except Exception as e:
-                    logger.warning(f"[SourceAnalyzer] Failed to parse one batch item: {e}")
-                    continue
+        async def process_batch_async(batch):
+            async with semaphore:
+                return await asyncio.to_thread(self._process_mini_batch, batch, claim)
 
-            logger.info(f"[SourceAnalyzer] Batch parsed successfully: {len(results)} SourceAnalysis objects created.")
-            return results if results else None
+        tasks = [process_batch_async(b) for b in batches]
+        batch_results = await asyncio.gather(*tasks)
 
-        except json.JSONDecodeError as e:
-            logger.warning(f"[SourceAnalyzer] Gemini batch JSON parse failed: {e}.")
-            return None
-        except Exception as e:
-            logger.warning(f"[SourceAnalyzer] Gemini batch call failed entirely: {e}")
-            return None
+        all_results = []
+        for r in batch_results:
+            all_results.extend(r)
+
+        logger.info(
+            f"[SourceAnalyzer] Completed: {len(all_results)} succeeded out of "
+            f"{len(relevant)} relevant sources ({len(dropped)} pre-filtered)."
+        )
+        return all_results
+
+    async def _analyze_all_individual_fallback(self, articles: list, claim: str, max_concurrent: int = 5) -> list:
+        semaphore = asyncio.Semaphore(max_concurrent)
+
+        async def sem_analyze(article, session):
+            async with semaphore:
+                return await self.analyze(article, claim, session)
+
+        async with aiohttp.ClientSession() as session:
+            tasks = [sem_analyze(art, session) for art in articles]
+            raw_results = await asyncio.gather(*tasks)
+
+        results = [r for r in raw_results if r is not None]
+        logger.info(
+            f"[SourceAnalyzer] Completed: {len(results)} succeeded, "
+            f"{len(raw_results) - len(results)} failed out of {len(raw_results)} total sources."
+        )
+        return results

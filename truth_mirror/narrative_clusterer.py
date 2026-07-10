@@ -28,9 +28,9 @@ class NarrativeClusterer:
             return
             
         load_dotenv()
-        self.api_key = os.getenv("GEMINI_API_KEY")
-        if self.api_key:
-            self.client = genai.Client(api_key=self.api_key)
+        from truth_mirror.key_rotator import get_current_key
+        current_key = get_current_key()
+        if current_key:
             self.enabled = True
         else:
             logger.warning("GEMINI_API_KEY not found. Gemini integration disabled.")
@@ -81,7 +81,14 @@ You must respond ONLY with a valid JSON object using the exact schema below. Do 
 }}
 """
         try:
-            response = self.client.models.generate_content(
+            from truth_mirror.key_rotator import get_current_key
+            current_key = get_current_key()
+            if not current_key:
+                logger.warning("No Gemini API key available for clustering.")
+                return None
+            client = genai.Client(api_key=current_key)
+
+            response = client.models.generate_content(
                 model='gemini-3.5-flash',
                 contents=prompt,
                 config=types.GenerateContentConfig(

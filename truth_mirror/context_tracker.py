@@ -1,4 +1,4 @@
-﻿import json
+import json
 import os
 import logging
 import time
@@ -7,11 +7,17 @@ from typing import List
 
 from truth_mirror.models import ClaimContext, Entity
 
-try:
-    from sentence_transformers import SentenceTransformer, util
-    HAS_SENTENCE_TRANSFORMERS = True
-except ImportError:
-    HAS_SENTENCE_TRANSFORMERS = False
+import math
+from truth_mirror.embeddings import get_gemini_embedding, get_gemini_embeddings
+
+def _cosine_similarity(a: List[float], b: List[float]) -> float:
+    dot_product = sum(x * y for x, y in zip(a, b))
+    norm_a = math.sqrt(sum(x * x for x in a))
+    norm_b = math.sqrt(sum(y * y for y in b))
+    if norm_a == 0.0 or norm_b == 0.0:
+        return 0.0
+    return dot_product / (norm_a * norm_b)
+
 
 logger = logging.getLogger(__name__)
 
@@ -21,13 +27,6 @@ class ContextTracker:
     def __init__(self, history_file: str = ".tm_narrative_history.json"):
         self.history_file = history_file
         self.history = self._load_history()
-        
-        self.model = None
-        if HAS_SENTENCE_TRANSFORMERS:
-            try:
-                self.model = SentenceTransformer('all-MiniLM-L6-v2')
-            except Exception as e:
-                logger.warning(f"Could not load SentenceTransformer: {e}")
 
     def _load_history(self) -> list:
         if os.path.exists(self.history_file):
@@ -84,15 +83,15 @@ class ContextTracker:
         claim_mutation_flag = False
         differing_verdicts = set()
         
-        if self.model is not None and related_claims:
+        if related_claims:
             try:
-                claim_emb = self.model.encode(claim)
-                past_embs = self.model.encode(related_claims)
-                sims = util.cos_sim(claim_emb, past_embs)[0]
+                claim_emb = get_gemini_embedding(claim)
+                past_embs = get_gemini_embeddings(related_claims)
                 
                 similar_claims = []
-                for i, sim in enumerate(sims):
-                    if sim.item() > 0.75:
+                for i, past_emb in enumerate(past_embs):
+                    sim = _cosine_similarity(claim_emb, past_emb)
+                    if sim > 0.75:
                         similar_claims.append(related_claims[i])
                         
                 if similar_claims:
