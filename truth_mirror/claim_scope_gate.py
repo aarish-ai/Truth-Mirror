@@ -122,10 +122,10 @@ Rules:
     logger.info("[ClaimScopeGate] Attempting Groq for scope classification.")
     parsed = _call_groq(prompt)
 
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-    if parsed is None and GEMINI_API_KEY:
+    from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
+    api_key = get_current_key()
+    if parsed is None and api_key:
         try:
-            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
             gemini_payload = {
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {
@@ -136,6 +136,8 @@ Rules:
             max_retries = 3
             for attempt in range(max_retries):
                 try:
+                    api_key = get_current_key()
+                    gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}"
                     req_data = json.dumps(gemini_payload).encode("utf-8")
                     req = urllib.request.Request(gemini_url, data=req_data, headers={"Content-Type": "application/json"})
                     with urllib.request.urlopen(req, timeout=20) as response:
@@ -146,7 +148,8 @@ Rules:
                 except urllib.error.HTTPError as e:
                     if e.code == 429:
                         wait_time = (2 ** attempt) + 1
-                        logger.warning(f"[ClaimScopeGate] Gemini Rate limited on attempt {attempt+1}. Waiting {wait_time}s.")
+                        logger.warning(f"[ClaimScopeGate] Gemini Rate limited on attempt {attempt+1}. Rotating key and waiting {wait_time}s.")
+                        rotate_gemini_key()
                         time.sleep(wait_time)
                         continue
                     else:

@@ -146,8 +146,10 @@ Respond ONLY with this exact JSON (no markdown, no preamble):
 
 class GeoSynthesizer:
     def __init__(self, client: Any | None = None):
-        self.client = client if client else (genai.Client() if GENAI_AVAILABLE else None)
-        self.model_name = "gemini-2.5-flash"
+        from truth_mirror.key_rotator import get_current_key
+        api_key = get_current_key()
+        self.client = client if client else (genai.Client(api_key=api_key) if (GENAI_AVAILABLE and api_key) else None)
+        self.model_name = "gemini-3.5-flash"
 
     def synthesize(
         self,
@@ -178,18 +180,23 @@ class GeoSynthesizer:
                 evidence_count=evidence_count
             )
 
-        max_retries = 2
+        max_retries = 5
         
         data = None
         last_error = None
         
-        # 1. Try Gemini 2.5 flash up to 2 times
+        # 1. Try Gemini 2.5 flash up to max_retries times
         for attempt in range(max_retries):
             try:
                 import time
                 if attempt > 0:
                     logger.info(f"Retrying Gemini synthesis (attempt {attempt+1}/{max_retries})...")
                     time.sleep(2)
+                    
+                from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
+                api_key = get_current_key()
+                if api_key and GENAI_AVAILABLE:
+                    self.client = genai.Client(api_key=api_key)
                     
                 response = self.client.models.generate_content(
                     model=self.model_name,
@@ -208,6 +215,10 @@ class GeoSynthesizer:
             except Exception as e:
                 last_error = e
                 logger.warning(f"Gemini synthesis failed on attempt {attempt+1}: {e}")
+                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                    from truth_mirror.key_rotator import rotate_gemini_key
+                    logger.warning("Rotating Gemini key due to 429 in geo_synthesizer...")
+                    rotate_gemini_key()
         
         # 2. Fallback to OpenRouter Nemotron
         if data is None:

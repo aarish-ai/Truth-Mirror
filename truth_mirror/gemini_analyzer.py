@@ -37,7 +37,7 @@ class GeminiAnalyzer:
         self.api_key = os.getenv("GEMINI_API_KEY")
         if self.api_key:
             self.client = genai.Client(api_key=self.api_key)
-            self.model_name = 'gemini-2.5-flash'
+            self.model_name = 'gemini-3.5-flash'
             self.enabled = True
         else:
             logger.warning("GEMINI_API_KEY not found. Gemini integration disabled.")
@@ -96,7 +96,7 @@ You must respond ONLY with a valid JSON object using the exact schema below. Do 
 }}
 """
         try:
-            # We use gemini-2.5-flash as it is free, fast, and supports JSON output natively
+            # We use gemini-3.5-flash as it is free, fast, and supports JSON output natively
             response = self.client.models.generate_content(
                 model=self.model_name,
                 contents=prompt,

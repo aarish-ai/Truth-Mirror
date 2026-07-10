@@ -21,12 +21,8 @@ class GeoClassifier:
     Falls back to regex keywords if the LLM is unavailable or fails.
     """
     
-    def __init__(self, ollama_url: str = None, model: str = "qwen2.5:3b"):
-        base_url = (ollama_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")).rstrip('/')
-        if not base_url.endswith("/api"):
-            base_url += "/api"
-        self.ollama_url = base_url
-        self.model = model
+    def __init__(self, ollama_url: str = None, model: str = "qwen/qwen3-next-80b-a3b-instruct:free"):
+        pass
 
     def classify(self, claim: str) -> Dict[str, Any]:
         """
@@ -52,20 +48,42 @@ Respond strictly with a JSON object having the following keys:
 Do not include any other text, markdown formatting, or explanations. Only output the raw JSON object.
 """
         
-        url = f"{self.ollama_url}/generate"
-        payload = {
-            "model": self.model,
-            "prompt": prompt,
-            "stream": False,
-            "format": "json"
+        from dotenv import load_dotenv
+        import urllib.request
+        import time
+        
+        load_dotenv()
+        OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+        
+        if not OPENROUTER_API_KEY:
+            logger.warning("OPENROUTER_API_KEY not set. Using regex fallback.")
+            return self._regex_fallback(claim)
+            
+        openrouter_payload = {
+            "model": "qwen/qwen3-next-80b-a3b-instruct:free",
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.1,
+            "response_format": {"type": "json_object"}
+        }
+        
+        headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://truthmirror.app",
+            "X-Title": "Truth Mirror"
         }
         
         try:
-            response = requests.post(url, json=payload, timeout=120)
-            response.raise_for_status()
-            
-            result_text = response.json().get("response", "").strip()
-            result = json.loads(result_text)
+            req_data = json.dumps(openrouter_payload).encode("utf-8")
+            req = urllib.request.Request(
+                "https://openrouter.ai/api/v1/chat/completions", 
+                data=req_data, 
+                headers=headers
+            )
+            with urllib.request.urlopen(req, timeout=30) as response:
+                resp_data = json.loads(response.read().decode("utf-8"))
+                content = resp_data["choices"][0]["message"]["content"]
+                result = json.loads(content)
             
             is_geo = bool(result.get("is_geopolitical", False))
             reason = str(result.get("reason", "No reason provided"))
@@ -82,7 +100,7 @@ Do not include any other text, markdown formatting, or explanations. Only output
             }
             
         except Exception as e:
-            logger.warning(f"Ollama geo-classification failed ({e}). Using regex fallback.")
+            logger.warning(f"OpenRouter geo-classification failed ({e}). Using regex fallback.")
             return self._regex_fallback(claim)
 
     def _regex_fallback(self, claim: str) -> Dict[str, Any]:

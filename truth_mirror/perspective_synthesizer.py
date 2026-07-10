@@ -70,26 +70,40 @@ Return a JSON array of these objects. No other text.
 """
         def run_sync():
             data = None
-            if gemini_client and types:
-                import time
-                for attempt in range(4):
-                    try:
-                        response = gemini_client.models.generate_content(
-                            model="gemini-2.5-flash",
-                            contents=prompt,
-                            config=types.GenerateContentConfig(
-                                response_mime_type="application/json",
-                                temperature=0.2,
+            max_retries = 5
+            for attempt in range(max_retries):
+                try:
+                    import time
+                    if attempt > 0:
+                        time.sleep(2)
+                        
+                    from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
+                    api_key = get_current_key()
+                    if api_key and types:
+                        gemini_client = genai.Client(api_key=api_key)
+                        
+                    if gemini_client and types:
+                        try:
+                            response = gemini_client.models.generate_content(
+                                model="gemini-3.5-flash",
+                                contents=prompt,
+                                config=types.GenerateContentConfig(
+                                    response_mime_type="application/json",
+                                    temperature=0.1,
+                                )
                             )
-                        )
-                        raw_json = response.text
-                        if raw_json.startswith("```json"):
-                            raw_json = raw_json.strip("` \n").removeprefix("json")
-                        data = json.loads(raw_json)
-                        break
-                    except Exception as e:
-                        logger.warning(f"Gemini perspective synthesis failed on attempt {attempt+1}: {e}")
-                        time.sleep(2 ** attempt)
+                            raw_json = response.text
+                            if raw_json.startswith("```json"):
+                                raw_json = raw_json.strip("` \n").removeprefix("json")
+                            data = json.loads(raw_json)
+                            break
+                        except Exception as e:
+                            logger.warning(f"Gemini perspective synthesis failed on attempt {attempt+1}: {e}")
+                            if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                                logger.warning("Rotating Gemini key due to 429 in perspective_synthesizer...")
+                                rotate_gemini_key()
+                except Exception:
+                    pass
             
             if data is None:
                 import os, urllib.request, re, time, random
@@ -103,7 +117,7 @@ Return a JSON array of these objects. No other text.
                     
                     for attempt in range(4):
                         try:
-                            with urllib.request.urlopen(req) as response:
+                            with urllib.request.urlopen(req, timeout=30) as response:
                                 resp_data = json.loads(response.read().decode('utf-8'))
                                 raw_json = resp_data["choices"][0]["message"]["content"]
                                 match = re.search(r'\[.*\]', raw_json, re.DOTALL)
@@ -117,38 +131,7 @@ Return a JSON array of these objects. No other text.
                             time.sleep(wait_time)
                             
             if data is None:
-                logger.warning("Falling back to local Ollama for perspective synthesis.")
-                ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/") + "/api/generate"
-                payload = {
-                    "model": "qwen2.5:3b",
-                    "prompt": prompt + "\n\nRespond ONLY with the exact JSON array. No other text.",
-                    "stream": False,
-                    "format": "json",
-                    "options": {"temperature": 0.1}
-                }
-                ollama_req = urllib.request.Request(ollama_url, data=json.dumps(payload).encode('utf-8'), headers={"Content-Type": "application/json"})
-                try:
-                    with urllib.request.urlopen(ollama_req, timeout=120) as response:
-                        resp_data = json.loads(response.read().decode('utf-8'))
-                        raw_json = resp_data.get("response", "").strip()
-                        raw_json = raw_json.removeprefix("```json").removesuffix("```").strip()
-                        raw_json = raw_json.removeprefix("```").removesuffix("```").strip()
-                        try:
-                            data = json.loads(raw_json)
-                        except Exception:
-                            start = raw_json.find('[')
-                            end = raw_json.rfind(']')
-                            if start != -1 and end != -1:
-                                data = json.loads(raw_json[start:end+1])
-                            else:
-                                raise ValueError("Could not extract JSON array from Ollama response")
-                                
-                        if isinstance(data, dict):
-                            data = [data]
-                        if isinstance(data, list) and len(data) > 0 and isinstance(data[0], str):
-                            data = []
-                except Exception as e:
-                    logger.error(f"Local Ollama fallback failed: {e}")
+                logger.error("All API fallbacks failed for perspective synthesis.")
             return data
 
         try:

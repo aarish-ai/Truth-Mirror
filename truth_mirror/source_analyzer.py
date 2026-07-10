@@ -86,8 +86,9 @@ Rules:
             parsed = None
             gemini_failed = False
             
-            if GEMINI_API_KEY:
-                gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+            from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
+            api_key = get_current_key()
+            if api_key:
                 gemini_payload = {
                     "contents": [{"parts": [{"text": prompt}]}],
                     "generationConfig": {
@@ -98,12 +99,15 @@ Rules:
                 max_retries = 3
                 for attempt in range(max_retries):
                     try:
+                        api_key = get_current_key()
+                        gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}"
                         timeout_cfg = aiohttp.ClientTimeout(total=20)
                         async with session.post(gemini_url, json=gemini_payload, timeout=timeout_cfg) as response:
                             if response.status == 429:
                                 wait_time = (2 ** attempt) + 1
                                 jitter = random.uniform(0.1, 1.0)
-                                logger.warning(f"[SourceAnalyzer] Gemini rate limited on attempt {attempt+1}. Waiting {wait_time + jitter:.2f}s before retry.")
+                                logger.warning(f"[SourceAnalyzer] Gemini rate limited on attempt {attempt+1}. Rotating key and waiting {wait_time + jitter:.2f}s before retry.")
+                                rotate_gemini_key()
                                 await asyncio.sleep(wait_time + jitter)
                                 if attempt == max_retries - 1:
                                     gemini_failed = True
@@ -332,32 +336,55 @@ Return ONLY a JSON object with this structure, no other text:
 
             from google import genai
             from google.genai import types
+            from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
 
-            api_key = os.getenv("GEMINI_API_KEY")
-            if not api_key:
-                logger.warning(
-                    "[SourceAnalyzer] GEMINI_API_KEY not set. "
-                    "Cannot run batch analysis."
-                )
+            max_batch_retries = 5
+            raw = None
+            for attempt in range(max_batch_retries):
+                api_key = get_current_key()
+                if not api_key:
+                    logger.warning(
+                        "[SourceAnalyzer] GEMINI_API_KEY not set. "
+                        "Cannot run batch analysis."
+                    )
+                    return None
+
+                import urllib.request
+                import json
+                
+                gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}"
+                payload = {
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {
+                        "temperature": 0.1,
+                        "responseMimeType": "application/json"
+                    }
+                }
+                
+                try:
+                    req_data = json.dumps(payload).encode("utf-8")
+                    req = urllib.request.Request(gemini_url, data=req_data, headers={"Content-Type": "application/json"})
+                    with urllib.request.urlopen(req, timeout=60) as response:
+                        raw_data = json.loads(response.read().decode("utf-8"))
+                        raw = raw_data["candidates"][0]["content"]["parts"][0]["text"]
+                    break
+                except urllib.error.HTTPError as e:
+                    if e.code == 429:
+                        logger.warning(f"[SourceAnalyzer] Gemini batch 429 rate limit. Rotating key...")
+                        rotated = rotate_gemini_key()
+                        if not rotated:
+                            logger.error("No more keys to rotate to or single key exhausted.")
+                            return None
+                        continue
+                    else:
+                        logger.warning(f"[SourceAnalyzer] Gemini batch HTTP error: {e.code} {e.reason}")
+                        return None
+                except Exception as e:
+                    logger.warning(f"[SourceAnalyzer] Gemini batch call failed: {e}")
+                    return None
+            else:
+                logger.error("Exhausted all batch retries for Gemini.")
                 return None
-
-            client = genai.Client(api_key=api_key)
-
-            logger.info(
-                "[SourceAnalyzer] Sending batch prompt to Gemini 2.5 Flash. "
-                f"Prompt length: ~{len(prompt)//4} tokens estimated."
-            )
-
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    temperature=0.1,
-                )
-            )
-
-            raw = response.text
             parsed = json.loads(raw)
 
             if "analyses" not in parsed:

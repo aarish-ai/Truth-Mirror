@@ -84,14 +84,14 @@ class FreeSourceRetrieval(EvidenceRetriever):
         # For news-first claim types also skip Crossref (academic bibliography).
         if claim_type in NEWS_FIRST_CLAIM_TYPES or self.disable_academic:
             results = (
-                self._query_wikipedia(query)
-                + self._query_wikinews(query)
+                self._query_wikipedia(query)[:2]
+                + self._query_wikinews(query)[:1]
             )
         else:
             results = (
-                self._query_wikipedia(query)
-                + self._query_wikinews(query)
-                + self._query_crossref(query)
+                self._query_wikipedia(query)[:2]
+                + self._query_wikinews(query)[:1]
+                + self._query_crossref(query)[:2]
             )
 
         # Get connector results in priority order, in parallel.

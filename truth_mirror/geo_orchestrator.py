@@ -150,8 +150,7 @@ class GeopoliticalPipeline:
                 deduped_evidence.append(item)
                 
         # Stage 2: Per-source stance analysis
-        ollama_model = getattr(self.decomposer, "model", "qwen2.5:3b")
-        analyzer = SourceAnalyzer(ollama_model=ollama_model)
+        analyzer = SourceAnalyzer()
         source_analyses = await analyzer.analyze_all(deduped_evidence, claim, max_concurrent=3)
         source_analyses = [s for s in source_analyses if s.summary]
         
@@ -207,26 +206,45 @@ async def generate_background_narrative(claim: str, source_analyses: list, gemin
         types = None
 
     def run_sync():
+        import os, json, urllib.request, re, time, random
         data = None
-        if gemini_client and types:
+        max_retries = 5
+        for attempt in range(max_retries):
             try:
-                response = gemini_client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
-                        response_mime_type="application/json",
-                        temperature=0.2,
-                    )
-                )
-                raw_json = response.text
-                if raw_json.startswith("```json"):
-                    raw_json = raw_json.strip("` \n").removeprefix("json")
-                data = json.loads(raw_json)
+                import time
+                if attempt > 0:
+                    time.sleep(2)
+                    
+                from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
+                api_key = get_current_key()
+                if api_key and types:
+                    from google import genai
+                    gemini_client = genai.Client(api_key=api_key)
+                    
+                if gemini_client and types:
+                    try:
+                        response = gemini_client.models.generate_content(
+                            model="gemini-3.5-flash",
+                            contents=prompt,
+                            config=types.GenerateContentConfig(
+                                response_mime_type="application/json",
+                                temperature=0.2,
+                            )
+                        )
+                        raw_json = response.text
+                        if raw_json.startswith("```json"):
+                            raw_json = raw_json.strip("` \n").removeprefix("json")
+                        data = json.loads(raw_json)
+                        break
+                    except Exception as e:
+                        logger.warning(f"Gemini background generation failed on attempt {attempt+1}: {e}")
+                        if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                            logger.warning("Rotating Gemini key due to 429 in geo_orchestrator...")
+                            rotate_gemini_key()
             except Exception:
                 pass
                 
         if data is None:
-            import os, json, urllib.request, re, time, random
             api_key = os.environ.get("OPENROUTER_API_KEY")
             if api_key and api_key != "your_openrouter_api_key_here":
                 req_data = json.dumps({
@@ -237,7 +255,7 @@ async def generate_background_narrative(claim: str, source_analyses: list, gemin
                 
                 for attempt in range(4):
                     try:
-                        with urllib.request.urlopen(req) as response:
+                        with urllib.request.urlopen(req, timeout=30) as response:
                             resp_data = json.loads(response.read().decode('utf-8'))
                             raw_json = resp_data["choices"][0]["message"]["content"]
                             match = re.search(r'\{.*\}', raw_json, re.DOTALL)
@@ -251,38 +269,7 @@ async def generate_background_narrative(claim: str, source_analyses: list, gemin
                         time.sleep(wait_time)
                         
         if data is None:
-            logger.warning("Falling back to local Ollama for background generation.")
-            ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/") + "/api/generate"
-            payload = {
-                "model": "qwen2.5:3b",
-                "prompt": prompt,
-                "stream": False,
-                "format": "json",
-                "options": {"temperature": 0.1}
-            }
-            ollama_req = urllib.request.Request(ollama_url, data=json.dumps(payload).encode('utf-8'), headers={"Content-Type": "application/json"})
-            try:
-                with urllib.request.urlopen(ollama_req, timeout=120) as response:
-                    resp_data = json.loads(response.read().decode('utf-8'))
-                    raw_json = resp_data.get("response", "").strip()
-                    raw_json = raw_json.removeprefix("```json").removesuffix("```").strip()
-                    raw_json = raw_json.removeprefix("```").removesuffix("```").strip()
-                    try:
-                        data = json.loads(raw_json)
-                    except Exception:
-                        start = raw_json.find('{')
-                        end = raw_json.rfind('}')
-                        if start != -1 and end != -1:
-                            data = json.loads(raw_json[start:end+1])
-                        else:
-                            raise ValueError("Could not extract JSON object from Ollama response")
-                            
-                    if isinstance(data, list):
-                        data = data[0] if len(data) > 0 else {}
-                    if not isinstance(data, dict):
-                        data = {}
-            except Exception as e:
-                logger.error(f"Local Ollama fallback failed: {e}")
+            logger.error("All API fallbacks failed for background generation.")
         return data
 
     try:
