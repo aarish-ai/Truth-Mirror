@@ -43,7 +43,7 @@ def gate_claim(claim: str, ollama_model: str = "qwen2.5:3b") -> ClaimScopeResult
 
     prompt = f"""You are a strict scope-classification gate for a geopolitical news verification tool. This tool ONLY processes:
 1. Geopolitical claims: international relations, wars, military action, diplomacy, elections, sanctions, treaties, government actions, state actors, terrorism, geopolitical economics.
-2. Events that occurred in the year 2015 or later.
+2. Events that occurred in the year 2015 or later. The current year is 2026. Claims about events in 2025 and 2026 are CURRENT/RECENT events, not future events.
 
 It must REJECT:
 - Non-geopolitical claims (science, math, personal life, sports, entertainment, general trivia, academic/medical facts, etc.)
@@ -75,75 +75,132 @@ Rules:
     
     load_dotenv()
     OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+    def _call_groq(prompt_str: str) -> dict | None:
+        import requests
+        groq_key = os.getenv("GROQ_API_KEY")
+        if not groq_key:
+            return None
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = requests.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {groq_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "llama-3.3-70b-versatile",
+                        "messages": [{"role": "user", "content": prompt_str}],
+                        "temperature": 0.1,
+                        "response_format": {"type": "json_object"},
+                        "max_tokens": 512
+                    },
+                    timeout=25
+                )
+                if response.status_code == 429:
+                    wait = (2 ** attempt) + 1
+                    logger.warning(
+                        f"[ClaimScopeGate] Groq rate limited attempt "
+                        f"{attempt+1}. Waiting {wait}s."
+                    )
+                    time.sleep(wait)
+                    continue
+                response.raise_for_status()
+                content = response.json()["choices"][0]["message"]["content"]
+                parsed_json = json.loads(content)
+                logger.info("[ClaimScopeGate] Groq call succeeded.")
+                return parsed_json
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    logger.warning(f"[ClaimScopeGate] Groq failed: {e}")
+                    return None
+                continue
+        return None
 
     parsed = None
-    ollama_failed = False
-    
-    base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-    req_url = f"{base_url.rstrip('/')}/api/generate"
-    payload = {
-        "model": ollama_model,
-        "prompt": prompt,
-        "stream": False,
-        "format": "json",
-        "options": {"temperature": 0.0}
-    }
+    logger.info("[ClaimScopeGate] Attempting Groq for scope classification.")
+    parsed = _call_groq(prompt)
 
-    try:
-        req_data = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(req_url, data=req_data, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=120) as response:
-            resp_data = json.loads(response.read().decode("utf-8"))
-            parsed = json.loads(resp_data.get("response", ""))
-            ollama_failed = False
-    except Exception as e:
-        logger.warning(f"gate_claim local Ollama call failed: {e}. Falling back to OpenRouter.")
-        ollama_failed = True
-
-    if ollama_failed:
-        if OPENROUTER_API_KEY:
-            openrouter_payload = {
-                "model": "qwen/qwen3-next-80b-a3b-instruct:free",
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.1,
-                "response_format": {"type": "json_object"}
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    if parsed is None and GEMINI_API_KEY:
+        try:
+            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+            gemini_payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {
+                    "temperature": 0.1,
+                    "responseMimeType": "application/json"
+                }
             }
-            
-            headers = {
-                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": "https://truthmirror.app",
-                "X-Title": "Truth Mirror"
-            }
-            
             max_retries = 3
             for attempt in range(max_retries):
                 try:
-                    req_data = json.dumps(openrouter_payload).encode("utf-8")
-                    req = urllib.request.Request(
-                        "https://openrouter.ai/api/v1/chat/completions", 
-                        data=req_data, 
-                        headers=headers
-                    )
-                    with urllib.request.urlopen(req, timeout=10) as response:
+                    req_data = json.dumps(gemini_payload).encode("utf-8")
+                    req = urllib.request.Request(gemini_url, data=req_data, headers={"Content-Type": "application/json"})
+                    with urllib.request.urlopen(req, timeout=20) as response:
                         resp_data = json.loads(response.read().decode("utf-8"))
-                        content = resp_data["choices"][0]["message"]["content"]
+                        content = resp_data["candidates"][0]["content"]["parts"][0]["text"]
                         parsed = json.loads(content)
                         break
                 except urllib.error.HTTPError as e:
                     if e.code == 429:
                         wait_time = (2 ** attempt) + 1
-                        logger.warning(f"[ClaimScopeGate] Rate limited on attempt {attempt+1}. Waiting {wait_time}s.")
+                        logger.warning(f"[ClaimScopeGate] Gemini Rate limited on attempt {attempt+1}. Waiting {wait_time}s.")
                         time.sleep(wait_time)
                         continue
                     else:
-                        logger.warning(f"OpenRouter HTTP Error ({e.code}) in fallback.")
+                        logger.warning(f"Gemini HTTP Error ({e.code}) in gate_claim.")
                         break
                 except Exception as e:
-                    logger.warning(f"OpenRouter fallback failed ({e}).")
+                    logger.warning(f"Gemini failed ({e}) in gate_claim.")
                     break
-        else:
-            logger.warning("OPENROUTER_API_KEY not set for fallback.")
+        except Exception as e:
+            logger.warning(f"Gemini setup failed: {e}")
+
+    if parsed is None and OPENROUTER_API_KEY:
+        openrouter_payload = {
+            "model": "qwen/qwen3-next-80b-a3b-instruct:free",
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.1,
+            "response_format": {"type": "json_object"}
+        }
+        
+        headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://truthmirror.app",
+            "X-Title": "Truth Mirror"
+        }
+        
+        max_retries = 5
+        for attempt in range(max_retries):
+            try:
+                req_data = json.dumps(openrouter_payload).encode("utf-8")
+                req = urllib.request.Request(
+                    "https://openrouter.ai/api/v1/chat/completions", 
+                    data=req_data, 
+                    headers=headers
+                )
+                with urllib.request.urlopen(req, timeout=30) as response:
+                    resp_data = json.loads(response.read().decode("utf-8"))
+                    content = resp_data["choices"][0]["message"]["content"]
+                    parsed = json.loads(content)
+                    break
+            except urllib.error.HTTPError as e:
+                if e.code == 429:
+                    wait_time = (2 ** attempt) + 1
+                    logger.warning(f"[ClaimScopeGate] OpenRouter Rate limited on attempt {attempt+1}. Waiting {wait_time}s.")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    logger.warning(f"OpenRouter HTTP Error ({e.code}) in fallback.")
+                    break
+            except Exception as e:
+                logger.warning(f"OpenRouter fallback failed ({e}).")
+                break
+    else:
+        logger.warning("OPENROUTER_API_KEY not set for fallback.")
 
     if parsed:
         is_geopol = bool(parsed.get("is_geopolitical", False))

@@ -58,11 +58,62 @@ Claim Subtype: {claim_subtype}
 
 Output JSON Array of 3 strings:
 """
+        def _call_groq(prompt_str: str) -> list | None:
+            groq_key = os.getenv("GROQ_API_KEY")
+            if not groq_key:
+                return None
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    response = requests.post(
+                        "https://api.groq.com/openai/v1/chat/completions",
+                        headers={
+                            "Authorization": f"Bearer {groq_key}",
+                            "Content-Type": "application/json"
+                        },
+                        json={
+                            "model": "llama-3.3-70b-versatile",
+                            "messages": [{"role": "user", "content": prompt_str}],
+                            "temperature": 0.1,
+                            "response_format": {"type": "json_object"},
+                            "max_tokens": 256
+                        },
+                        timeout=25
+                    )
+                    if response.status_code == 429:
+                        wait = (2 ** attempt) + 1
+                        logger.warning(
+                            f"[GeoQueryGenerator] Groq rate limited attempt "
+                            f"{attempt+1}. Waiting {wait}s."
+                        )
+                        time.sleep(wait)
+                        continue
+                    response.raise_for_status()
+                    content = response.json()["choices"][0]["message"]["content"]
+                    parsed = json.loads(content)
+                    logger.info("[GeoQueryGenerator] Groq call succeeded.")
+                    if isinstance(parsed, list):
+                        return parsed
+                    for key in parsed:
+                        if isinstance(parsed[key], list):
+                            return parsed[key]
+                    return None
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        logger.warning(f"[GeoQueryGenerator] Groq failed: {e}")
+                        return None
+                    continue
+            return None
+
         try:
             response_text = None
             openrouter_failed = False
             
-            if OPENROUTER_API_KEY:
+            logger.info("[GeoQueryGenerator] Attempting Groq for query generation.")
+            groq_result = _call_groq(prompt)
+            if groq_result is not None:
+                response_text = json.dumps(groq_result)
+            elif OPENROUTER_API_KEY:
                 headers = {
                     "Authorization": f"Bearer {OPENROUTER_API_KEY}",
                     "Content-Type": "application/json",
@@ -92,31 +143,11 @@ Output JSON Array of 3 strings:
                         openrouter_failed = False
                         break
                     except Exception as e:
-                        logger.warning(f"OpenRouter failed ({e}), falling back to local Ollama.")
+                        logger.warning(f"OpenRouter failed ({e}).")
                         openrouter_failed = True
                         break
-            else:
-                logger.warning("OPENROUTER_API_KEY not set. Using local Ollama.")
-                openrouter_failed = True
-                
             if openrouter_failed:
-                url = f"{self.ollama_base_url.rstrip('/')}/api/generate"
-                payload = {
-                    "model": self.model,
-                    "prompt": prompt,
-                    "stream": False,
-                    "format": "json",
-                    "options": {
-                        "temperature": 0.1,
-                        "num_predict": 150
-                    }
-                }
-                
-                response = requests.post(url, json=payload, timeout=self.timeout)
-                response.raise_for_status()
-                
-                data = response.json()
-                response_text = data.get("response", "").strip()
+                raise ValueError("OpenRouter API failed for query generation.")
             
             # Extract queries robustly
             queries = []
