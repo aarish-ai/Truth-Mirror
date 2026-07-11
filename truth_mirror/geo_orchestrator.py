@@ -155,22 +155,34 @@ class GeopoliticalPipeline:
         
         consensus_points, disputed_points = compute_consensus_disputes(source_analyses)
         
+        # Give Gemini RPM window time to recover before synthesis calls
+        await asyncio.sleep(10)
+        logger.info("[GeoOrchestrator] Waiting 10s before synthesis to protect Gemini RPM.")
+        
+        if not source_analyses:
+            return None
+
         gemini_client = getattr(self.synthesizer, "client", None)
         
         # Stage 3: Perspective synthesis
         synthesizer = PerspectiveSynthesizer()
         perspective_groups = await synthesizer.synthesize(source_analyses, claim, gemini_client)
+        await asyncio.sleep(15)
         
         # Stage 4: Hidden story extraction
         extractor = HiddenStoryExtractor()
         hidden_stories = await extractor.extract(source_analyses, perspective_groups, claim, gemini_client)
+        await asyncio.sleep(15)
         
         # Stage 5: Verdict generation
         engine = VerdictEngine()
         verdict = await engine.generate(source_analyses, perspective_groups, hidden_stories, claim, gemini_client)
+        await asyncio.sleep(15)
         
         # Stage 6: Generate background and current_situation narratives
         background, current_situation = await generate_background_narrative(claim, source_analyses, gemini_client)
+
+        logger.info(f"[GeoOrchestrator] Completed synthesis for: {claim[:50]}...")
         
         result = GeopoliticalResult(
             claim=claim,

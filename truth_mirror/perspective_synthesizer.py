@@ -107,6 +107,37 @@ Return a JSON array of these objects. No other text.
                     pass
             
             if data is None:
+                # TRY GROQ BEFORE OPENROUTER
+                groq_key = os.environ.get("GROQ_API_KEY")
+                if groq_key:
+                    try:
+                        import requests as req_lib
+                        groq_payload = {
+                            "model": "llama-3.3-70b-versatile",
+                            "messages": [{"role": "user", "content": prompt}],
+                            "temperature": 0.1,
+                            "response_format": {"type": "json_object"},
+                            "max_tokens": 4096
+                        }
+                        groq_headers = {
+                            "Authorization": f"Bearer {groq_key}",
+                            "Content-Type": "application/json"
+                        }
+                        groq_resp = req_lib.post(
+                            "https://api.groq.com/openai/v1/chat/completions",
+                            headers=groq_headers,
+                            json=groq_payload,
+                            timeout=60
+                        )
+                        groq_resp.raise_for_status()
+                        groq_content = groq_resp.json()["choices"][0]["message"]["content"]
+                        data = json.loads(groq_content)
+                        logger.info("[run_sync] Groq fallback succeeded.")
+                    except Exception as e:
+                        logger.warning(f"[run_sync] Groq fallback failed: {e}")
+                        data = None
+
+            if data is None:
                 import os, urllib.request, re, time, random
                 api_key = os.environ.get("OPENROUTER_API_KEY")
                 if api_key and api_key != "your_openrouter_api_key_here":
