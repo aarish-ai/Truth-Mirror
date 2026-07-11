@@ -1,4 +1,4 @@
-﻿# 🪞 Truth Mirror — Development Journey
+# 🪞 Truth Mirror — Development Journey
 
 > A chronological log of how we built, broke, debugged, and improved this geopolitical intelligence engine from scratch.
 
@@ -101,12 +101,40 @@ After a focused discussion about the problem, we designed and implemented four c
 
 ---
 
+## 🛠️ Step 7 — API Rate Limit, Concurrency & Bug Fixes
+
+- **Problem:** The system was double-initializing connectors, throwing scoping errors for API clients, and aggressively hammering Gemini and OpenRouter with parallel requests causing severe rate-limiting chains.
+- **Fix:**
+  - Removed duplicate `GoogleNewsRSSConnector` instances.
+  - Pruned dead code stranded in `orchestrator.py`.
+  - Fixed an `UnboundLocalError` scoping bug in synthesizers where `gemini_client` wasn't initialized prior to API failures.
+  - Implemented hard volume capping (15 articles max) and **sequential batch processing** for source analysis, interspersed with sleep intervals to respect API token buckets.
+  - Re-wrote the fallback logic in `source_analyzer.py` to stop fanning out single requests when a batch failed.
+  - Implemented module-level `threading.Semaphore(1)` and geometric backoff scaling to stop hammering the OpenRouter free tier.
+
+---
+
+## 🔀 Step 8 — The Great Groq Migration
+
+- **Problem:** Gemini was being used for both high-volume repetitive tasks (Source Analysis) and low-volume deep reasoning (Synthesis). Even with mini-batches, the quota contention between these two stages frequently crippled the pipeline.
+- **Fix:**
+  - Migrated the entire high-volume source analysis stage to **Groq** (`llama-3.3-70b-versatile`). 
+  - Shrunk batch sizes from 6 to 3 articles to respect Groq's Tokens-Per-Minute limit.
+  - Restructured the primary fallback cascade in source analysis to: `Groq → Gemini`. OpenRouter was entirely stripped from this stage.
+  - Deployed Groq as a robust synthesis buffer: the deep-reasoning engines now fall back to Groq before resorting to OpenRouter if Gemini gets rate-limited.
+  - Enforced aggressive `asyncio.sleep` pacing: 10 seconds before synthesis begins, and 15 seconds between each synthesis module, ensuring Gemini limits are respected.
+- **Bug Caught:** Fixing the synthesizers exposed an `UnboundLocalError` due to inner-function `import os` statements shadowing global variables. Fixed by cleanly hoisting all necessary imports to the top of the function blocks.
+
+---
+
 ## 📦 What Got Committed to GitHub
 
 | Commit | Message | What it contained |
 |---|---|---|
 | `2c3463a` | `Fixing Rate Limits . . .` | Groq integration, key rotator, batch REST calls |
 | `aa151a0` | `Fixing Gemini Usage, Added Mini Batching, and Keyword Filtering` | Model split, mini-batching, keyword filter, fixed OpenRouter fallbacks |
+| `86ca9ca` | `Fixing A lot of things . . .` | Rate-limit spacing, sequential batches, UnboundLocalError scoping fixes |
+| `4e1cf10` | `I trusted you Gemini . . .` | Groq migration for source analysis, batch resizing to 3, synthesis API fallback cascade |
 
 ---
 
@@ -115,20 +143,20 @@ After a focused discussion about the problem, we designed and implemented four c
 | Component | Before | After |
 |---|---|---|
 | Local model downloads | Downloaded 500MB+ at startup | Zero — pure API calls |
-| Source analysis | 36 individual calls on gemini-3.5-flash | 6 mini-batch calls on gemini-2.0-flash |
-| Daily API budget | ~100 calls/day (burned in 1 run) | ~7,500 calls/day for bulk tasks |
-| Noise articles | Tenet movie, football scores hitting the API | Pre-filtered by keyword before any API call |
-| OpenRouter fallback | Calling a non-existent model (silent failure) | `qwen3-next` — verified working |
+| Source analysis | 36 individual calls on gemini-3.5-flash | 5 mini-batch calls on Groq (Llama 3.3 70B) |
+| Daily API budget | ~100 calls/day (burned in 1 run) | 14,400 req/day (Groq) + 7,500 calls/day (Gemini 2.0) |
+| Noise articles | Tenet movie, football scores hitting the API | Pre-filtered by keyword and hard-capped at 15 items |
+| OpenRouter fallback | Calling a non-existent model | Repurposed as a tertiary fallback behind Groq (`qwen3-next`) |
 | Time-blindness | Queries hardcoded with current month/year | Prompts explicitly say "timeline-agnostic" |
 | Key management | Single key, crashes on 429 | Thread-safe rotation across 5 keys |
-| Hidden stories and verdict | Failing silently on daily quota exhaustion | Proper fallback chain: Gemini → OpenRouter |
+| Synthesis Pipeline | Failing silently on daily quota exhaustion | Proper fallback chain: Gemini → Groq → OpenRouter, with strict 15s delays |
 
 ---
 
 ## ⚠️ Known Remaining Limitation
 
 - `gemini-3.5-flash` (used for synthesis) still has a **20 req/day per key** limit on the free tier.
-- After running 2-3 full analyses in one day, synthesis tasks (verdict, hidden stories) will fail until midnight UTC reset.
+- However, by shifting source analysis to Groq, `gemini-3.5-flash` now only receives a maximum of ~4 requests per pipeline run, drastically extending the daily threshold.
 - **Long-term fix**: A paid Gemini API key removes this daily cap entirely — recommended for production deployment.
 
 ---

@@ -104,6 +104,7 @@ Verdict definitions:
 - Return ONLY the JSON object, no other text.
 """
         def run_sync():
+            import os, time, urllib.request, re, random
             data = None
             gemini_client = None
             max_retries = 5

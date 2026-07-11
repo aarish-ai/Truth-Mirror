@@ -90,6 +90,7 @@ For each hidden story, respond in this JSON format:
 Return a JSON array. Be intellectually rigorous. Do not speculate wildly â€” ground every hidden story in specific observable facts from the sources. But do not be timid: if the facts point somewhere the mainstream narrative ignores, say so clearly.
 """
         def run_sync():
+            import os, time, urllib.request, re, random
             data = None
             gemini_client = None
             max_retries = 5

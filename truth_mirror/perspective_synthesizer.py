@@ -69,6 +69,7 @@ For EACH bloc present, produce a JSON object in this format:
 Return a JSON array of these objects. No other text.
 """
         def run_sync():
+            import os, time, urllib.request, re, random
             data = None
             gemini_client = None
             max_retries = 5
