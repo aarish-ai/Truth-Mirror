@@ -1,4 +1,4 @@
-﻿import os
+import os
 import json
 import logging
 from dataclasses import dataclass
@@ -91,6 +91,7 @@ Return a JSON array. Be intellectually rigorous. Do not speculate wildly â€�
 """
         def run_sync():
             data = None
+            gemini_client = None
             max_retries = 5
             for attempt in range(max_retries):
                 try:

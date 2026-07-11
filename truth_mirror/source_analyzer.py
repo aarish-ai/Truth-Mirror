@@ -7,12 +7,14 @@ import re
 import urllib.request
 import urllib.error
 import random
+import threading
 from dataclasses import dataclass
 from typing import List, Optional
 from dotenv import load_dotenv
 
 load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+_openrouter_semaphore = threading.Semaphore(1)
 
 from truth_mirror.source_registry import get_source_metadata
 from truth_mirror.models import EvidenceItem
@@ -143,15 +145,16 @@ def _call_openrouter_sync(prompt: str, timeout: int = 30) -> Optional[str]:
                 data=req_data,
                 headers=headers,
             )
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                choices = data.get("choices") or []
-                if choices and choices[0].get("message", {}).get("content"):
-                    return choices[0]["message"]["content"]
-                return None
+            with _openrouter_semaphore:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    choices = data.get("choices") or []
+                    if choices and choices[0].get("message", {}).get("content"):
+                        return choices[0]["message"]["content"]
+                    return None
         except urllib.error.HTTPError as e:
             if e.code == 429:
-                wait = (2 ** attempt) + random.uniform(0.5, 1.5)
+                wait = 15 * (attempt + 1)
                 logger.warning(
                     f"[SourceAnalyzer] OpenRouter 429 on attempt {attempt + 1}. "
                     f"Waiting {wait:.1f}s."
@@ -360,6 +363,10 @@ class SourceAnalyzer:
                 logger.info(f"[SourceAnalyzer] Mini-batch of {len(batch)} -> {len(results)} results (gemini-2.0-flash).")
                 return results
 
+        logger.warning(f"Mini-batch failed after all Gemini retries. Waiting 10s then attempting one OpenRouter batch retry.")
+        import time
+        time.sleep(10)
+        
         raw = _call_openrouter_sync(prompt, timeout=40)
         if raw:
             results = _parse_batch_response(raw, batch)
@@ -367,18 +374,8 @@ class SourceAnalyzer:
                 logger.info(f"[SourceAnalyzer] Mini-batch of {len(batch)} -> {len(results)} results (OpenRouter).")
                 return results
 
-        logger.warning(f"[SourceAnalyzer] Mini-batch failed. Falling back to per-article calls for {len(batch)} articles.")
-        individual_results = []
-        for article in batch:
-            single_prompt = _build_single_prompt(article, claim)
-            raw = _call_gemini_sync(single_prompt, BULK_ANALYSIS_MODEL, timeout=20)
-            if not raw:
-                raw = _call_openrouter_sync(single_prompt, timeout=25)
-            if raw:
-                result = _parse_single_response(raw, article)
-                if result:
-                    individual_results.append(result)
-        return individual_results
+        logger.warning(f"Mini-batch failed completely. Returning empty for {len(batch)} articles.")
+        return []
 
     async def analyze_all(self, articles: list, claim: str, max_concurrent: int = 1) -> list:
         if not articles:
@@ -406,24 +403,20 @@ class SourceAnalyzer:
             logger.warning("[SourceAnalyzer] All articles were filtered out.")
             return []
 
+        relevant = relevant[:15]
+
         batches = [relevant[i: i + MINI_BATCH_SIZE] for i in range(0, len(relevant), MINI_BATCH_SIZE)]
         logger.info(
             f"[SourceAnalyzer] Processing {len(relevant)} articles in "
             f"{len(batches)} mini-batch(es) of up to {MINI_BATCH_SIZE} using {BULK_ANALYSIS_MODEL}."
         )
 
-        semaphore = asyncio.Semaphore(max_concurrent)
-
-        async def process_batch_async(batch):
-            async with semaphore:
-                return await asyncio.to_thread(self._process_mini_batch, batch, claim)
-
-        tasks = [process_batch_async(b) for b in batches]
-        batch_results = await asyncio.gather(*tasks)
-
         all_results = []
-        for r in batch_results:
-            all_results.extend(r)
+        for batch in batches:
+            batch_result = await asyncio.to_thread(self._process_mini_batch, batch, claim)
+            if batch_result:
+                all_results.extend(batch_result)
+            await asyncio.sleep(3)
 
         logger.info(
             f"[SourceAnalyzer] Completed: {len(all_results)} succeeded out of "
@@ -431,20 +424,4 @@ class SourceAnalyzer:
         )
         return all_results
 
-    async def _analyze_all_individual_fallback(self, articles: list, claim: str, max_concurrent: int = 5) -> list:
-        semaphore = asyncio.Semaphore(max_concurrent)
-
-        async def sem_analyze(article, session):
-            async with semaphore:
-                return await self.analyze(article, claim, session)
-
-        async with aiohttp.ClientSession() as session:
-            tasks = [sem_analyze(art, session) for art in articles]
-            raw_results = await asyncio.gather(*tasks)
-
-        results = [r for r in raw_results if r is not None]
-        logger.info(
-            f"[SourceAnalyzer] Completed: {len(results)} succeeded, "
-            f"{len(raw_results) - len(results)} failed out of {len(raw_results)} total sources."
-        )
-        return results
+    # _analyze_all_individual_fallback removed as part of fallback simplification.

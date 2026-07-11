@@ -1,4 +1,4 @@
-﻿"""Orchestrator for the Geopolitical Intelligence Engine."""
+"""Orchestrator for the Geopolitical Intelligence Engine."""
 
 import os
 try:
@@ -41,7 +41,6 @@ class GeopoliticalPipeline:
         try:
             from truth_mirror.retrieval_news import GDELTConnector, GoogleNewsRSSConnector
             if hasattr(self.retriever, '_news_connectors'):
-                self.retriever._news_connectors.append(GoogleNewsRSSConnector())
                 self.retriever._news_connectors.append(GDELTConnector())
         except ImportError:
             pass
@@ -208,6 +207,7 @@ async def generate_background_narrative(claim: str, source_analyses: list, gemin
     def run_sync():
         import os, json, urllib.request, re, time, random
         data = None
+        gemini_client = None
         max_retries = 5
         for attempt in range(max_retries):
             try:
