@@ -12,6 +12,12 @@ try:
 except ImportError:
     types = None
 
+try:
+    from json_repair import repair_json
+    JSON_REPAIR_AVAILABLE = True
+except ImportError:
+    JSON_REPAIR_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -87,7 +93,7 @@ For each hidden story, respond in this JSON format:
   "significance": "Why this matters and what it changes about understanding the claim."
 }}
 
-Return a JSON array. Be intellectually rigorous. Do not speculate wildly â€” ground every hidden story in specific observable facts from the sources. But do not be timid: if the facts point somewhere the mainstream narrative ignores, say so clearly.
+Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT include any strings, explanations, or preamble text as array elements. Do NOT wrap the array in an object. The first character of your response must be '[' and the last must be ']'. Any non-object element will cause a system failure. Be intellectually rigorous. Do not speculate wildly - ground every hidden story in specific observable facts from the sources. But do not be timid: if the facts point somewhere the mainstream narrative ignores, say so clearly.
 """
         def run_sync():
             import os, time, urllib.request, re, random
@@ -114,12 +120,26 @@ Return a JSON array. Be intellectually rigorous. Do not speculate wildly â€�
                                 config=types.GenerateContentConfig(
                                     response_mime_type="application/json",
                                     temperature=0.2,
+                                    max_output_tokens=4096
                                 )
                             )
                             raw_json = response.text
                             if raw_json.startswith("```json"):
                                 raw_json = raw_json.strip("` \n").removeprefix("json")
-                            data = json.loads(raw_json)
+                            try:
+                                data = json.loads(raw_json)
+                            except json.JSONDecodeError:
+                                if JSON_REPAIR_AVAILABLE:
+                                    repaired = repair_json(raw_json, return_objects=True)
+                                    if isinstance(repaired, list) and repaired:
+                                        data = repaired
+                                        logger.info("[HiddenStoryExtractor] JSON repaired successfully.")
+                                    else:
+                                        logger.warning("[HiddenStoryExtractor] JSON repair did not produce a valid list.")
+                                        data = None
+                                else:
+                                    logger.warning("[HiddenStoryExtractor] JSON parse failed and json_repair not available.")
+                                    data = None
                             break
                         except Exception as e:
                             logger.warning(f"Gemini hidden story extraction failed on attempt {attempt+1}: {e}")
@@ -154,7 +174,20 @@ Return a JSON array. Be intellectually rigorous. Do not speculate wildly â€�
                         )
                         groq_resp.raise_for_status()
                         groq_content = groq_resp.json()["choices"][0]["message"]["content"]
-                        data = json.loads(groq_content)
+                        try:
+                            data = json.loads(groq_content)
+                        except json.JSONDecodeError:
+                            if JSON_REPAIR_AVAILABLE:
+                                repaired = repair_json(groq_content, return_objects=True)
+                                if isinstance(repaired, list) and repaired:
+                                    data = repaired
+                                    logger.info("[HiddenStoryExtractor] JSON repaired successfully.")
+                                else:
+                                    logger.warning("[HiddenStoryExtractor] JSON repair did not produce a valid list.")
+                                    data = None
+                            else:
+                                logger.warning("[HiddenStoryExtractor] JSON parse failed and json_repair not available.")
+                                data = None
                         logger.info("[run_sync] Groq fallback succeeded.")
                     except Exception as e:
                         logger.warning(f"[run_sync] Groq fallback failed: {e}")
@@ -178,7 +211,20 @@ Return a JSON array. Be intellectually rigorous. Do not speculate wildly â€�
                                 match = re.search(r'\[.*\]', raw_json, re.DOTALL)
                                 if match:
                                     raw_json = match.group(0)
-                                data = json.loads(raw_json)
+                                try:
+                                    data = json.loads(raw_json)
+                                except json.JSONDecodeError:
+                                    if JSON_REPAIR_AVAILABLE:
+                                        repaired = repair_json(raw_json, return_objects=True)
+                                        if isinstance(repaired, list) and repaired:
+                                            data = repaired
+                                            logger.info("[HiddenStoryExtractor] JSON repaired successfully.")
+                                        else:
+                                            logger.warning("[HiddenStoryExtractor] JSON repair did not produce a valid list.")
+                                            data = None
+                                    else:
+                                        logger.warning("[HiddenStoryExtractor] JSON parse failed and json_repair not available.")
+                                        data = None
                                 break
                         except Exception as e:
                             wait_time = (2 ** attempt) + random.uniform(0, 1)
@@ -194,6 +240,9 @@ Return a JSON array. Be intellectually rigorous. Do not speculate wildly â€�
             result = []
             if data:
                 for item in data:
+                    if not isinstance(item, dict):
+                        logger.warning(f"[HiddenStoryExtractor] Skipping non-dict item in response: {type(item)}")
+                        continue
                     result.append(HiddenStory(
                         title=item.get("title", ""),
                         explanation=item.get("explanation", ""),

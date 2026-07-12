@@ -44,9 +44,9 @@ class TruthMirrorPipeline:
         self.narrative_clusterer = NarrativeClusterer()
         self.eval_logger = EvalLogger()
         
-        from truth_mirror.query_generator import QueryGenerator
-        from truth_mirror.search_planner import SearchPlanner
-        self.query_generator = QueryGenerator()
+        from truth_mirror.geo_query_generator import GeoQueryGenerator
+        self.decomposer = LocalDecomposer()
+        self.query_generator = GeoQueryGenerator()
         self.search_planner = SearchPlanner(self.retriever, self.query_generator)
 
     def verify(self, claim: str) -> VerificationResult:

@@ -12,6 +12,12 @@ try:
 except ImportError:
     types = None
 
+try:
+    from json_repair import repair_json
+    JSON_REPAIR_AVAILABLE = True
+except ImportError:
+    JSON_REPAIR_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -66,7 +72,7 @@ For EACH bloc present, produce a JSON object in this format:
   "credibility_note": "Why this group's coverage should be trusted or treated cautiously on this topic."
 }}
 
-Return a JSON array of these objects. No other text.
+Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT include any strings, explanations, or preamble text as array elements. Do NOT wrap the array in an object. The first character of your response must be '[' and the last must be ']'. Any non-object element will cause a system failure.
 """
         def run_sync():
             import os, time, urllib.request, re, random
@@ -92,12 +98,26 @@ Return a JSON array of these objects. No other text.
                                 config=types.GenerateContentConfig(
                                     response_mime_type="application/json",
                                     temperature=0.1,
+                                    max_output_tokens=4096
                                 )
                             )
                             raw_json = response.text
                             if raw_json.startswith("```json"):
                                 raw_json = raw_json.strip("` \n").removeprefix("json")
-                            data = json.loads(raw_json)
+                            try:
+                                data = json.loads(raw_json)
+                            except json.JSONDecodeError:
+                                if JSON_REPAIR_AVAILABLE:
+                                    repaired = repair_json(raw_json, return_objects=True)
+                                    if isinstance(repaired, list) and repaired:
+                                        data = repaired
+                                        logger.info("[PerspectiveSynthesizer] JSON repaired successfully.")
+                                    else:
+                                        logger.warning("[PerspectiveSynthesizer] JSON repair did not produce a valid list.")
+                                        data = None
+                                else:
+                                    logger.warning("[PerspectiveSynthesizer] JSON parse failed and json_repair not available.")
+                                    data = None
                             break
                         except Exception as e:
                             logger.warning(f"Gemini perspective synthesis failed on attempt {attempt+1}: {e}")
@@ -132,7 +152,20 @@ Return a JSON array of these objects. No other text.
                         )
                         groq_resp.raise_for_status()
                         groq_content = groq_resp.json()["choices"][0]["message"]["content"]
-                        data = json.loads(groq_content)
+                        try:
+                            data = json.loads(groq_content)
+                        except json.JSONDecodeError:
+                            if JSON_REPAIR_AVAILABLE:
+                                repaired = repair_json(groq_content, return_objects=True)
+                                if isinstance(repaired, list) and repaired:
+                                    data = repaired
+                                    logger.info("[PerspectiveSynthesizer] JSON repaired successfully.")
+                                else:
+                                    logger.warning("[PerspectiveSynthesizer] JSON repair did not produce a valid list.")
+                                    data = None
+                            else:
+                                logger.warning("[PerspectiveSynthesizer] JSON parse failed and json_repair not available.")
+                                data = None
                         logger.info("[run_sync] Groq fallback succeeded.")
                     except Exception as e:
                         logger.warning(f"[run_sync] Groq fallback failed: {e}")
@@ -156,7 +189,20 @@ Return a JSON array of these objects. No other text.
                                 match = re.search(r'\[.*\]', raw_json, re.DOTALL)
                                 if match:
                                     raw_json = match.group(0)
-                                data = json.loads(raw_json)
+                                try:
+                                    data = json.loads(raw_json)
+                                except json.JSONDecodeError:
+                                    if JSON_REPAIR_AVAILABLE:
+                                        repaired = repair_json(raw_json, return_objects=True)
+                                        if isinstance(repaired, list) and repaired:
+                                            data = repaired
+                                            logger.info("[PerspectiveSynthesizer] JSON repaired successfully.")
+                                        else:
+                                            logger.warning("[PerspectiveSynthesizer] JSON repair did not produce a valid list.")
+                                            data = None
+                                    else:
+                                        logger.warning("[PerspectiveSynthesizer] JSON parse failed and json_repair not available.")
+                                        data = None
                                 break
                         except Exception as e:
                             wait_time = (2 ** attempt) + random.uniform(0, 1)
@@ -172,6 +218,9 @@ Return a JSON array of these objects. No other text.
             result = []
             if data:
                 for item in data:
+                    if not isinstance(item, dict):
+                        logger.warning(f"[PerspectiveSynthesizer] Skipping non-dict item in response: {type(item)}")
+                        continue
                     alignment = item.get("alignment", "unknown")
                     sources_in_group = groups_dict.get(alignment, [])
                     source_names = list(set([s.source_name for s in sources_in_group]))

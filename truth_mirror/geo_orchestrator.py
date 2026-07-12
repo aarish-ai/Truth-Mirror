@@ -81,10 +81,14 @@ class GeopoliticalPipeline:
         
         # We cap workers at 10 to avoid overloading
         with ThreadPoolExecutor(max_workers=min(len(queries) + 1, 10)) as executor:
-            future_to_query = {
-                executor.submit(self.retriever.retrieve, q, claim_subtype): q
-                for q in queries
-            }
+            future_to_query = {}
+            for idx, q in enumerate(queries):
+                use_wikinews = (idx < 2)
+                future = executor.submit(
+                    self.retriever.retrieve, q, claim_subtype, use_wikinews
+                )
+                future_to_query[future] = q
+
             for future in concurrent.futures.as_completed(future_to_query):
                 try:
                     results = future.result()
@@ -106,6 +110,7 @@ class GeopoliticalPipeline:
         from truth_mirror.perspective_synthesizer import PerspectiveSynthesizer
         from truth_mirror.hidden_story_extractor import HiddenStoryExtractor
         from truth_mirror.verdict_engine import VerdictEngine
+        from truth_mirror.pipeline_status import set_stage
         
         # 1. Classification (now provided by scope gate)
         if scope_gate:
@@ -118,11 +123,13 @@ class GeopoliticalPipeline:
         await asyncio.sleep(2)
         
         # 2. Decomposition
+        set_stage("decomposing")
         sub_claims = self.decomposer.decompose(claim)
         
         await asyncio.sleep(2)
         
         # 3. Query Generation
+        set_stage("querying")
         all_queries = []
         for sub_claim in sub_claims:
             all_queries.extend(self.query_generator.generate(sub_claim, involved_parties, claim_subtype))
@@ -137,6 +144,7 @@ class GeopoliticalPipeline:
         all_queries.extend(perspective_queries)
         
         # Parallel Retrieval
+        set_stage("retrieving")
         all_evidence = self._parallel_retrieve(all_queries, claim_subtype)
         
         # Deduplicate evidence
@@ -149,6 +157,7 @@ class GeopoliticalPipeline:
                 deduped_evidence.append(item)
                 
         # Stage 2: Per-source stance analysis
+        set_stage("analyzing_sources")
         analyzer = SourceAnalyzer()
         source_analyses = await analyzer.analyze_all(deduped_evidence, claim, max_concurrent=3)
         source_analyses = [s for s in source_analyses if s.summary]
@@ -165,16 +174,19 @@ class GeopoliticalPipeline:
         gemini_client = getattr(self.synthesizer, "client", None)
         
         # Stage 3: Perspective synthesis
+        set_stage("synthesizing_perspectives")
         synthesizer = PerspectiveSynthesizer()
         perspective_groups = await synthesizer.synthesize(source_analyses, claim, gemini_client)
         await asyncio.sleep(15)
         
         # Stage 4: Hidden story extraction
+        set_stage("extracting_stories")
         extractor = HiddenStoryExtractor()
         hidden_stories = await extractor.extract(source_analyses, perspective_groups, claim, gemini_client)
         await asyncio.sleep(15)
         
         # Stage 5: Verdict generation
+        set_stage("generating_verdict")
         engine = VerdictEngine()
         verdict = await engine.generate(source_analyses, perspective_groups, hidden_stories, claim, gemini_client)
         await asyncio.sleep(15)

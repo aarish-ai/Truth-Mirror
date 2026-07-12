@@ -9,6 +9,7 @@ from pathlib import Path
 
 from truth_mirror import TruthMirrorPipeline
 from truth_mirror.models import GeopoliticalResult
+from truth_mirror.pipeline_status import set_stage, get_status
 from dataclasses import asdict
 
 BASE_DIR = Path(__file__).parent
@@ -36,6 +37,9 @@ class TruthMirrorHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(html)
             return
+        if self.path == "/api/status":
+            self._write_json(get_status(), status=200)
+            return
         self._write_json({"error": "Not found"}, status=404)
 
     def do_POST(self) -> None:
@@ -56,13 +60,17 @@ class TruthMirrorHandler(BaseHTTPRequestHandler):
         if not claim:
             self._write_json({"error": "Claim is required"}, status=400)
             return
-        result = self.pipeline.verify(claim)
-        if isinstance(result, GeopoliticalResult):
-            res_dict = asdict(result)
-            res_dict["final_verdict"] = res_dict.get("verdict")
-            self._write_json(res_dict, status=200)
-        else:
-            self._write_json(self.pipeline.to_json(result), status=200)
+        set_stage("classifying")
+        try:
+            result = self.pipeline.verify(claim)
+            if isinstance(result, GeopoliticalResult):
+                res_dict = asdict(result)
+                res_dict["final_verdict"] = res_dict.get("verdict")
+                self._write_json(res_dict, status=200)
+            else:
+                self._write_json(self.pipeline.to_json(result), status=200)
+        finally:
+            set_stage("idle")
 
 
 def run_server(host: str = "127.0.0.1", port: int = 8080) -> None:

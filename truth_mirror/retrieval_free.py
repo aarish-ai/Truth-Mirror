@@ -75,7 +75,7 @@ class FreeSourceRetrieval(EvidenceRetriever):
             # Original order: academic first, then news.
             return self._acad_connectors + self._news_connectors
 
-    def retrieve(self, query: str, claim_type: str = "mixed or ambiguous claim") -> List[EvidenceItem]:
+    def retrieve(self, query: str, claim_type: str = "mixed or ambiguous claim", include_wikinews: bool = True) -> List[EvidenceItem]:
         cache_key = f"{self.CACHE_VERSION}:{claim_type}::{query.strip().lower()}"
         if cache_key in self._cache:
             return [self._normalize_cached_item(EvidenceItem(**item)) for item in self._cache[cache_key]]
@@ -83,16 +83,14 @@ class FreeSourceRetrieval(EvidenceRetriever):
         # Base results: Wikipedia and Wikinews are always included.
         # For news-first claim types also skip Crossref (academic bibliography).
         if claim_type in NEWS_FIRST_CLAIM_TYPES or self.disable_academic:
-            results = (
-                self._query_wikipedia(query)[:2]
-                + self._query_wikinews(query)[:1]
-            )
+            results = self._query_wikipedia(query)[:2]
+            if include_wikinews:
+                results += self._query_wikinews(query)[:1]
         else:
-            results = (
-                self._query_wikipedia(query)[:2]
-                + self._query_wikinews(query)[:1]
-                + self._query_crossref(query)[:2]
-            )
+            results = self._query_wikipedia(query)[:2]
+            if include_wikinews:
+                results += self._query_wikinews(query)[:1]
+            results += self._query_crossref(query)[:2]
 
         # Get connector results in priority order, in parallel.
         connectors = self._ordered_connectors(claim_type)

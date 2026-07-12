@@ -14,26 +14,19 @@ logger = logging.getLogger(__name__)
 class GeoQueryGenerator:
     """
     Generates targeted queries (News, Official, Regional) for geopolitical claims.
-    As per architecture specifications, it attempts to use Ollama (qwen2.5:3b) to generate
-    exactly 3 search queries per sub-claim. If Ollama fails, it uses deterministic fallbacks.
+    As per architecture specifications, it attempts to use Groq (llama-3.3-70b-versatile) to generate
+    exactly 3 search queries per sub-claim. If Groq fails, it uses deterministic fallbacks.
     """
-    def __init__(
-        self,
-        ollama_base_url: str = None,
-        model: str = None,
-        timeout: int = 120
-    ):
+    def __init__(self, timeout: int = 120):
         from datetime import datetime
         self.current_date_str = datetime.now().strftime("%d %B %Y")
-        self.ollama_base_url = ollama_base_url or os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-        self.model = model or os.environ.get("OLLAMA_MODEL", "qwen2.5:3b")
         self.timeout = timeout
 
     def generate(self, sub_claim: str, involved_parties: list[str], claim_subtype: str) -> list[str]:
         if sub_claim.lower().startswith("the period in question") or sub_claim.lower().startswith("the action is currently"):
             return []
         """
-        Uses Ollama to generate exactly 3 search queries:
+        Uses Groq to generate exactly 3 search queries:
         1. News query
         2. Official query
         3. Regional query
@@ -177,11 +170,11 @@ Output JSON Array of 3 strings:
                 base.extend(self._get_fallback_queries(sub_claim, involved_parties))
                 return base[:3]
             else:
-                logger.warning("Ollama returned invalid query format. Using fallback queries.")
+                logger.warning("Groq returned invalid query format. Using fallback queries.")
                 return self._get_fallback_queries(sub_claim, involved_parties)
                 
         except Exception as e:
-            logger.error(f"Ollama query generation failed: {e}. Using deterministic fallbacks.")
+            logger.error(f"Groq query generation failed: {e}. Using deterministic fallbacks.")
             return self._get_fallback_queries(sub_claim, involved_parties)
 
     def _get_fallback_queries(self, sub_claim: str, involved_parties: list[str]) -> list[str]:

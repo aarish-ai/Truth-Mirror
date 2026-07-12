@@ -2,6 +2,7 @@
 LLM Client — used by ReActAgent when ENABLE_REACT_AGENT=true.
 Not called by the main pipeline in default configuration.
 """
+# DEPRECATED: Used only by the optional ReAct agent.
 import os
 import logging
 import requests

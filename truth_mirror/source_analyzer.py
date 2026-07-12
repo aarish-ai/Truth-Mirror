@@ -174,7 +174,8 @@ def _build_single_prompt(article, claim: str) -> str:
     url = article.url_or_id or ""
     title = article.source_title or ""
     snippet = (article.excerpt or "")[:800]
-    meta = get_source_metadata(url)
+    publisher_hint = getattr(article, 'publisher', '') if hasattr(article, 'publisher') else ''
+    meta = get_source_metadata(url, publisher=publisher_hint)
     return f"""You are an intelligence analyst. Analyze the following news article in relation to the given claim.
 
 CLAIM: {claim}
@@ -212,7 +213,8 @@ def _build_mini_batch_prompt(claim: str, batch: list) -> str:
         title = article.source_title or ""
         excerpt = (article.excerpt or "")[:600]
         try:
-            meta = get_source_metadata(url)
+            publisher_hint = getattr(article, 'publisher', '') if hasattr(article, 'publisher') else ''
+            meta = get_source_metadata(url, publisher=publisher_hint)
             source_name = meta.get("name", article.publisher or "Unknown")
             country = meta.get("country", "Unknown")
             alignment = meta.get("alignment", "unknown")
@@ -311,7 +313,8 @@ def _parse_single_response(raw_text: str, article) -> Optional[SourceAnalysis]:
         url = article.url_or_id or ""
         title = article.source_title or ""
         snippet = (article.excerpt or "")[:500]
-        meta = get_source_metadata(url)
+        publisher_hint = getattr(article, 'publisher', '') if hasattr(article, 'publisher') else ''
+        meta = get_source_metadata(url, publisher=publisher_hint)
         return SourceAnalysis(
             url=url, title=title,
             source_name=meta.get("name", article.publisher or ""),
@@ -429,10 +432,8 @@ class SourceAnalyzer:
         relevant = relevant[:15]
 
         batches = [relevant[i: i + MINI_BATCH_SIZE] for i in range(0, len(relevant), MINI_BATCH_SIZE)]
-        logger.info(
-            f"[SourceAnalyzer] Processing {len(relevant)} articles in "
-            f"{len(batches)} mini-batch(es) of up to {MINI_BATCH_SIZE} using {BULK_ANALYSIS_MODEL}."
-        )
+        logger.info(f"[SourceAnalyzer] Processing {len(relevant)} articles in "
+            f"{len(batches)} mini-batch(es) of up to {MINI_BATCH_SIZE} (Groq primary, Gemini fallback).")
 
         all_results = []
         for batch in batches:

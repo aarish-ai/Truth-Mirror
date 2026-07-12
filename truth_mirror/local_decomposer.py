@@ -12,14 +12,7 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 logger = logging.getLogger(__name__)
 
 class LocalDecomposer:
-    def __init__(
-        self,
-        ollama_base_url: str = None,
-        model: str = None,
-        timeout: int = 120
-    ):
-        self.ollama_base_url = ollama_base_url or os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-        self.model = model or os.environ.get("OLLAMA_MODEL", "qwen2.5:3b")
+    def __init__(self, timeout: int = 120):
         self.timeout = timeout
 
     def decompose(self, claim: str) -> list[str]:

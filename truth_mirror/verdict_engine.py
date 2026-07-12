@@ -101,7 +101,7 @@ Verdict definitions:
 - MEDIA BLACKOUT: Widespread, coordinated silence or refusal to engage with the claim in a way that signals narrative control or suppression (e.g., all sources are 'INCONCLUSIVE' rather than 'CONTRADICTING').
 - Weight independent sources (wire services, OSINT, independent journalism) more heavily than state media
 - State media on both sides corroborating = weaker signal than independent sources corroborating
-- Return ONLY the JSON object, no other text.
+- Return ONLY a valid JSON object. Do NOT include any strings, explanations, or preamble text. The first character of your response must be '{' and the last must be '}'. Any non-object element will cause a system failure.
 """
         def run_sync():
             import os, time, urllib.request, re, random
@@ -205,6 +205,9 @@ Verdict definitions:
 
         try:
             data = await asyncio.to_thread(run_sync)
+            if data and not isinstance(data, dict):
+                logger.warning(f"Verdict data is not a dict: {type(data)}")
+                data = None
             if data:
                 return IntelligenceVerdict(
                     verdict=data.get("verdict", "UNVERIFIABLE"),

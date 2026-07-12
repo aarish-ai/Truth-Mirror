@@ -1,3 +1,4 @@
+# DEPRECATED: Use geo_query_generator.py instead.
 import json
 import re
 import logging

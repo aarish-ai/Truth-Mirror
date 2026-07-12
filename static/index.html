@@ -485,13 +485,56 @@
       elements.verifyLoader.style.display = "block";
       elements.verifyBtn.disabled = true;
 
-      const msgs = ["Classifying...", "Generating Queries...", "Retrieving Sources...", "Analyzing Stances via Ollama...", "Synthesizing Perspectives...", "Extracting Hidden Stories...", "Generating Verdict..."];
-      let mIdx = 0;
-      elements.loadingStatus.textContent = msgs[mIdx];
-      const mInt = setInterval(() => {
-        mIdx = Math.min(mIdx + 1, msgs.length - 1);
-        elements.loadingStatus.textContent = msgs[mIdx];
-      }, 4000);
+      const STAGE_MESSAGES = {
+        "idle": "Initializing...",
+        "classifying": "Classifying claim scope...",
+        "decomposing": "Breaking down claim...",
+        "querying": "Generating search queries...",
+        "retrieving": "Fetching global sources...",
+        "analyzing_sources": "Analyzing source stances...",
+        "synthesizing_perspectives": "Synthesizing media blocs...",
+        "extracting_stories": "Extracting hidden narratives...",
+        "generating_verdict": "Calculating final verdict..."
+      };
+
+      const FUN_MESSAGES = [
+        "Still thinking...",
+        "Reading between the lines...",
+        "Decoding diplomatic speak...",
+        "Cross-referencing state media...",
+        "Following the money...",
+        "Checking bias filters...",
+        "Synthesizing the truth..."
+      ];
+
+      let currentStage = "idle";
+      let stageCounter = 0;
+      let funMsgIdx = 0;
+
+      const pollStatus = async () => {
+        try {
+          const res = await fetch("/api/status");
+          if (res.ok) {
+            const data = await res.json();
+            if (data.stage !== currentStage) {
+              currentStage = data.stage;
+              stageCounter = 0;
+              elements.loadingStatus.textContent = STAGE_MESSAGES[currentStage] || "Processing...";
+            } else {
+              stageCounter++;
+              if (stageCounter > 2) {
+                elements.loadingStatus.textContent = FUN_MESSAGES[funMsgIdx % FUN_MESSAGES.length];
+                funMsgIdx++;
+              }
+            }
+          }
+        } catch (e) {
+            console.error(e);
+        }
+      };
+
+      elements.loadingStatus.textContent = STAGE_MESSAGES[currentStage];
+      const mInt = setInterval(pollStatus, 1500);
 
       try {
         const res = await fetch("/api/verify", {
