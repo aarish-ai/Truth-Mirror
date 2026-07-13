@@ -111,6 +111,7 @@ class GeopoliticalPipeline:
         from truth_mirror.hidden_story_extractor import HiddenStoryExtractor
         from truth_mirror.verdict_engine import VerdictEngine
         from truth_mirror.pipeline_status import set_stage
+        from truth_mirror.temporal_classifier import TemporalClassifier
         
         # 1. Classification (now provided by scope gate)
         if scope_gate:
@@ -128,19 +129,48 @@ class GeopoliticalPipeline:
         
         await asyncio.sleep(2)
         
+        # Classify temporal intent of the ORIGINAL claim (not sub-claims)
+        # One Groq call here informs ALL query generation for this pipeline run
+        set_stage("classifying_temporal")
+        temporal_classifier = TemporalClassifier()
+        temporal_context = temporal_classifier.classify(claim)
+        logger.info(
+            f"[GeoOrchestrator] Temporal classification: type={temporal_context.temporal_type}, "
+            f"needs_date={temporal_context.needs_date}, "
+            f"qualifier='{temporal_context.date_qualifier}', "
+            f"reasoning='{temporal_context.reasoning}'"
+        )
+        
         # 3. Query Generation
         set_stage("querying")
         all_queries = []
         for sub_claim in sub_claims:
-            all_queries.extend(self.query_generator.generate(sub_claim, involved_parties, claim_subtype))
+            if sub_claim.lower().startswith("the period in question") or sub_claim.lower().startswith("the action is currently"):
+                continue
+            queries = self.query_generator.generate(
+                sub_claim, 
+                involved_parties, 
+                claim_subtype,
+                temporal_context=temporal_context
+            )
+            all_queries.extend(queries)
             
         current_year = datetime.now().year
-        perspective_queries = [
-            f"{claim} Western media Reuters AP",
-            f"{claim} Russian Chinese media TASS CGTN",
-            f"{claim} Middle East Al Jazeera",
-            f"{claim} official government statement"
-        ]
+        if temporal_context.needs_date and temporal_context.date_qualifier:
+            dq = temporal_context.date_qualifier
+            perspective_queries = [
+                f"{claim} {dq} Western media Reuters AP",
+                f"{claim} {dq} Russian Chinese media TASS CGTN",
+                f"{claim} {dq} Middle East Al Jazeera",
+                f"{claim} {dq} official government statement"
+            ]
+        else:
+            perspective_queries = [
+                f"{claim} Western media Reuters AP",
+                f"{claim} Russian Chinese media TASS CGTN",
+                f"{claim} Middle East Al Jazeera",
+                f"{claim} official government statement"
+            ]
         all_queries.extend(perspective_queries)
         
         # Parallel Retrieval

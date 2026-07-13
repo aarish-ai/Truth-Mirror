@@ -1,4 +1,4 @@
-# Truth Mirror — Geopolitical Intelligence Engine v2.3
+# Truth Mirror — Geopolitical Intelligence Engine v2.4
 
 **Note: This is an ongoing project. The underlying technologies, models, and architecture described below may evolve as the project scales.**
 
@@ -15,7 +15,7 @@ Our architecture relies on the following technologies:
 
 - **Frontend UI**: Built with pure HTML, CSS, and Vanilla JavaScript for a lightweight, fast, and responsive user experience. We utilize dark mode aesthetics and dynamic layout panels.
 - **Backend Server**: Python-based lightweight `BaseHTTPRequestHandler` acting as a REST API to serve the UI and orchestrate the pipeline.
-- **High-Volume AI (Groq)**: We use Groq's lightning-fast inference for `llama-3.3-70b-versatile` to handle structural tasks: classifying whether a claim is geopolitical, decomposing complex claims into sub-claims, generating targeted search queries, and batch-analyzing sources.
+- **High-Volume AI (Groq)**: We use Groq's lightning-fast inference for `llama-3.3-70b-versatile` to handle structural tasks: classifying whether a claim is geopolitical, extracting temporal intent from claims, decomposing complex claims into sub-claims, generating targeted search queries, and batch-analyzing sources.
 - **Deep Synthesis AI (Google Gemini)**: We utilize `gemini-3.5-flash` to perform the heavy lifting: synthesizing evidence, detecting narrative divergence, and writing the final geopolitical story. A custom key-rotator intelligently cycles through a pool of API keys to gracefully manage rate limits.
 - **Tertiary Fallback (OpenRouter)**: To ensure absolute high availability, if both Groq and Gemini face rate limits or high load, the system automatically falls back to `qwen/qwen3-next-80b-a3b-instruct:free` via the OpenRouter API.
 - **Retrieval Sources**: Live data is pulled in parallel using custom Python connectors for Wikipedia, Wikinews, ArXiv, Crossref, Semantic Scholar, PubMed, Google News RSS, and Non-Western Media outlets (Al Jazeera, TASS, CGTN).

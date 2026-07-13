@@ -71,6 +71,28 @@ We encountered persistent quota contention because high-volume source analysis a
 
 ---
 
+## 🛠️ Step 6 — Quality, Reliability & UX Improvements
+
+We encountered source alignment bugs, Wikinews rate limiting, JSON parse failures due to truncated LLM responses, crashes on non-dict JSON responses, and a static frontend loader that didn't reflect the backend accurately. Then we did:
+- Added `PUBLISHER_NAME_MAP` to correctly resolve Google RSS publishers.
+- Limited Wikinews API parallel connections to only the first two queries.
+- Integrated `json-repair` to gracefully handle improperly formatted LLM responses.
+- Removed all stale fallback logic referencing the deprecated Ollama pipeline.
+- Added `isinstance` defensive guards to iterative loops in the synthesis engines.
+- Built a dynamic polling system for the frontend that checks `/api/status` and displays cyclical fun messages to avoid the perception of a hung pipeline.
+
+---
+
+## ⏳ Step 7 — Groq-Powered Temporal Context Classifier
+
+We encountered poor query generation because the pipeline appended the current date to all queries regardless of context (e.g. "US invaded Iraq" would erroneously receive "as of July 2026", returning no results). Then we did:
+- Built `TemporalClassifier` using Groq to assign claims a temporal taxonomy (`current_state`, `recent_development`, `historical_completed`, `specific_incident`).
+- Placed the classifier just before query generation in `geo_orchestrator.py` to inform all subsequent search queries for a run.
+- Passed `temporal_context` into `GeoQueryGenerator` so queries explicitly append dates only for ongoing and recent developments, while leaving historical and specific events timeline-agnostic.
+- Demoted the naive keyword-based `inject_temporal_context()` function to a secondary fallback.
+
+---
+
 ## 📍 Where We Are Now
 
 | Component | Before | After |

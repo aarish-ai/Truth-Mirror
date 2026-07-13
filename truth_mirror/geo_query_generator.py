@@ -22,7 +22,7 @@ class GeoQueryGenerator:
         self.current_date_str = datetime.now().strftime("%d %B %Y")
         self.timeout = timeout
 
-    def generate(self, sub_claim: str, involved_parties: list[str], claim_subtype: str) -> list[str]:
+    def generate(self, sub_claim: str, involved_parties: list[str], claim_subtype: str, temporal_context=None) -> list[str]:
         if sub_claim.lower().startswith("the period in question") or sub_claim.lower().startswith("the action is currently"):
             return []
         """
@@ -34,7 +34,28 @@ class GeoQueryGenerator:
         """
         parties_str = ", ".join(involved_parties) if involved_parties else "Unknown"
         
-        date_instruction = "Generate search queries that are broad and timeline-agnostic. Do not include specific dates, months, or years in the queries.\n\n"
+        from datetime import datetime
+
+        if temporal_context is not None and hasattr(temporal_context, 'needs_date'):
+            if temporal_context.needs_date and temporal_context.date_qualifier:
+                date_instruction = (
+                    f"Today's date is {self.current_date_str}. "
+                    f"This claim is about a {temporal_context.temporal_type.replace('_', ' ')}. "
+                    f"Append '{temporal_context.date_qualifier}' to queries about current status. "
+                    f"Do NOT restrict ALL queries to today — vary the temporal scope across queries.\n\n"
+                )
+            else:
+                date_instruction = (
+                    f"This claim is about a completed or specific past event. "
+                    f"Do NOT append the current date to queries. "
+                    f"Search for the event broadly across all time periods.\n\n"
+                )
+        else:
+            # No temporal context provided — use safe default (append current date)
+            date_instruction = (
+                f"Today's date is {self.current_date_str}. "
+                f"Add the current date to queries about ongoing or recent events.\n\n"
+            )
         prompt = date_instruction + f"""You are a geopolitical intelligence search query generator.
 Given a sub-claim, involved parties, and claim subtype, generate exactly 3 distinct search queries to retrieve maximum relevant information.
 Return ONLY a JSON array of 3 strings. No markdown formatting, no explanations.
