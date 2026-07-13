@@ -45,6 +45,7 @@ class TruthMirrorPipeline:
         self.eval_logger = EvalLogger()
         
         from truth_mirror.geo_query_generator import GeoQueryGenerator
+        from truth_mirror.search_planner import SearchPlanner
         self.decomposer = LocalDecomposer()
         self.query_generator = GeoQueryGenerator()
         self.search_planner = SearchPlanner(self.retriever, self.query_generator)
