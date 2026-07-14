@@ -593,6 +593,13 @@
         elements.verdictValue.style.color = "var(--warning)";
       }
 
+      if (data._from_cache) {
+          elements.verdictBanner.insertAdjacentHTML('beforeend',
+              '<div style="font-size:0.75rem; color: var(--text-muted); ' +
+              'margin-top: 0.5rem; opacity: 0.6;">⚡ Retrieved from cache</div>'
+          );
+      }
+
       // Breakdown
       elements.fullReasoning.textContent = vdata.full_reasoning || "No reasoning provided.";
       elements.whatIsTrue.textContent = vdata.what_is_true || "N/A";

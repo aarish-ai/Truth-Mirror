@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label
 import requests
 import re
 import time
@@ -48,10 +49,9 @@ Output:"""
                             "Content-Type": "application/json"
                         },
                         json={
-                            "model": "llama-3.3-70b-versatile",
+                            "model": GROQ_SIMPLE_MODEL,
                             "messages": [{"role": "user", "content": prompt_str}],
                             "temperature": 0.1,
-                            "response_format": {"type": "json_object"},
                             "max_tokens": 512
                         },
                         timeout=25
@@ -85,7 +85,7 @@ Output:"""
             response_text = None
             openrouter_failed = False
             
-            logger.info("[LocalDecomposer] Attempting Groq for claim decomposition.")
+            logger.info(f"[LocalDecomposer] Attempting Groq ({get_model_label(GROQ_SIMPLE_MODEL)}) for claim decomposition.")
             groq_result = _call_groq(prompt)
             if groq_result is not None:
                 # Format to JSON string so the rest of the parsing logic handles it uniformly

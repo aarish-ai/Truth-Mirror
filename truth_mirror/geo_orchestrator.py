@@ -22,6 +22,30 @@ from truth_mirror.geo_synthesizer import GeoSynthesizer
 from truth_mirror.eval_logger import EvalLogger
 from truth_mirror.models import GeopoliticalResult, EvidenceItem
 from truth_mirror.retrieval import RetrievalConfig
+from truth_mirror.caching import EvidenceCache
+from dataclasses import asdict
+
+def _dict_to_geo_result(d: dict) -> "GeopoliticalResult":
+    """Reconstruct a GeopoliticalResult from a cached dictionary."""
+    from truth_mirror.models import GeopoliticalResult
+    d.pop("_from_cache", None)
+    try:
+        return GeopoliticalResult(**{
+            k: v for k, v in d.items()
+            if k in GeopoliticalResult.__dataclass_fields__
+        })
+    except Exception as e:
+        logger.warning(f"Cache reconstruction failed: {e}. Returning raw dict.")
+        # Fallback: create minimal GeopoliticalResult
+        return GeopoliticalResult(
+            original_claim=d.get("original_claim", ""),
+            is_geopolitical=d.get("is_geopolitical", True),
+            verdict=d.get("verdict", "Unclear"),
+            **{k: d[k] for k in [
+                "source_analyses", "perspective_groups", "hidden_stories",
+                "verdict_data", "total_sources", "confidence"
+            ] if k in d}
+        )
 
 class GeopoliticalPipeline:
     """Pipeline orchestrator for the Geopolitical Intelligence Engine."""
@@ -37,6 +61,15 @@ class GeopoliticalPipeline:
         self.perspective_tagger = PerspectiveTagger()
         self.synthesizer = GeoSynthesizer()
         self.eval_logger = EvalLogger()
+
+        self._result_cache = EvidenceCache()
+        # Cleanup expired entries on startup (non-blocking, cheap)
+        try:
+            deleted = self._result_cache.cleanup_expired_results()
+            if deleted > 0:
+                logger.info(f"[GeoOrchestrator] Cleaned up {deleted} expired result cache entries.")
+        except Exception as e:
+            logger.warning(f"[GeoOrchestrator] Cache cleanup failed: {e}")
 
         try:
             from truth_mirror.retrieval_news import GDELTConnector, GoogleNewsRSSConnector
@@ -113,6 +146,18 @@ class GeopoliticalPipeline:
         from truth_mirror.pipeline_status import set_stage
         from truth_mirror.temporal_classifier import TemporalClassifier
         
+        # ── CACHE LOOKUP ──────────────────────────────────────────────────────
+        cache_key = EvidenceCache.normalize_claim_key(claim)
+        cached_result = self._result_cache.get_result(cache_key)
+        if cached_result:
+            logger.info(f"[GeoOrchestrator] Cache HIT for claim: '{claim[:60]}...'")
+            # Reconstruct GeopoliticalResult from cached dict
+            # Return it as a dict directly — to_json() already handles dict
+            cached_result["_from_cache"] = True
+            return _dict_to_geo_result(cached_result)
+        logger.info(f"[GeoOrchestrator] Cache MISS for claim: '{claim[:60]}...'")
+        # ── END CACHE LOOKUP ──────────────────────────────────────────────────
+
         # 1. Classification (now provided by scope gate)
         if scope_gate:
             involved_parties = scope_gate.involved_parties
@@ -244,6 +289,24 @@ class GeopoliticalPipeline:
             confidence=verdict.confidence
         )
         
+        # ── CACHE STORE ───────────────────────────────────────────────────────
+        temporal_type = getattr(temporal_context, "temporal_type", "current_state")
+        try:
+            if (not result.source_analyses or
+                not result.verdict_data or
+                result.verdict in ["Unclear", "UNVERIFIABLE"]):
+                logger.info("[GeoOrchestrator] Skipping cache for incomplete/unclear result.")
+            else:
+                result_dict = asdict(result)
+                self._result_cache.set_result(cache_key, result_dict, temporal_type)
+                logger.info(
+                    f"[GeoOrchestrator] Result cached for {temporal_type} claim "
+                    f"(TTL based on type)."
+                )
+        except Exception as e:
+            logger.warning(f"[GeoOrchestrator] Failed to cache result: {e}")
+        # ── END CACHE STORE ───────────────────────────────────────────────────
+
         # self.eval_logger.log_geo_run(result)
         return result
 

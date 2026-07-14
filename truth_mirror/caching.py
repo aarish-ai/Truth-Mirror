@@ -26,6 +26,17 @@ class EvidenceCache:
                 )
                 """
             )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS result_cache (
+                    key TEXT PRIMARY KEY,
+                    data TEXT,
+                    temporal_type TEXT DEFAULT 'current_state',
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    expires_at DATETIME
+                )
+                """
+            )
 
     def get(self, key: str) -> list[dict[str, Any]] | None:
         """Get cached data for a key."""
@@ -46,3 +57,74 @@ class EvidenceCache:
                 "INSERT OR REPLACE INTO cache (key, data) VALUES (?, ?)",
                 (key, json.dumps(data)),
             )
+
+    def get_result(self, claim_key: str) -> dict | None:
+        """Get cached pipeline result if it exists and has not expired."""
+        from datetime import datetime
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute(
+                """
+                SELECT data FROM result_cache
+                WHERE key = ?
+                AND expires_at > ?
+                """,
+                (claim_key, datetime.utcnow().isoformat())
+            )
+            row = cursor.fetchone()
+            if row:
+                try:
+                    return json.loads(row[0])
+                except json.JSONDecodeError:
+                    return None
+        return None
+
+    def set_result(
+        self,
+        claim_key: str,
+        data: dict,
+        temporal_type: str = "current_state"
+    ) -> None:
+        """Cache a pipeline result with TTL based on temporal type."""
+        from datetime import datetime, timedelta
+
+        TTL_HOURS = {
+            "current_state": 6,
+            "recent_development": 12,
+            "historical_completed": 72,
+            "specific_incident": 24,
+        }
+        hours = TTL_HOURS.get(temporal_type, 12)
+        expires_at = (datetime.utcnow() + timedelta(hours=hours)).isoformat()
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO result_cache
+                (key, data, temporal_type, timestamp, expires_at)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?)
+                """,
+                (claim_key, json.dumps(data), temporal_type, expires_at)
+            )
+
+    def cleanup_expired_results(self) -> int:
+        """Delete expired result cache entries. Returns count deleted."""
+        from datetime import datetime
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute(
+                "DELETE FROM result_cache WHERE expires_at < ?",
+                (datetime.utcnow().isoformat(),)
+            )
+            return cursor.rowcount
+
+    @staticmethod
+    def normalize_claim_key(claim: str) -> str:
+        """
+        Normalize a claim string into a cache key.
+        Lowercases, strips punctuation, collapses whitespace.
+        "US is bombing Iran!" and "us is bombing iran" → same key.
+        """
+        import re
+        normalized = claim.lower().strip()
+        normalized = re.sub(r"[^\w\s]", "", normalized)
+        normalized = re.sub(r"\s+", " ", normalized)
+        return normalized

@@ -93,6 +93,18 @@ We encountered poor query generation because the pipeline appended the current d
 
 ---
 
+## ⚡ Step 8 — Caching, Model Routing & Prompt Compression
+
+We encountered high API costs and frequent rate limiting because identical claims were re-analyzed redundantly and simple cognitive tasks were using an expensive, top-tier model. Then we did:
+- Built `caching.py` to cache the full `GeopoliticalResult` object based on normalized claim strings, saving 100% of API calls on identical repeat queries.
+- Defined adaptive TTLs (Time-To-Live) for cached results based on temporal classification (e.g., 6 hours for current events, 72 hours for historical).
+- Centralized model configuration in `groq_router.py` to prevent hardcoded model references.
+- Downgraded simple reasoning tasks (Scope, Decomposition, Temporal, Query Gen) to use the 5x larger quota of `llama-3.1-8b-instant`.
+- Built a fallback chain (`llama-3.3-70b` → `llama-4-scout-17b` → `llama-3.1-8b`) inside `source_analyzer.py` for maximal robustness under high volume.
+- Compressed prompts significantly by lowering article excerpts from 800 to 500 characters and tightening instructions, yielding ~25% fewer tokens without quality loss.
+
+---
+
 ## 📍 Where We Are Now
 
 | Component | Before | After |

@@ -4,6 +4,7 @@ import urllib.request
 import logging
 from dataclasses import dataclass
 from truth_mirror.geo_classifier import GEO_KEYWORDS
+from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +91,7 @@ Rules:
                         "Content-Type": "application/json"
                     },
                     json={
-                        "model": "llama-3.3-70b-versatile",
+                        "model": GROQ_SIMPLE_MODEL,
                         "messages": [{"role": "user", "content": prompt_str}],
                         "temperature": 0.1,
                         "response_format": {"type": "json_object"},
@@ -119,7 +120,7 @@ Rules:
         return None
 
     parsed = None
-    logger.info("[ClaimScopeGate] Attempting Groq for scope classification.")
+    logger.info(f"[ClaimScopeGate] Attempting Groq ({get_model_label(GROQ_SIMPLE_MODEL)}) for scope classification.")
     parsed = _call_groq(prompt)
 
     from truth_mirror.key_rotator import get_current_key, rotate_gemini_key

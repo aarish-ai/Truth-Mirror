@@ -5,6 +5,9 @@ import logging
 import requests
 import time
 from dotenv import load_dotenv
+from typing import List, Optional
+from truth_mirror.temporal_classifier import TemporalContext
+from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label
 
 load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -14,7 +17,7 @@ logger = logging.getLogger(__name__)
 class GeoQueryGenerator:
     """
     Generates targeted queries (News, Official, Regional) for geopolitical claims.
-    As per architecture specifications, it attempts to use Groq (llama-3.3-70b-versatile) to generate
+    As per architecture specifications, it attempts to use Groq to generate
     exactly 3 search queries per sub-claim. If Groq fails, it uses deterministic fallbacks.
     """
     def __init__(self, timeout: int = 120):
@@ -60,10 +63,8 @@ class GeoQueryGenerator:
 Given a sub-claim, involved parties, and claim subtype, generate exactly 3 distinct search queries to retrieve maximum relevant information.
 Return ONLY a JSON array of 3 strings. No markdown formatting, no explanations.
 
-Queries must strictly follow this structure:
-1. A general international news query
-2. An official statement or government document query
-3. A regional/local perspective query
+Generate: 1) international news query  2) official/government query
+3) regional/local perspective query
 
 Input Data:
 Sub-claim: {sub_claim}
@@ -86,10 +87,9 @@ Output JSON Array of 3 strings:
                             "Content-Type": "application/json"
                         },
                         json={
-                            "model": "llama-3.3-70b-versatile",
+                            "model": GROQ_SIMPLE_MODEL,
                             "messages": [{"role": "user", "content": prompt_str}],
                             "temperature": 0.1,
-                            "response_format": {"type": "json_object"},
                             "max_tokens": 256
                         },
                         timeout=25
@@ -123,7 +123,7 @@ Output JSON Array of 3 strings:
             response_text = None
             openrouter_failed = False
             
-            logger.info("[GeoQueryGenerator] Attempting Groq for query generation.")
+            logger.info(f"[GeoQueryGenerator] Attempting Groq ({get_model_label(GROQ_SIMPLE_MODEL)}) for query generation.")
             groq_result = _call_groq(prompt)
             if groq_result is not None:
                 response_text = json.dumps(groq_result)

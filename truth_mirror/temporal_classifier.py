@@ -4,6 +4,7 @@ import requests
 import logging
 from dataclasses import dataclass
 from typing import Optional
+from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +82,7 @@ Rules:
             return self._fallback(claim)
 
         try:
+            logger.info(f"[TemporalClassifier] Attempting Groq ({get_model_label(GROQ_SIMPLE_MODEL)}) for temporal classification.")
             response = requests.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 headers={
@@ -88,7 +90,7 @@ Rules:
                     "Content-Type": "application/json"
                 },
                 json={
-                    "model": "llama-3.3-70b-versatile",
+                    "model": GROQ_SIMPLE_MODEL,
                     "messages": [{"role": "user", "content": prompt}],
                     "temperature": 0.0,
                     "response_format": {"type": "json_object"},

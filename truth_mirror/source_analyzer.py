@@ -18,6 +18,12 @@ _openrouter_semaphore = threading.Semaphore(1)
 
 from truth_mirror.source_registry import get_source_metadata
 from truth_mirror.models import EvidenceItem
+from truth_mirror.groq_router import (
+    GROQ_ANALYSIS_PRIMARY,
+    GROQ_ANALYSIS_FALLBACK_1,
+    GROQ_ANALYSIS_FALLBACK_2,
+    get_model_label
+)
 
 logger = logging.getLogger(__name__)
 
@@ -223,11 +229,10 @@ def _build_mini_batch_prompt(claim: str, batch: list) -> str:
             country = "Unknown"
             alignment = "unknown"
         articles_text += (
-            f"\n--- ARTICLE {i} ---\n"
+            f"[{i}] {source_name} ({country}, {alignment})\n"
             f"URL: {url}\n"
-            f"Source: {source_name} | Country: {country} | Alignment: {alignment}\n"
             f"Title: {title}\n"
-            f"Text: {excerpt}\n"
+            f"{excerpt}\n---\n"
         )
 
     return f"""You are an intelligence analyst performing multi-source geopolitical analysis.
@@ -259,7 +264,15 @@ For each article, produce one JSON object. Return ONLY a JSON object:
   ]
 }}
 
-Analyze EVERY article. Return exactly {len(batch)} objects. Set stance to INCONCLUSIVE for irrelevant articles."""
+Stances: SUPPORTS=claim confirmed | CONTRADICTS=claim denied |
+PARTIALLY_SUPPORTS=partial confirmation | INCONCLUSIVE=related but unclear |
+BACKGROUND_ONLY=historical context only
+
+Rules:
+- Return exactly {len(batch)} objects. Never skip an article. Mark irrelevant articles INCONCLUSIVE.
+- Be specific — cite actual article content, not generic descriptions.
+- what_omitted: what would this source's alignment EXPECT to mention if the claim were true, that is absent?
+- hidden_implication: framing bias implied by the source's alignment choices."""
 
 
 def _parse_batch_response(raw_text: str, batch: list) -> list:
@@ -357,7 +370,13 @@ class SourceAnalyzer:
         logger.warning(f"[SourceAnalyzer] All retries failed for {article.url_or_id}")
         return None
 
-    def _call_groq_batch(self, claim: str, articles: list, prompt: str) -> list | None:
+    def _call_groq_batch(
+        self,
+        claim: str,
+        articles: list,
+        prompt: str,
+        model: str = None
+    ) -> list | str | None:
         import os, json
         import requests as req_lib
         groq_key = os.getenv("GROQ_API_KEY")
@@ -365,8 +384,11 @@ class SourceAnalyzer:
             logger.warning("[SourceAnalyzer] GROQ_API_KEY not set. Cannot use Groq for batch analysis.")
             return None
             
+        model = model or GROQ_ANALYSIS_PRIMARY
+        logger.info(f"[SourceAnalyzer] Groq batch using {get_model_label(model)} for {len(articles)} articles.")
+            
         payload = {
-            "model": "llama-3.3-70b-versatile",
+            "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.1,
             "response_format": {"type": "json_object"},
@@ -385,8 +407,8 @@ class SourceAnalyzer:
                 timeout=60
             )
             if response.status_code == 429:
-                logger.warning("[SourceAnalyzer] Groq 429 rate limit on batch call.")
-                return None
+                logger.warning(f"[SourceAnalyzer] {get_model_label(model)} returned 429 (rate limit).")
+                return "RATE_LIMITED"
             response.raise_for_status()
             content = response.json()["choices"][0]["message"]["content"]
             
@@ -431,35 +453,61 @@ class SourceAnalyzer:
 
         relevant = relevant[:15]
 
-        batches = [relevant[i: i + MINI_BATCH_SIZE] for i in range(0, len(relevant), MINI_BATCH_SIZE)]
         logger.info(f"[SourceAnalyzer] Processing {len(relevant)} articles in "
-            f"{len(batches)} mini-batch(es) of up to {MINI_BATCH_SIZE} (Groq primary, Gemini fallback).")
+            f"mini-batch(es) of up to {MINI_BATCH_SIZE} (Groq primary, Gemini fallback).")
 
         all_results = []
-        for batch in batches:
+        for i in range(0, len(relevant), MINI_BATCH_SIZE):
+            batch = relevant[i:i + MINI_BATCH_SIZE]
+            batch_num = (i // MINI_BATCH_SIZE) + 1
+            total_batches = (len(relevant) + MINI_BATCH_SIZE - 1) // MINI_BATCH_SIZE
             prompt = _build_mini_batch_prompt(claim, batch)
             
-            # Step 1 - Try Groq
-            result = await asyncio.to_thread(self._call_groq_batch, claim, batch, prompt)
+            result = None
+
+            # ── GROQ PRIMARY (70b) ───────────────────────────────────────────
+            raw = await asyncio.to_thread(
+                self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_PRIMARY
+            )
+            if raw == "RATE_LIMITED":
+                logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
+                               f"70b rate limited. Trying 4-scout fallback.")
+                # ── GROQ FALLBACK 1 (4-scout-17b) ───────────────────────────
+                raw = await asyncio.to_thread(
+                    self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_FALLBACK_1
+                )
+                if raw == "RATE_LIMITED":
+                    logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
+                                   f"4-scout rate limited. Trying 8b last resort.")
+                    # ── GROQ FALLBACK 2 (8b — quality warning) ───────────────
+                    logger.warning(f"[SourceAnalyzer] QUALITY WARNING: Falling back to "
+                                   f"8b for source analysis. Quality may be reduced.")
+                    raw = await asyncio.to_thread(
+                        self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_FALLBACK_2
+                    )
+
+            if raw and raw != "RATE_LIMITED":
+                result = raw
+
             if result is not None:
                 all_results.extend(result)
-                logger.info(f"[SourceAnalyzer] Groq batch succeeded. ({len(result)} analyses)")
+                logger.info(f"[SourceAnalyzer] Batch {batch_num}/{total_batches} succeeded: "
+                            f"{len(result)} analyses.")
                 await asyncio.sleep(5)
-                continue
-                
-            # Step 2 - Try Gemini fallback
-            logger.warning(f"[SourceAnalyzer] Groq batch failed. Trying Gemini as fallback.")
-            result = await asyncio.to_thread(self._call_gemini_batch, claim, batch, prompt)
-            if result is not None:
-                all_results.extend(result)
-                logger.info(f"[SourceAnalyzer] Gemini fallback batch succeeded. ({len(result)} analyses)")
-                await asyncio.sleep(10)
-                continue
-                
-            # Step 3 - Both failed
-            logger.warning(f"[SourceAnalyzer] Both Groq and Gemini failed for batch of {len(batch)} articles. Skipping.")
-            await asyncio.sleep(5)
-            continue
+            else:
+                # All Groq models rate limited or failed — try Gemini fallback
+                logger.warning(f"[SourceAnalyzer] All Groq models failed for batch "
+                               f"{batch_num}/{total_batches}. Trying Gemini.")
+                gemini_result = await asyncio.to_thread(
+                    self._call_gemini_batch, claim, batch, prompt
+                )
+                if gemini_result:
+                    all_results.extend(gemini_result)
+                    await asyncio.sleep(10)  # Longer Gemini recovery window
+                else:
+                    logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches} "
+                                   f"completely failed. Skipping.")
+                    await asyncio.sleep(5)
 
         logger.info(
             f"[SourceAnalyzer] Completed: {len(all_results)} succeeded out of "
