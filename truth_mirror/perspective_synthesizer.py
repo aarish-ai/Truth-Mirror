@@ -137,7 +137,6 @@ Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT
                             "model": "llama-3.3-70b-versatile",
                             "messages": [{"role": "user", "content": prompt}],
                             "temperature": 0.1,
-                            "response_format": {"type": "json_object"},
                             "max_tokens": 4096
                         }
                         groq_headers = {
