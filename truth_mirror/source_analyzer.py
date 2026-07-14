@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 # Idea A: gemini-2.0-flash has 1500 RPD free (vs 20 RPD for 3.5-flash).
 # Use it ONLY for bulk repetitive source-labelling. gemini-3.5-flash is reserved for synthesis.
-BULK_ANALYSIS_MODEL = "gemini-2.0-flash"
+BULK_ANALYSIS_MODEL = "gemini-3.5-flash"
 
 # Idea B: mini-batch size - 3 sources per Groq/Gemini call
 MINI_BATCH_SIZE = 3
@@ -279,7 +279,11 @@ def _parse_batch_response(raw_text: str, batch: list) -> list:
     results = []
     try:
         parsed = json.loads(raw_text)
-        analyses_raw = parsed.get("analyses", [])
+        if isinstance(parsed, list):
+            analyses_raw = parsed
+        else:
+            analyses_raw = parsed.get("analyses", [])
+            
         if not isinstance(analyses_raw, list):
             return results
         for raw_item in analyses_raw:
