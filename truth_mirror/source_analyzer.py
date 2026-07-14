@@ -27,11 +27,8 @@ from truth_mirror.groq_router import (
 
 logger = logging.getLogger(__name__)
 
-# Idea A: gemini-2.0-flash has 1500 RPD free (vs 20 RPD for 3.5-flash).
-# Use it ONLY for bulk repetitive source-labelling. gemini-3.5-flash is reserved for synthesis.
-BULK_ANALYSIS_MODEL = "gemini-3.5-flash"
-
-# Idea B: mini-batch size - 3 sources per Groq/Gemini call
+# OpenRouter is used for source-labelling fallback to ease load on Gemini.
+# Gemini 3.5 is reserved for synthesis.
 MINI_BATCH_SIZE = 3
 
 _STOPWORDS = {
@@ -360,16 +357,12 @@ class SourceAnalyzer:
 
     async def analyze(self, article, claim: str, session: aiohttp.ClientSession) -> Optional[SourceAnalysis]:
         prompt = _build_single_prompt(article, claim)
-        raw = await asyncio.to_thread(_call_gemini_sync, prompt, BULK_ANALYSIS_MODEL)
-        if raw:
-            result = _parse_single_response(raw, article)
-            if result:
-                logger.info(f"Successfully analyzed source: {article.url_or_id} -> stance={result.stance}")
-                return result
+        # Try OpenRouter instead of Gemini for bulk/single source analysis
         raw = await asyncio.to_thread(_call_openrouter_sync, prompt)
         if raw:
             result = _parse_single_response(raw, article)
             if result:
+                logger.info(f"Successfully analyzed source: {article.url_or_id} -> stance={result.stance}")
                 return result
         logger.warning(f"[SourceAnalyzer] All retries failed for {article.url_or_id}")
         return None
@@ -422,8 +415,9 @@ class SourceAnalyzer:
             logger.warning(f"[SourceAnalyzer] Groq batch call failed: {e}")
             return None
 
-    def _call_gemini_batch(self, claim: str, batch: list, prompt: str) -> list | None:
-        raw = _call_gemini_sync(prompt, BULK_ANALYSIS_MODEL, timeout=45)
+
+    def _call_openrouter_batch(self, claim: str, batch: list, prompt: str) -> list | None:
+        raw = _call_openrouter_sync(prompt, timeout=60)
         if raw:
             results = _parse_batch_response(raw, batch)
             return results if results else None
@@ -499,15 +493,15 @@ class SourceAnalyzer:
                             f"{len(result)} analyses.")
                 await asyncio.sleep(5)
             else:
-                # All Groq models rate limited or failed — try Gemini fallback
+                # All Groq models rate limited or failed — try OpenRouter fallback
                 logger.warning(f"[SourceAnalyzer] All Groq models failed for batch "
-                               f"{batch_num}/{total_batches}. Trying Gemini.")
-                gemini_result = await asyncio.to_thread(
-                    self._call_gemini_batch, claim, batch, prompt
+                               f"{batch_num}/{total_batches}. Trying OpenRouter.")
+                or_result = await asyncio.to_thread(
+                    self._call_openrouter_batch, claim, batch, prompt
                 )
-                if gemini_result:
-                    all_results.extend(gemini_result)
-                    await asyncio.sleep(10)  # Longer Gemini recovery window
+                if or_result:
+                    all_results.extend(or_result)
+                    await asyncio.sleep(5)
                 else:
                     logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches} "
                                    f"completely failed. Skipping.")
