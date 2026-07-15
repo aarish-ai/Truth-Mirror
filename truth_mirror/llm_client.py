@@ -8,6 +8,9 @@ import logging
 import requests
 from typing import List, Dict, Any
 try:
+    # NOTE: Ollama references here are for the optional ReAct agent only.
+    # The main pipeline does not use Ollama. See models.md.
+    from dotenv import load_dotenv
     from google import genai as google_genai
     from google.genai import types as genai_types
     _GENAI_AVAILABLE = True

@@ -7,7 +7,7 @@ from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
-# Fallback regex if Ollama fails or returns invalid JSON
+# Fallback regex if LLM fails or returns invalid JSON
 GEO_KEYWORDS = re.compile(
     r"\b(war|military|sanctions|treaty|diplomat|diplomacy|president|prime minister|"
     r"invasion|missile|border|election|geopolitical|international|united nations|nato|eu|foreign|policy)\b",
@@ -17,11 +17,11 @@ GEO_KEYWORDS = re.compile(
 class GeoClassifier:
     """
     Classifies whether a claim is geopolitical in nature.
-    Uses a local Ollama model (default: qwen2.5:3b) with a strict JSON format constraint.
-    Falls back to regex keywords if the LLM is unavailable or fails.
+    Uses Groq (GROQ_SIMPLE_MODEL) with a strict JSON format constraint.
+    Falls back to OpenRouter then regex keywords if the LLMs are unavailable or fail.
     """
     
-    def __init__(self, ollama_url: str = None, model: str = "qwen/qwen3-next-80b-a3b-instruct:free"):
+    def __init__(self):
         pass
 
     def classify(self, claim: str) -> Dict[str, Any]:
@@ -50,9 +50,41 @@ Do not include any other text, markdown formatting, or explanations. Only output
         
         from dotenv import load_dotenv
         import urllib.request
-        import time
+        from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, call_groq_with_key_rotation
         
         load_dotenv()
+        
+        payload = {
+            "model": GROQ_SIMPLE_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.1,
+            "response_format": {"type": "json_object"},
+            "max_tokens": 512
+        }
+        content, status = call_groq_with_key_rotation(
+            payload=payload,
+            timeout=30,
+            log_prefix="[GeoClassifier]"
+        )
+        if status == "success" and content:
+            try:
+                result = json.loads(content)
+                is_geo = bool(result.get("is_geopolitical", False))
+                reason = str(result.get("reason", "No reason provided"))
+                parties = result.get("involved_parties", [])
+                if not isinstance(parties, list):
+                    parties = [str(parties)]
+                subtype = str(result.get("claim_subtype", "unknown"))
+                
+                return {
+                    "is_geopolitical": is_geo,
+                    "reason": reason,
+                    "involved_parties": parties,
+                    "claim_subtype": subtype
+                }
+            except Exception as e:
+                logger.warning(f"[GeoClassifier] Groq Parse failed: {e}")
+
         OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
         
         if not OPENROUTER_API_KEY:
@@ -105,7 +137,7 @@ Do not include any other text, markdown formatting, or explanations. Only output
 
     def _regex_fallback(self, claim: str) -> Dict[str, Any]:
         """
-        Fallback classification using keyword matching if Ollama fails.
+        Fallback classification using keyword matching if LLMs fail.
         """
         is_geo = bool(GEO_KEYWORDS.search(claim))
         reason = "Regex fallback matched geopolitical keywords." if is_geo else "Regex fallback found no geopolitical keywords."

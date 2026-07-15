@@ -12,6 +12,9 @@ from truth_mirror.llm_client import LLMClient
 
 logger = logging.getLogger(__name__)
 
+# NOTE: Ollama references here are for the optional ReAct agent only.
+# The main pipeline does not use Ollama. See models.md.
+
 class ReActAgent:
     """
     A custom ReAct (Reason + Act) Agent framework.

@@ -25,7 +25,7 @@ class RetrievalConfig:
 
 
 class EvidenceRetriever:
-    CACHE_VERSION = "v2.2"
+    CACHE_VERSION = "v2.4"
 
     def __init__(self, cache_path: str = ".tm_cache.json", config: RetrievalConfig | None = None):
         self.cache_file = Path(cache_path)

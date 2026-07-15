@@ -4,7 +4,7 @@ import requests
 import logging
 from dataclasses import dataclass
 from typing import Optional
-from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label
+from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label, call_groq_with_key_rotation
 
 logger = logging.getLogger(__name__)
 
@@ -76,45 +76,42 @@ Rules:
 - When in doubt between historical_completed and specific_incident, choose specific_incident
 """
 
-        groq_key = os.getenv("GROQ_API_KEY")
-        if not groq_key:
-            logger.warning("[TemporalClassifier] GROQ_API_KEY not set. Using fallback.")
-            return self._fallback(claim)
+        def _call_groq(prompt_str: str) -> dict | None:
+            payload = {
+                "model": GROQ_SIMPLE_MODEL,
+                "messages": [{"role": "user", "content": prompt_str}],
+                "temperature": 0.0,
+                "response_format": {"type": "json_object"},
+                "max_tokens": 200
+            }
 
-        try:
-            logger.info(f"[TemporalClassifier] Attempting Groq ({get_model_label(GROQ_SIMPLE_MODEL)}) for temporal classification.")
-            response = requests.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {groq_key}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": GROQ_SIMPLE_MODEL,
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.0,
-                    "response_format": {"type": "json_object"},
-                    "max_tokens": 200
-                },
-                timeout=15
+            content, status = call_groq_with_key_rotation(
+                payload=payload,
+                timeout=25,
+                log_prefix="[TemporalClassifier]"
             )
-            if response.status_code == 429:
-                logger.warning("[TemporalClassifier] Groq rate limited. Using fallback.")
-                return self._fallback(claim)
 
-            response.raise_for_status()
-            content = response.json()["choices"][0]["message"]["content"]
-            parsed = json.loads(content)
+            if status != "success" or content is None:
+                return None
 
+            try:
+                parsed = json.loads(content)
+                logger.info("[TemporalClassifier] Groq call succeeded.")
+                return parsed
+            except Exception as e:
+                logger.warning(f"[TemporalClassifier] Failed to parse Groq response: {e}")
+                return None
+
+        parsed = _call_groq(prompt)
+        if parsed:
             return TemporalContext(
                 temporal_type=parsed.get("temporal_type", "current_state"),
                 needs_date=bool(parsed.get("needs_date", True)),
                 date_qualifier=str(parsed.get("date_qualifier", "")),
                 reasoning=str(parsed.get("reasoning", ""))
             )
-
-        except Exception as e:
-            logger.warning(f"[TemporalClassifier] Groq call failed: {e}. Using fallback.")
+        else:
+            logger.warning("[TemporalClassifier] Groq call failed. Using fallback.")
             return self._fallback(claim)
 
     def _fallback(self, claim: str) -> TemporalContext:

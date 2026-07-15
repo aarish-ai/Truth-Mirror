@@ -7,7 +7,7 @@ import time
 from dotenv import load_dotenv
 from typing import List, Optional
 from truth_mirror.temporal_classifier import TemporalContext
-from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label
+from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label, call_groq_with_key_rotation
 
 load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -74,50 +74,34 @@ Claim Subtype: {claim_subtype}
 Output JSON Array of 3 strings:
 """
         def _call_groq(prompt_str: str) -> list | None:
-            groq_key = os.getenv("GROQ_API_KEY")
-            if not groq_key:
+            payload = {
+                "model": GROQ_SIMPLE_MODEL,
+                "messages": [{"role": "user", "content": prompt_str}],
+                "temperature": 0.1,
+                "max_tokens": 256
+            }
+
+            content, status = call_groq_with_key_rotation(
+                payload=payload,
+                timeout=25,
+                log_prefix="[GeoQueryGenerator]"
+            )
+
+            if status != "success" or content is None:
                 return None
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    response = requests.post(
-                        "https://api.groq.com/openai/v1/chat/completions",
-                        headers={
-                            "Authorization": f"Bearer {groq_key}",
-                            "Content-Type": "application/json"
-                        },
-                        json={
-                            "model": GROQ_SIMPLE_MODEL,
-                            "messages": [{"role": "user", "content": prompt_str}],
-                            "temperature": 0.1,
-                            "max_tokens": 256
-                        },
-                        timeout=25
-                    )
-                    if response.status_code == 429:
-                        wait = (2 ** attempt) + 1
-                        logger.warning(
-                            f"[GeoQueryGenerator] Groq rate limited attempt "
-                            f"{attempt+1}. Waiting {wait}s."
-                        )
-                        time.sleep(wait)
-                        continue
-                    response.raise_for_status()
-                    content = response.json()["choices"][0]["message"]["content"]
-                    parsed = json.loads(content)
-                    logger.info("[GeoQueryGenerator] Groq call succeeded.")
-                    if isinstance(parsed, list):
-                        return parsed
-                    for key in parsed:
-                        if isinstance(parsed[key], list):
-                            return parsed[key]
-                    return None
-                except Exception as e:
-                    if attempt == max_retries - 1:
-                        logger.warning(f"[GeoQueryGenerator] Groq failed: {e}")
-                        return None
-                    continue
-            return None
+
+            try:
+                parsed = json.loads(content)
+                logger.info("[GeoQueryGenerator] Groq call succeeded.")
+                if isinstance(parsed, list):
+                    return parsed
+                for key in parsed:
+                    if isinstance(parsed[key], list):
+                        return parsed[key]
+                return None
+            except Exception as e:
+                logger.warning(f"[GeoQueryGenerator] Failed to parse Groq response: {e}")
+                return None
 
         try:
             response_text = None

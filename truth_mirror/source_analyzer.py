@@ -22,7 +22,8 @@ from truth_mirror.groq_router import (
     GROQ_ANALYSIS_PRIMARY,
     GROQ_ANALYSIS_FALLBACK_1,
     GROQ_ANALYSIS_FALLBACK_2,
-    get_model_label
+    get_model_label,
+    call_groq_with_key_rotation
 )
 
 logger = logging.getLogger(__name__)
@@ -381,16 +382,15 @@ class SourceAnalyzer:
         prompt: str,
         model: str = None
     ) -> list | str | None:
-        import os, json
-        import requests as req_lib
-        groq_key = os.getenv("GROQ_API_KEY")
-        if not groq_key:
-            logger.warning("[SourceAnalyzer] GROQ_API_KEY not set. Cannot use Groq for batch analysis.")
-            return None
-            
+        """
+        Calls Groq batch analysis for given model, trying all API keys.
+        Returns:
+          list          — parsed SourceAnalysis list on success
+          "RATE_LIMITED" — all keys returned 429 for this model
+          None          — failure for non-rate-limit reasons
+        """
         model = model or GROQ_ANALYSIS_PRIMARY
-        logger.info(f"[SourceAnalyzer] Groq batch using {get_model_label(model)} for {len(articles)} articles.")
-            
+
         payload = {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
@@ -398,29 +398,22 @@ class SourceAnalyzer:
             "response_format": {"type": "json_object"},
             "max_tokens": 2048
         }
-        headers = {
-            "Authorization": f"Bearer {groq_key}",
-            "Content-Type": "application/json"
-        }
-        
-        try:
-            response = req_lib.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers=headers,
-                json=payload,
-                timeout=60
-            )
-            if response.status_code == 429:
-                logger.warning(f"[SourceAnalyzer] {get_model_label(model)} returned 429 (rate limit).")
-                return "RATE_LIMITED"
-            response.raise_for_status()
-            content = response.json()["choices"][0]["message"]["content"]
-            
-            results = _parse_batch_response(content, articles)
-            return results if results else None
-        except Exception as e:
-            logger.warning(f"[SourceAnalyzer] Groq batch call failed: {e}")
+
+        content, status = call_groq_with_key_rotation(
+            payload=payload,
+            timeout=60,
+            log_prefix="[SourceAnalyzer]"
+        )
+
+        if status == "rate_limited":
+            return "RATE_LIMITED"
+
+        if status != "success" or content is None:
             return None
+
+        # Parse the response
+        results = _parse_batch_response(content, articles)
+        return results if results else None
 
     def _call_gemini_batch(self, claim: str, batch: list, prompt: str) -> list | None:
         raw = _call_gemini_sync(prompt, BULK_ANALYSIS_MODEL, timeout=45)

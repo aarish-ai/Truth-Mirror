@@ -129,30 +129,24 @@ Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT
             
             if data is None:
                 # TRY GROQ BEFORE OPENROUTER
-                groq_key = os.environ.get("GROQ_API_KEY")
-                if groq_key:
-                    try:
-                        import requests as req_lib
-                        groq_payload = {
-                            "model": "llama-3.3-70b-versatile",
-                            "messages": [{"role": "user", "content": prompt}],
-                            "temperature": 0.1,
-                            "max_tokens": 4096
-                        }
-                        groq_headers = {
-                            "Authorization": f"Bearer {groq_key}",
-                            "Content-Type": "application/json"
-                        }
-                        groq_resp = req_lib.post(
-                            "https://api.groq.com/openai/v1/chat/completions",
-                            headers=groq_headers,
-                            json=groq_payload,
-                            timeout=60
-                        )
-                        groq_resp.raise_for_status()
-                        groq_content = groq_resp.json()["choices"][0]["message"]["content"]
+                try:
+                    from truth_mirror.groq_router import GROQ_ANALYSIS_PRIMARY, call_groq_with_key_rotation
+                    groq_payload = {
+                        "model": GROQ_ANALYSIS_PRIMARY,
+                        "messages": [{"role": "user", "content": prompt}],
+                        "temperature": 0.1,
+                        "response_format": {"type": "json_object"},
+                        "max_tokens": 4096
+                    }
+                    groq_content, groq_status = call_groq_with_key_rotation(
+                        payload=groq_payload,
+                        timeout=60,
+                        log_prefix="[PerspectiveSynthesizer]"
+                    )
+                    if groq_status == "success" and groq_content:
                         try:
                             data = json.loads(groq_content)
+                            logger.info("[PerspectiveSynthesizer] Groq fallback succeeded.")
                         except json.JSONDecodeError:
                             if JSON_REPAIR_AVAILABLE:
                                 repaired = repair_json(groq_content, return_objects=True)
@@ -165,10 +159,11 @@ Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT
                             else:
                                 logger.warning("[PerspectiveSynthesizer] JSON parse failed and json_repair not available.")
                                 data = None
-                        logger.info("[run_sync] Groq fallback succeeded.")
-                    except Exception as e:
-                        logger.warning(f"[run_sync] Groq fallback failed: {e}")
+                    else:
                         data = None
+                except Exception as e:
+                    logger.warning(f"[PerspectiveSynthesizer] Groq fallback failed: {e}")
+                    data = None
 
             if data is None:
                 import os, urllib.request, re, time, random

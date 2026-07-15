@@ -4,7 +4,7 @@ import urllib.request
 import logging
 from dataclasses import dataclass
 from truth_mirror.geo_classifier import GEO_KEYWORDS
-from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label
+from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label, call_groq_with_key_rotation
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ def extract_years_mentioned(text: str) -> list[int]:
     years = sorted([int(m) for m in matches])
     return years
 
-def gate_claim(claim: str, ollama_model: str = "qwen2.5:3b") -> ClaimScopeResult:
+def gate_claim(claim: str) -> ClaimScopeResult:
     years = extract_years_mentioned(claim)
     if years and max(years) < 2015:
         return ClaimScopeResult(
@@ -77,47 +77,30 @@ Rules:
     load_dotenv()
     OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
     def _call_groq(prompt_str: str) -> dict | None:
-        import requests
-        groq_key = os.getenv("GROQ_API_KEY")
-        if not groq_key:
+        payload = {
+            "model": GROQ_SIMPLE_MODEL,
+            "messages": [{"role": "user", "content": prompt_str}],
+            "temperature": 0.1,
+            "response_format": {"type": "json_object"},
+            "max_tokens": 512
+        }
+
+        content, status = call_groq_with_key_rotation(
+            payload=payload,
+            timeout=25,
+            log_prefix="[ClaimScopeGate]"
+        )
+
+        if status != "success" or content is None:
             return None
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                response = requests.post(
-                    "https://api.groq.com/openai/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {groq_key}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": GROQ_SIMPLE_MODEL,
-                        "messages": [{"role": "user", "content": prompt_str}],
-                        "temperature": 0.1,
-                        "response_format": {"type": "json_object"},
-                        "max_tokens": 512
-                    },
-                    timeout=25
-                )
-                if response.status_code == 429:
-                    wait = (2 ** attempt) + 1
-                    logger.warning(
-                        f"[ClaimScopeGate] Groq rate limited attempt "
-                        f"{attempt+1}. Waiting {wait}s."
-                    )
-                    time.sleep(wait)
-                    continue
-                response.raise_for_status()
-                content = response.json()["choices"][0]["message"]["content"]
-                parsed_json = json.loads(content)
-                logger.info("[ClaimScopeGate] Groq call succeeded.")
-                return parsed_json
-            except Exception as e:
-                if attempt == max_retries - 1:
-                    logger.warning(f"[ClaimScopeGate] Groq failed: {e}")
-                    return None
-                continue
-        return None
+
+        try:
+            parsed = json.loads(content)
+            logger.info("[ClaimScopeGate] Groq call succeeded.")
+            return parsed
+        except Exception as e:
+            logger.warning(f"[ClaimScopeGate] Failed to parse Groq response: {e}")
+            return None
 
     parsed = None
     logger.info(f"[ClaimScopeGate] Attempting Groq ({get_model_label(GROQ_SIMPLE_MODEL)}) for scope classification.")
