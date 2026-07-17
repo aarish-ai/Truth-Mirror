@@ -2,6 +2,7 @@ import os
 import json
 import logging
 from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label, call_groq_with_key_rotation
+from truth_mirror.run_tracker import tracker
 import requests
 import re
 import time
@@ -50,11 +51,14 @@ Output:"""
             )
 
             if status != "success" or content is None:
+                record_status = "rate_limited" if status == "rate_limited" else "failed"
+                tracker.record("decomposer", GROQ_SIMPLE_MODEL, "groq", record_status)
                 return None
 
             try:
                 parsed = json.loads(content)
                 logger.info("[LocalDecomposer] Groq call succeeded.")
+                tracker.record("decomposer", GROQ_SIMPLE_MODEL, "groq", "success")
                 if isinstance(parsed, list):
                     return parsed
                 for key in parsed:
@@ -63,6 +67,7 @@ Output:"""
                 return None
             except Exception as e:
                 logger.warning(f"[LocalDecomposer] Failed to parse Groq response: {e}")
+                tracker.record("decomposer", GROQ_SIMPLE_MODEL, "groq", "failed")
                 return None
 
         try:
@@ -102,6 +107,7 @@ Output:"""
                         response.raise_for_status()
                         response_text = response.json()["choices"][0]["message"]["content"]
                         openrouter_failed = False
+                        tracker.record("decomposer", "qwen/qwen3-next-80b-a3b-instruct:free", "openrouter", "success")
                         break
                     except Exception as e:
                         logger.warning(f"OpenRouter failed ({e}).")
@@ -158,4 +164,5 @@ Output:"""
             
         except Exception as e:
             logger.info(f"Fallback to original claim (decomposition failed): {e}")
+            tracker.record("decomposer", "identity_fallback", "heuristic_fallback", "success")
             return [claim]

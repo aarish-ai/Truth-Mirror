@@ -8,6 +8,7 @@ import asyncio
 from truth_mirror.source_analyzer import SourceAnalysis
 from truth_mirror.perspective_synthesizer import PerspectiveGroup
 from truth_mirror.hidden_story_extractor import HiddenStory
+from truth_mirror.run_tracker import tracker
 try:
     from google.genai import types
 except ImportError:
@@ -134,11 +135,14 @@ Verdict definitions:
                             if raw_json.startswith("```json"):
                                 raw_json = raw_json.strip("` \n").removeprefix("json")
                             data = json.loads(raw_json)
+                            if data is not None:
+                                tracker.record("verdict_generation", "gemini-3.5-flash", "gemini", "success")
                             break
                         except Exception as e:
                             logger.warning(f"Gemini verdict engine failed on attempt {attempt+1}: {e}")
                             if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
                                 logger.warning("Rotating Gemini key due to 429 in verdict_engine...")
+                                tracker.record("verdict_generation", "gemini-3.5-flash", "gemini", "rate_limited")
                                 rotate_gemini_key()
                 except Exception:
                     pass
@@ -166,6 +170,8 @@ Verdict definitions:
                         except json.JSONDecodeError:
                             logger.warning("[VerdictEngine] JSON parse failed.")
                             data = None
+                        if data is not None:
+                            tracker.record("verdict_generation", GROQ_ANALYSIS_PRIMARY, "groq", "fallback_used")
                     else:
                         data = None
                 except Exception as e:
@@ -191,6 +197,8 @@ Verdict definitions:
                                 if match:
                                     raw_json = match.group(0)
                                 data = json.loads(raw_json)
+                                if data is not None:
+                                    tracker.record("verdict_generation", "qwen/qwen3-next-80b-a3b-instruct:free", "openrouter", "fallback_used")
                                 break
                         except Exception as e:
                             wait_time = (2 ** attempt) + random.uniform(0, 1)
@@ -198,6 +206,7 @@ Verdict definitions:
                             time.sleep(wait_time)
                             
             if data is None:
+                tracker.record("verdict_generation", "ALL_FAILED", "none", "failed")
                 logger.error("All API fallbacks failed for verdict generation.")
             return data
 

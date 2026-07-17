@@ -25,6 +25,7 @@ from truth_mirror.groq_router import (
     get_model_label,
     call_groq_with_key_rotation
 )
+from truth_mirror.run_tracker import tracker
 
 logger = logging.getLogger(__name__)
 
@@ -474,6 +475,7 @@ class SourceAnalyzer:
                 self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_PRIMARY
             )
             if raw == "RATE_LIMITED":
+                tracker.record(f"source_analysis_batch_{batch_num}", GROQ_ANALYSIS_PRIMARY, "groq", "rate_limited")
                 logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
                                f"70b rate limited. Trying 4-scout fallback.")
                 # ── GROQ FALLBACK 1 (4-scout-17b) ───────────────────────────
@@ -481,6 +483,7 @@ class SourceAnalyzer:
                     self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_FALLBACK_1
                 )
                 if raw == "RATE_LIMITED":
+                    tracker.record(f"source_analysis_batch_{batch_num}", GROQ_ANALYSIS_FALLBACK_1, "groq", "rate_limited")
                     logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
                                    f"4-scout rate limited. Trying 8b last resort.")
                     # ── GROQ FALLBACK 2 (8b — quality warning) ───────────────
@@ -489,6 +492,14 @@ class SourceAnalyzer:
                     raw = await asyncio.to_thread(
                         self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_FALLBACK_2
                     )
+                    if raw == "RATE_LIMITED":
+                        tracker.record(f"source_analysis_batch_{batch_num}", GROQ_ANALYSIS_FALLBACK_2, "groq", "rate_limited")
+                    elif raw is not None:
+                        tracker.record(f"source_analysis_batch_{batch_num}", GROQ_ANALYSIS_FALLBACK_2, "groq", "fallback_used")
+                elif raw is not None:
+                    tracker.record(f"source_analysis_batch_{batch_num}", GROQ_ANALYSIS_FALLBACK_1, "groq", "fallback_used")
+            elif raw is not None:
+                tracker.record(f"source_analysis_batch_{batch_num}", GROQ_ANALYSIS_PRIMARY, "groq", "success")
 
             if raw and raw != "RATE_LIMITED":
                 result = raw
@@ -506,9 +517,11 @@ class SourceAnalyzer:
                     self._call_gemini_batch, claim, batch, prompt
                 )
                 if gemini_result:
+                    tracker.record(f"source_analysis_batch_{batch_num}", "gemini-2.5-flash", "gemini", "fallback_used")
                     all_results.extend(gemini_result)
                     await asyncio.sleep(10)  # Longer Gemini recovery window
                 else:
+                    tracker.record(f"source_analysis_batch_{batch_num}", "ALL_FAILED", "none", "failed")
                     logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches} "
                                    f"completely failed. Skipping.")
                     await asyncio.sleep(5)

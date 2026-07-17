@@ -5,6 +5,7 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label, call_groq_with_key_rotation
+from truth_mirror.run_tracker import tracker
 
 logger = logging.getLogger(__name__)
 
@@ -92,14 +93,18 @@ Rules:
             )
 
             if status != "success" or content is None:
+                record_status = "rate_limited" if status == "rate_limited" else "failed"
+                tracker.record("temporal_classifier", GROQ_SIMPLE_MODEL, "groq", record_status)
                 return None
 
             try:
                 parsed = json.loads(content)
                 logger.info("[TemporalClassifier] Groq call succeeded.")
+                tracker.record("temporal_classifier", GROQ_SIMPLE_MODEL, "groq", "success")
                 return parsed
             except Exception as e:
                 logger.warning(f"[TemporalClassifier] Failed to parse Groq response: {e}")
+                tracker.record("temporal_classifier", GROQ_SIMPLE_MODEL, "groq", "failed")
                 return None
 
         parsed = _call_groq(prompt)
@@ -125,6 +130,7 @@ Rules:
 
         if has_date:
             # Claim already has temporal markers — treat as recent_development
+            tracker.record("temporal_classifier", "keyword_heuristic", "heuristic_fallback", "success")
             return TemporalContext(
                 temporal_type="recent_development",
                 needs_date=True,
@@ -133,6 +139,7 @@ Rules:
             )
         else:
             # Default conservative: append current date
+            tracker.record("temporal_classifier", "keyword_heuristic", "heuristic_fallback", "success")
             return TemporalContext(
                 temporal_type="current_state",
                 needs_date=True,

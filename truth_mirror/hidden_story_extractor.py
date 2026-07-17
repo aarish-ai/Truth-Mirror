@@ -7,6 +7,7 @@ import asyncio
 
 from truth_mirror.source_analyzer import SourceAnalysis
 from truth_mirror.perspective_synthesizer import PerspectiveGroup
+from truth_mirror.run_tracker import tracker
 try:
     from google.genai import types
 except ImportError:
@@ -140,11 +141,14 @@ Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT
                                 else:
                                     logger.warning("[HiddenStoryExtractor] JSON parse failed and json_repair not available.")
                                     data = None
+                            if data is not None:
+                                tracker.record("hidden_story_extraction", "gemini-3.5-flash", "gemini", "success")
                             break
                         except Exception as e:
                             logger.warning(f"Gemini hidden story extraction failed on attempt {attempt+1}: {e}")
                             if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
                                 logger.warning("Rotating Gemini key due to 429 in hidden_story_extractor...")
+                                tracker.record("hidden_story_extraction", "gemini-3.5-flash", "gemini", "rate_limited")
                                 rotate_gemini_key()
                 except Exception:
                     pass
@@ -181,6 +185,8 @@ Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT
                             else:
                                 logger.warning("[HiddenStoryExtractor] JSON parse failed and json_repair not available.")
                                 data = None
+                        if data is not None:
+                            tracker.record("hidden_story_extraction", GROQ_ANALYSIS_PRIMARY, "groq", "fallback_used")
                     else:
                         data = None
                 except Exception as e:
@@ -219,6 +225,8 @@ Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT
                                     else:
                                         logger.warning("[HiddenStoryExtractor] JSON parse failed and json_repair not available.")
                                         data = None
+                                if data is not None:
+                                    tracker.record("hidden_story_extraction", "qwen/qwen3-next-80b-a3b-instruct:free", "openrouter", "fallback_used")
                                 break
                         except Exception as e:
                             wait_time = (2 ** attempt) + random.uniform(0, 1)
@@ -226,6 +234,7 @@ Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT
                             time.sleep(wait_time)
                             
             if data is None:
+                tracker.record("hidden_story_extraction", "ALL_FAILED", "none", "failed")
                 logger.error("All API fallbacks failed for hidden story extraction.")
             return data
 

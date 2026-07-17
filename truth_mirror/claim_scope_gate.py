@@ -5,6 +5,7 @@ import logging
 from dataclasses import dataclass
 from truth_mirror.geo_classifier import GEO_KEYWORDS
 from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label, call_groq_with_key_rotation
+from truth_mirror.run_tracker import tracker
 
 logger = logging.getLogger(__name__)
 
@@ -92,14 +93,18 @@ Rules:
         )
 
         if status != "success" or content is None:
+            record_status = "rate_limited" if status == "rate_limited" else "failed"
+            tracker.record("scope_gate", GROQ_SIMPLE_MODEL, "groq", record_status)
             return None
 
         try:
             parsed = json.loads(content)
             logger.info("[ClaimScopeGate] Groq call succeeded.")
+            tracker.record("scope_gate", GROQ_SIMPLE_MODEL, "groq", "success")
             return parsed
         except Exception as e:
             logger.warning(f"[ClaimScopeGate] Failed to parse Groq response: {e}")
+            tracker.record("scope_gate", GROQ_SIMPLE_MODEL, "groq", "failed")
             return None
 
     parsed = None
@@ -128,6 +133,7 @@ Rules:
                         resp_data = json.loads(response.read().decode("utf-8"))
                         content = resp_data["candidates"][0]["content"]["parts"][0]["text"]
                         parsed = json.loads(content)
+                        tracker.record("scope_gate", "gemini-2.5-flash", "gemini", "success")
                         break
                 except urllib.error.HTTPError as e:
                     if e.code == 429:
@@ -173,6 +179,7 @@ Rules:
                     resp_data = json.loads(response.read().decode("utf-8"))
                     content = resp_data["choices"][0]["message"]["content"]
                     parsed = json.loads(content)
+                    tracker.record("scope_gate", "qwen/qwen3-next-80b-a3b-instruct:free", "openrouter", "success")
                     break
             except urllib.error.HTTPError as e:
                 if e.code == 429:
@@ -204,6 +211,7 @@ Rules:
         parties = []
         subtype = "unknown"
         est_time = "unknown"
+        tracker.record("scope_gate", "regex_keyword_fallback", "regex_fallback", "success")
         if not years or (years and max(years) >= 2015):
             in_temp = True
             temp_reason = "Fallback assumption: current or >= 2015."

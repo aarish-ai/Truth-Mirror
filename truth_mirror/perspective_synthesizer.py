@@ -7,6 +7,7 @@ import asyncio
 
 from truth_mirror.source_analyzer import SourceAnalysis
 from truth_mirror.source_registry import ALIGNMENT_GROUP_LABELS
+from truth_mirror.run_tracker import tracker
 try:
     from google.genai import types
 except ImportError:
@@ -118,11 +119,15 @@ Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT
                                 else:
                                     logger.warning("[PerspectiveSynthesizer] JSON parse failed and json_repair not available.")
                                     data = None
+                            
+                            if data is not None:
+                                tracker.record("perspective_synthesis", "gemini-3.5-flash", "gemini", "success")
                             break
                         except Exception as e:
                             logger.warning(f"Gemini perspective synthesis failed on attempt {attempt+1}: {e}")
                             if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
                                 logger.warning("Rotating Gemini key due to 429 in perspective_synthesizer...")
+                                tracker.record("perspective_synthesis", "gemini-3.5-flash", "gemini", "rate_limited")
                                 rotate_gemini_key()
                 except Exception:
                     pass
@@ -159,6 +164,8 @@ Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT
                             else:
                                 logger.warning("[PerspectiveSynthesizer] JSON parse failed and json_repair not available.")
                                 data = None
+                        if data is not None:
+                            tracker.record("perspective_synthesis", GROQ_ANALYSIS_PRIMARY, "groq", "fallback_used")
                     else:
                         data = None
                 except Exception as e:
@@ -197,6 +204,8 @@ Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT
                                     else:
                                         logger.warning("[PerspectiveSynthesizer] JSON parse failed and json_repair not available.")
                                         data = None
+                                if data is not None:
+                                    tracker.record("perspective_synthesis", "qwen/qwen3-next-80b-a3b-instruct:free", "openrouter", "fallback_used")
                                 break
                         except Exception as e:
                             wait_time = (2 ** attempt) + random.uniform(0, 1)
@@ -204,6 +213,7 @@ Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT
                             time.sleep(wait_time)
                             
             if data is None:
+                tracker.record("perspective_synthesis", "ALL_FAILED", "none", "failed")
                 logger.error("All API fallbacks failed for perspective synthesis.")
             return data
 

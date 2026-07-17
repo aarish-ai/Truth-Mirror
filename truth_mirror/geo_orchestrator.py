@@ -145,6 +145,12 @@ class GeopoliticalPipeline:
         from truth_mirror.verdict_engine import VerdictEngine
         from truth_mirror.pipeline_status import set_stage
         from truth_mirror.temporal_classifier import TemporalClassifier
+        from truth_mirror.run_tracker import tracker
+        from truth_mirror.testing_logger import TestingLogger
+        import time
+
+        tracker.reset(claim)
+        start_time = time.time()
         
         # ── CACHE LOOKUP ──────────────────────────────────────────────────────
         cache_key = EvidenceCache.normalize_claim_key(claim)
@@ -154,7 +160,13 @@ class GeopoliticalPipeline:
             # Reconstruct GeopoliticalResult from cached dict
             # Return it as a dict directly — to_json() already handles dict
             cached_result["_from_cache"] = True
-            return _dict_to_geo_result(cached_result)
+            res = _dict_to_geo_result(cached_result)
+            tracker.record("cache", "cache", "local", "success")
+            events = tracker.get_stage_summary()
+            test_logger = TestingLogger()
+            test_logger.log_run(claim, res, events, time.time() - start_time)
+            tracker.reset("")
+            return res
         logger.info(f"[GeoOrchestrator] Cache MISS for claim: '{claim[:60]}...'")
         # ── END CACHE LOOKUP ──────────────────────────────────────────────────
 
@@ -244,7 +256,18 @@ class GeopoliticalPipeline:
         logger.info("[GeoOrchestrator] Waiting 10s before synthesis to protect Gemini RPM.")
         
         if not source_analyses:
-            return None
+            # Create a fallback/empty result so we can log it
+            res = GeopoliticalResult(
+                claim=claim, original_claim=claim, is_geopolitical=True,
+                source_analyses=[], perspective_groups=[], hidden_stories=[],
+                verdict="UNVERIFIABLE", confidence=0.0,
+                background="No relevant sources found.", current_situation=""
+            )
+            events = tracker.get_stage_summary()
+            test_logger = TestingLogger()
+            test_logger.log_run(claim, res, events, time.time() - start_time)
+            tracker.reset("")
+            return res
 
         gemini_client = getattr(self.synthesizer, "client", None)
         
@@ -308,6 +331,13 @@ class GeopoliticalPipeline:
         # ── END CACHE STORE ───────────────────────────────────────────────────
 
         # self.eval_logger.log_geo_run(result)
+        
+        elapsed = time.time() - start_time
+        events = tracker.get_stage_summary()
+        test_logger = TestingLogger()
+        test_logger.log_run(claim, result, events, elapsed)
+        tracker.reset("")
+        
         return result
 
 async def generate_background_narrative(claim: str, source_analyses: list, gemini_client) -> tuple[str, str]:
@@ -352,11 +382,16 @@ async def generate_background_narrative(claim: str, source_analyses: list, gemin
                         if raw_json.startswith("```json"):
                             raw_json = raw_json.strip("` \n").removeprefix("json")
                         data = json.loads(raw_json)
+                        if data is not None:
+                            from truth_mirror.run_tracker import tracker
+                            tracker.record("background_generation", "gemini-3.5-flash", "gemini", "success")
                         break
                     except Exception as e:
                         logger.warning(f"Gemini background generation failed on attempt {attempt+1}: {e}")
                         if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
                             logger.warning("Rotating Gemini key due to 429 in geo_orchestrator...")
+                            from truth_mirror.run_tracker import tracker
+                            tracker.record("background_generation", "gemini-3.5-flash", "gemini", "rate_limited")
                             rotate_gemini_key()
             except Exception:
                 pass
@@ -379,6 +414,9 @@ async def generate_background_narrative(claim: str, source_analyses: list, gemin
                             if match:
                                 raw_json = match.group(0)
                             data = json.loads(raw_json)
+                            if data is not None:
+                                from truth_mirror.run_tracker import tracker
+                                tracker.record("background_generation", "qwen/qwen3-next-80b-a3b-instruct:free", "openrouter", "fallback_used")
                             break
                     except Exception as e:
                         wait_time = (2 ** attempt) + random.uniform(0, 1)
@@ -386,6 +424,8 @@ async def generate_background_narrative(claim: str, source_analyses: list, gemin
                         time.sleep(wait_time)
                         
         if data is None:
+            from truth_mirror.run_tracker import tracker
+            tracker.record("background_generation", "ALL_FAILED", "none", "failed")
             logger.error("All API fallbacks failed for background generation.")
         return data
 

@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from typing import List, Optional
 from truth_mirror.temporal_classifier import TemporalContext
 from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label, call_groq_with_key_rotation
+from truth_mirror.run_tracker import tracker
 
 load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -88,11 +89,14 @@ Output JSON Array of 3 strings:
             )
 
             if status != "success" or content is None:
+                record_status = "rate_limited" if status == "rate_limited" else "failed"
+                tracker.record("query_generator", GROQ_SIMPLE_MODEL, "groq", record_status)
                 return None
 
             try:
                 parsed = json.loads(content)
                 logger.info("[GeoQueryGenerator] Groq call succeeded.")
+                tracker.record("query_generator", GROQ_SIMPLE_MODEL, "groq", "success")
                 if isinstance(parsed, list):
                     return parsed
                 for key in parsed:
@@ -101,6 +105,7 @@ Output JSON Array of 3 strings:
                 return None
             except Exception as e:
                 logger.warning(f"[GeoQueryGenerator] Failed to parse Groq response: {e}")
+                tracker.record("query_generator", GROQ_SIMPLE_MODEL, "groq", "failed")
                 return None
 
         try:
@@ -139,6 +144,7 @@ Output JSON Array of 3 strings:
                         response.raise_for_status()
                         response_text = response.json()["choices"][0]["message"]["content"]
                         openrouter_failed = False
+                        tracker.record("query_generator", "qwen/qwen3-next-80b-a3b-instruct:free", "openrouter", "success")
                         break
                     except Exception as e:
                         logger.warning(f"OpenRouter failed ({e}).")
@@ -184,6 +190,7 @@ Output JSON Array of 3 strings:
 
     def _get_fallback_queries(self, sub_claim: str, involved_parties: list[str]) -> list[str]:
         """Deterministic fallback queries."""
+        tracker.record("query_generator", "deterministic_fallback", "heuristic_fallback", "success")
         q1 = f"{sub_claim} Reuters AP News"
         q2 = f"{sub_claim} Al Jazeera TASS CGTN"
         q3 = f"{sub_claim} independent analysis"
