@@ -20,6 +20,7 @@ Our architecture relies on the following technologies:
 - **Result Caching**: We utilize an embedded SQLite database (`caching.py`) to map full claim hashes to their `GeopoliticalResult`, saving 100% of API calls on repeated queries with adaptive TTLs based on the temporal nature of the claim.
 - **Tertiary Fallback (OpenRouter)**: To ensure absolute high availability, if both Groq and Gemini face rate limits or high load during synthesis, the system automatically falls back to `qwen/qwen3-next-80b-a3b-instruct:free` via the OpenRouter API.
 - **Retrieval Sources**: Live data is pulled in parallel using custom Python connectors for Wikipedia, Wikinews, ArXiv, Crossref, Semantic Scholar, PubMed, Google News RSS, and Non-Western Media outlets (Al Jazeera, TASS, CGTN).
+- **Run Logging**: Every end-to-end pipeline run is fully logged into a local `testing.md` file, tracking the models used, runtimes, and the complete synthesized geopolitical breakdown for easy review.
 
 ## 4. Example
 Consider the claim: **"US invaded Venezuela"**
@@ -53,7 +54,8 @@ Consider the claim: **"US invaded Venezuela"**
    Create a `.env` file in the root directory and add your API keys. You can provide multiple Gemini keys separated by commas to utilize the key-rotator:
    ```env
    GEMINI_API_KEYS=key1,key2,key3
-   GROQ_API_KEY=your_groq_api_key_here
+   GROQ_API_KEY_1=your_primary_groq_api_key
+   GROQ_API_KEY_2=your_secondary_groq_api_key
    OPENROUTER_API_KEY=your_openrouter_api_key_here
    ```
 

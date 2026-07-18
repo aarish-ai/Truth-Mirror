@@ -105,6 +105,17 @@ We encountered high API costs and frequent rate limiting because identical claim
 
 ---
 
+## 🔍 Step 9 — Dual Groq Keys, Logging & UI Bug Fixes
+
+We encountered rate limits on Groq despite its high capacity, needed better visibility into pipeline runs without digging through console logs, and found minor bugs in how confidence labels and alignments were displayed. Then we did:
+- Implemented **Dual Groq Key rotation** (`GROQ_API_KEY_1` and `GROQ_API_KEY_2`) to double our structural task capacity.
+- Built a comprehensive `testing_logger.py` that outputs a beautifully formatted `testing.md` tracking all models used, status outcomes, runtimes, and the full text of the synthesized analysis for every run.
+- Replaced confusing numerical confidence scores (e.g., `98%`) with clear qualitative text labels (`Very High`, `Low`, etc.) across the UI and logs.
+- Fixed JSON parsing crashes in `perspective_synthesizer.py` by adding defensive extraction for arrays wrapped inside dictionaries.
+- Forced `source_analyzer.py` to prioritize the hardcoded alignments in `source_registry.py` instead of relying on the LLM's occasionally hallucinated source labels.
+
+---
+
 ## 📍 Where We Are Now
 
 | Component | Before | After |
