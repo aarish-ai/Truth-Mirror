@@ -216,10 +216,20 @@ Verdict definitions:
                 logger.warning(f"Verdict data is not a dict: {type(data)}")
                 data = None
             if data:
+                raw_confidence = float(data.get("confidence", 0.0))
+                if raw_confidence > 0.85:
+                    confidence_label = "Very High"
+                elif raw_confidence > 0.50:
+                    confidence_label = "High"
+                elif raw_confidence > 0.30:
+                    confidence_label = "Moderate"
+                else:
+                    confidence_label = "Low"
+                    
                 return IntelligenceVerdict(
                     verdict=data.get("verdict", "UNVERIFIABLE"),
-                    confidence=float(data.get("confidence", 0.0)),
-                    confidence_label=data.get("confidence_label", "LOW"),
+                    confidence=raw_confidence,
+                    confidence_label=confidence_label,
                     one_line_verdict=data.get("one_line_verdict", ""),
                     full_reasoning=data.get("full_reasoning", ""),
                     what_is_true=data.get("what_is_true", ""),

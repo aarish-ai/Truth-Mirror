@@ -302,11 +302,21 @@ def _parse_batch_response(raw_text: str, batch: list) -> list:
                     title = raw_item.get("source_name", "")
                     excerpt = ""
                     src_type = "journalism"
+                
+                # Use registry alignment where known; fall back to LLM's label
+                publisher_hint = raw_item.get("source_name", "")
+                registry_meta = get_source_metadata(url, publisher=publisher_hint)
+                registry_alignment = registry_meta.get("alignment", "")
+                llm_alignment = raw_item.get("alignment", "unknown")
+                alignment = (registry_alignment
+                             if registry_alignment and registry_alignment != "unknown"
+                             else llm_alignment)
+
                 results.append(SourceAnalysis(
                     url=url, title=title,
                     source_name=raw_item.get("source_name", ""),
                     source_category=src_type, source_country="",
-                    alignment=raw_item.get("alignment", "unknown"),
+                    alignment=alignment,
                     reliability_tier=2, snippet=excerpt,
                     summary=raw_item.get("summary", ""),
                     stance=raw_item.get("stance", "INCONCLUSIVE"),

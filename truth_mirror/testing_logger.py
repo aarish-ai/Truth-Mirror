@@ -71,7 +71,7 @@ class TestingLogger:
             label = vd.get("confidence_label") or "N/A"
             summary = vd.get("one_line_verdict") or "N/A"
             lines.append(f"Verdict:     {verdict}")
-            lines.append(f"Confidence:  {confidence}%  ({label})")
+            lines.append(f"Confidence:  {label}")
             lines.append(f"Summary:     {summary}\n")
             
             lines.append("Full Reasoning:")

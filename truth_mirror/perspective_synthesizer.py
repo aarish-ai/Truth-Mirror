@@ -89,6 +89,7 @@ Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT
                     from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
                     api_key = get_current_key()
                     if api_key and types:
+                        from google import genai
                         gemini_client = genai.Client(api_key=api_key)
                         
                     if gemini_client and types:
@@ -136,9 +137,15 @@ Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT
                 # TRY GROQ BEFORE OPENROUTER
                 try:
                     from truth_mirror.groq_router import GROQ_ANALYSIS_PRIMARY, call_groq_with_key_rotation
+                    groq_prompt = (
+                        prompt +
+                        '\n\nIMPORTANT: Respond with a JSON OBJECT containing a single '
+                        'key "perspectives" whose value is the array of bloc objects. '
+                        'Example: {"perspectives": [{...}, {...}]}'
+                    )
                     groq_payload = {
                         "model": GROQ_ANALYSIS_PRIMARY,
-                        "messages": [{"role": "user", "content": prompt}],
+                        "messages": [{"role": "user", "content": groq_prompt}],
                         "temperature": 0.1,
                         "response_format": {"type": "json_object"},
                         "max_tokens": 4096
@@ -150,13 +157,26 @@ Return ONLY a valid JSON array. The array must contain ONLY JSON objects. Do NOT
                     )
                     if groq_status == "success" and groq_content:
                         try:
-                            data = json.loads(groq_content)
+                            parsed = json.loads(groq_content)
+                            if isinstance(parsed, list):
+                                data = parsed
+                            elif isinstance(parsed, dict):
+                                for v in parsed.values():
+                                    if isinstance(v, list) and v:
+                                        data = v
+                                        break
                             logger.info("[PerspectiveSynthesizer] Groq fallback succeeded.")
                         except json.JSONDecodeError:
                             if JSON_REPAIR_AVAILABLE:
                                 repaired = repair_json(groq_content, return_objects=True)
-                                if isinstance(repaired, list) and repaired:
+                                if isinstance(repaired, list):
                                     data = repaired
+                                elif isinstance(repaired, dict):
+                                    for v in repaired.values():
+                                        if isinstance(v, list) and v:
+                                            data = v
+                                            break
+                                if data:
                                     logger.info("[PerspectiveSynthesizer] JSON repaired successfully.")
                                 else:
                                     logger.warning("[PerspectiveSynthesizer] JSON repair did not produce a valid list.")

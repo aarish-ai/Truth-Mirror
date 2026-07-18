@@ -579,7 +579,7 @@
       // Verdict Banner
       elements.verdictValue.textContent = vdata.verdict || data.verdict || "UNVERIFIABLE";
       elements.verdictOneLine.textContent = vdata.one_line_verdict || "No clear verdict generated.";
-      elements.confidenceBadge.textContent = `${vdata.confidence_label || 'LOW'} CONFIDENCE (${((vdata.confidence || 0)*100).toFixed(0)}%)`;
+      elements.confidenceBadge.textContent = `${vdata.confidence_label || 'Low'} Confidence`;
       
       const v = elements.verdictValue.textContent;
       if (v.includes("SUPPORTED") && !v.includes("PARTIALLY")) {
