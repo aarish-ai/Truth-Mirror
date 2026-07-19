@@ -432,9 +432,7 @@
       <!-- Panel 5: Sources -->
       <div class="panel">
         <h3 class="panel-title">
-          Source Analysis
-          (<span id="relevantCount">0</span> relevant,
-           <span id="totalCount">0</span> total)
+          Source Analysis (<span id="totalCount">0</span>)
         </h3>
 
         <!-- LOW-EVIDENCE WARNING -->
@@ -755,7 +753,6 @@
       );
 
       // ── Update counts in panel header ────────────────────────────────
-      document.getElementById("relevantCount").textContent = relevantSources.length;
       document.getElementById("totalCount").textContent =
           (data.source_analyses || []).length;
       document.getElementById("backgroundCount").textContent =
