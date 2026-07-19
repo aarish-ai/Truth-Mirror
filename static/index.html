@@ -438,12 +438,7 @@
         </h3>
 
         <!-- LOW-EVIDENCE WARNING -->
-        <div id="lowEvidenceWarning" style="display:none;">
-          ⚠️ Limited direct evidence<br>
-          Fewer than 3 sources directly engaged with this claim. The verdict
-          above is based on a narrow source base and should be interpreted
-          with caution. Consider verifying through additional sources.
-        </div>
+        <div id="lowEvidenceWarning" style="display:none;"></div>
 
         <!-- SECTION A: Relevant Sources table -->
         <div id="relevantSourcesSection">
@@ -461,7 +456,7 @@
           </table>
           <!-- Empty state message -->
           <p id="noRelevantMsg" style="display:none; color: var(--text-muted); margin-top: 1rem;">
-            No sources directly engaged with this claim.
+            No sources were found which confirm or deny this claim.
           </p>
         </div>
 
@@ -768,7 +763,11 @@
 
       // ── Low-evidence warning ──────────────────────────────────────────
       const warningEl = document.getElementById("lowEvidenceWarning");
-      if (relevantSources.length < 3) {
+      if (relevantSources.length === 0) {
+          warningEl.innerHTML = "⚠️ <strong>Limited direct evidence</strong><br>No sources were found which confirm or deny this claim.";
+          warningEl.style.display = "block";
+      } else if (relevantSources.length < 3) {
+          warningEl.innerHTML = "⚠️ <strong>Limited direct evidence</strong><br>Very Few sources were found which directly confirm or deny this claim.";
           warningEl.style.display = "block";
       } else {
           warningEl.style.display = "none";
