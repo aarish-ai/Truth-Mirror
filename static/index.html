@@ -351,6 +351,18 @@
       padding: 5rem 2rem;
       color: var(--text-muted);
     }
+
+    #lowEvidenceWarning {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-left: 4px solid var(--warning);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -419,9 +431,23 @@
 
       <!-- Panel 5: Sources -->
       <div class="panel">
-        <h3 class="panel-title">Source Analysis (<span id="sourceCount">0</span>)</h3>
-        <div class="table-container">
-          <table id="sourcesTable">
+        <h3 class="panel-title">
+          Source Analysis
+          (<span id="relevantCount">0</span> relevant,
+           <span id="totalCount">0</span> total)
+        </h3>
+
+        <!-- LOW-EVIDENCE WARNING -->
+        <div id="lowEvidenceWarning" style="display:none;">
+          ⚠️ Limited direct evidence<br>
+          Fewer than 3 sources directly engaged with this claim. The verdict
+          above is based on a narrow source base and should be interpreted
+          with caution. Consider verifying through additional sources.
+        </div>
+
+        <!-- SECTION A: Relevant Sources table -->
+        <div id="relevantSourcesSection">
+          <table id="relevantSourcesTable">
             <thead>
               <tr>
                 <th>Source</th>
@@ -431,9 +457,43 @@
                 <th>Key Emphases</th>
               </tr>
             </thead>
-            <tbody></tbody>
+            <tbody id="relevantSourcesBody"></tbody>
           </table>
+          <!-- Empty state message -->
+          <p id="noRelevantMsg" style="display:none; color: var(--text-muted); margin-top: 1rem;">
+            No sources directly engaged with this claim.
+          </p>
         </div>
+
+        <!-- SECTION B: Background & Inconclusive -->
+        <div id="backgroundSourcesSection" style="margin-top: 1.5rem;">
+          <div class="accordion-item" id="backgroundAccordion">
+            <div class="accordion-header"
+                 onclick="toggleBackgroundSources()"
+                 id="backgroundAccordionHeader">
+              <span>📂 Background & Inconclusive Sources
+                    (<span id="backgroundCount">0</span>)</span>
+              <span style="font-size: 0.8rem; color: var(--accent);"
+                    id="backgroundToggleLabel">Expand ▼</span>
+            </div>
+            <div id="backgroundSourcesContent"
+                 class="accordion-content">
+              <table id="backgroundSourcesTable" style="margin-top: 1rem;">
+                <thead>
+                  <tr>
+                    <th>Source</th>
+                    <th>Alignment</th>
+                    <th>Stance</th>
+                    <th>Confidence</th>
+                    <th>Key Emphases</th>
+                  </tr>
+                </thead>
+                <tbody id="backgroundSourcesBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -460,10 +520,7 @@
       whatIsUnclear: document.getElementById("whatIsUnclear"),
       
       blocGrid: document.getElementById("blocGrid"),
-      hiddenStoriesContainer: document.getElementById("hiddenStoriesContainer"),
-      
-      sourceCount: document.getElementById("sourceCount"),
-      sourcesTableBody: document.querySelector("#sourcesTable tbody")
+      hiddenStoriesContainer: document.getElementById("hiddenStoriesContainer")
     };
 
     elements.verifyBtn.addEventListener("click", verifyClaim);
@@ -476,6 +533,47 @@
       const parent = element.parentElement;
       parent.classList.toggle('active');
     };
+
+    function toggleBackgroundSources() {
+      const accordion = document.getElementById("backgroundAccordion");
+      const label = document.getElementById("backgroundToggleLabel");
+      const isActive = accordion.classList.contains("active");
+
+      if (isActive) {
+          accordion.classList.remove("active");
+          label.textContent = "Expand ▼";
+      } else {
+          accordion.classList.add("active");
+          label.textContent = "Collapse ▲";
+      }
+    }
+
+    function buildSourceRow(sa) {
+      let sColor = "var(--text-muted)";
+      if (sa.stance === "SUPPORTS")          sColor = "var(--success)";
+      if (sa.stance === "CONTRADICTS")       sColor = "var(--danger)";
+      if (sa.stance === "PARTIALLY_SUPPORTS") sColor = "var(--warning)";
+
+      return `
+          <tr>
+            <td>
+              <div style="font-weight: 600;">${sa.source_name || "Unknown"}</div>
+              <a href="${sa.url || "#"}" target="_blank"
+                 style="font-size: 0.8rem; color: var(--accent);
+                        text-decoration: none;">
+                View Source ↗
+              </a>
+            </td>
+            <td>${sa.alignment || "unknown"}</td>
+            <td style="color: ${sColor}; font-weight: 600;">${sa.stance}</td>
+            <td>${((sa.stance_confidence || 0) * 100).toFixed(0)}%</td>
+            <td style="font-size: 0.85rem; color: var(--text-muted);
+                       max-width: 300px;">
+              ${sa.what_emphasized || ""}
+            </td>
+          </tr>
+      `;
+    }
 
     async function verifyClaim() {
       const claim = elements.claimInput.value.trim();
@@ -652,29 +750,54 @@
       }
 
       // Sources Table
-      elements.sourceCount.textContent = data.total_sources || 0;
-      elements.sourcesTableBody.innerHTML = "";
-      if (data.source_analyses) {
-        data.source_analyses.forEach(sa => {
-          let sColor = "var(--text-muted)";
-          if(sa.stance === "SUPPORTS") sColor = "var(--success)";
-          if(sa.stance === "CONTRADICTS") sColor = "var(--danger)";
-          if(sa.stance === "PARTIALLY_SUPPORTS") sColor = "var(--warning)";
-          
-          elements.sourcesTableBody.innerHTML += `
-            <tr>
-              <td>
-                <div style="font-weight: 600;">${sa.source_name}</div>
-                <a href="${sa.url}" target="_blank" style="font-size: 0.8rem; color: var(--accent); text-decoration: none;">View Source ↗</a>
-              </td>
-              <td>${sa.alignment}</td>
-              <td style="color: ${sColor}; font-weight: 600;">${sa.stance}</td>
-              <td>${(sa.stance_confidence * 100).toFixed(0)}%</td>
-              <td style="font-size: 0.85rem; color: var(--text-muted); max-width: 300px;">${sa.what_emphasized}</td>
-            </tr>
-          `;
-        });
+      // ── Split sources into two groups ────────────────────────────────
+      const RELEVANT_STANCES = new Set(["SUPPORTS", "CONTRADICTS", "PARTIALLY_SUPPORTS"]);
+      const relevantSources = (data.source_analyses || []).filter(
+          sa => RELEVANT_STANCES.has(sa.stance)
+      );
+      const backgroundSources = (data.source_analyses || []).filter(
+          sa => !RELEVANT_STANCES.has(sa.stance)
+      );
+
+      // ── Update counts in panel header ────────────────────────────────
+      document.getElementById("relevantCount").textContent = relevantSources.length;
+      document.getElementById("totalCount").textContent =
+          (data.source_analyses || []).length;
+      document.getElementById("backgroundCount").textContent =
+          backgroundSources.length;
+
+      // ── Low-evidence warning ──────────────────────────────────────────
+      const warningEl = document.getElementById("lowEvidenceWarning");
+      if (relevantSources.length < 3) {
+          warningEl.style.display = "block";
+      } else {
+          warningEl.style.display = "none";
       }
+
+      // ── Render relevant sources table ─────────────────────────────────
+      const relevantBody = document.getElementById("relevantSourcesBody");
+      relevantBody.innerHTML = "";
+      const noRelevantMsg = document.getElementById("noRelevantMsg");
+
+      if (relevantSources.length === 0) {
+          noRelevantMsg.style.display = "block";
+      } else {
+          noRelevantMsg.style.display = "none";
+          relevantSources.forEach(sa => {
+              relevantBody.innerHTML += buildSourceRow(sa);
+          });
+      }
+
+      // ── Render background sources table ───────────────────────────────
+      const backgroundBody = document.getElementById("backgroundSourcesBody");
+      backgroundBody.innerHTML = "";
+      backgroundSources.forEach(sa => {
+          backgroundBody.innerHTML += buildSourceRow(sa);
+      });
+
+      // ── Hide background accordion entirely if nothing to show ─────────
+      const bgSection = document.getElementById("backgroundSourcesSection");
+      bgSection.style.display = backgroundSources.length > 0 ? "block" : "none";
     }
   </script>
 </body>
