@@ -256,12 +256,53 @@ class GeopoliticalPipeline:
         logger.info("[GeoOrchestrator] Waiting 10s before synthesis to protect Gemini RPM.")
         
         if not source_analyses:
-            # Create a fallback/empty result so we can log it
+            logger.error(
+                f"[GeoOrchestrator] ALL source analysis batches failed for: "
+                f"'{claim[:60]}'. All Groq models rate-limited or unreachable "
+                f"and Gemini fallback also failed. Returning infrastructure "
+                f"failure result."
+            )
+            _INFRA_FAILURE_VERDICT = (
+                "All available AI models (Groq 70b, 70b-specdec, Qwen-32b, 8b) "
+                "were simultaneously rate-limited or unreachable during source "
+                "analysis, and the Gemini fallback also failed. This is a "
+                "temporary infrastructure capacity issue, not an analytical "
+                "finding about the claim itself."
+            )
             res = GeopoliticalResult(
-                claim=claim, original_claim=claim, is_geopolitical=True,
-                source_analyses=[], perspective_groups=[], hidden_stories=[],
-                verdict="UNVERIFIABLE", confidence=0.0,
-                background="No relevant sources found.", current_situation=""
+                claim=claim,
+                original_claim=claim,
+                is_geopolitical=True,
+                source_analyses=[],
+                total_sources=0,
+                perspective_groups=[],
+                consensus_points=[],
+                disputed_points=[],
+                hidden_stories=[],
+                verdict_data={
+                    "verdict": "ANALYSIS_FAILED",
+                    "confidence": 0.0,
+                    "confidence_label": "N/A",
+                    "one_line_verdict": (
+                        "Analysis could not be completed — API limits exhausted. "
+                        "Please wait a few minutes and try again."
+                    ),
+                    "full_reasoning": _INFRA_FAILURE_VERDICT,
+                    "what_is_true": "N/A — source analysis could not be completed.",
+                    "what_is_false": "N/A — source analysis could not be completed.",
+                    "what_is_unclear": "N/A — source analysis could not be completed.",
+                    "strongest_evidence_for": "N/A",
+                    "strongest_evidence_against": "N/A",
+                    "source_quality_note": (
+                        "No sources were analyzed. Please retry your claim in "
+                        "a few minutes when API capacity is restored."
+                    ),
+                },
+                background=_INFRA_FAILURE_VERDICT,
+                current_situation="Retry the claim in a few minutes.",
+                verdict="ANALYSIS_FAILED",
+                final_verdict="ANALYSIS_FAILED",
+                confidence=0.0,
             )
             events = tracker.get_stage_summary()
             test_logger = TestingLogger()

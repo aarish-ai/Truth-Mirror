@@ -12,6 +12,13 @@ from dataclasses import dataclass
 from typing import List, Optional
 from dotenv import load_dotenv
 
+try:
+    from json_repair import repair_json
+    JSON_REPAIR_AVAILABLE = True
+except ImportError:
+    JSON_REPAIR_AVAILABLE = False
+    repair_json = None
+
 load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 _openrouter_semaphore = threading.Semaphore(1)
@@ -22,6 +29,7 @@ from truth_mirror.groq_router import (
     GROQ_ANALYSIS_PRIMARY,
     GROQ_ANALYSIS_FALLBACK_1,
     GROQ_ANALYSIS_FALLBACK_2,
+    GROQ_ANALYSIS_FALLBACK_3,
     get_model_label,
     call_groq_with_key_rotation
 )
@@ -428,9 +436,38 @@ class SourceAnalyzer:
 
     def _call_gemini_batch(self, claim: str, batch: list, prompt: str) -> list | None:
         raw = _call_gemini_sync(prompt, BULK_ANALYSIS_MODEL, timeout=45)
-        if raw:
-            results = _parse_batch_response(raw, batch)
-            return results if results else None
+        if not raw:
+            return None
+
+        # Strip markdown code fences that Gemini sometimes inserts
+        # This matches the same pattern used in verdict_engine.py,
+        # hidden_story_extractor.py, and perspective_synthesizer.py
+        clean = raw.strip()
+        if clean.startswith("```"):
+            lines = clean.split("\n")
+            # Remove opening fence line (```json or ```) and closing fence (```)
+            lines = [line for line in lines if not line.strip().startswith("```")]
+            clean = "\n".join(lines).strip()
+
+        # First attempt: parse cleaned text directly
+        results = _parse_batch_response(clean, batch)
+        if results:
+            logger.info(f"[SourceAnalyzer] Gemini batch parse succeeded on first attempt.")
+            return results
+
+        # Second attempt: try json_repair on malformed JSON
+        if JSON_REPAIR_AVAILABLE and repair_json is not None:
+            try:
+                repaired = repair_json(clean)
+                results = _parse_batch_response(repaired, batch)
+                if results:
+                    logger.info(f"[SourceAnalyzer] Gemini batch parse succeeded via json_repair.")
+                    return results
+            except Exception as e:
+                logger.warning(f"[SourceAnalyzer] json_repair also failed: {e}")
+
+        logger.warning(f"[SourceAnalyzer] Gemini batch: all parse attempts failed. "
+                       f"First 200 chars of raw: {raw[:200]}")
         return None
 
     def _call_openrouter_batch(self, claim: str, batch: list, prompt: str) -> list | None:
@@ -484,32 +521,59 @@ class SourceAnalyzer:
             raw = await asyncio.to_thread(
                 self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_PRIMARY
             )
-            if raw == "RATE_LIMITED":
-                tracker.record(f"source_analysis_batch_{batch_num}", GROQ_ANALYSIS_PRIMARY, "groq", "rate_limited")
+            if raw == "RATE_LIMITED" or raw is None:
+                status = "rate_limited" if raw == "RATE_LIMITED" else "failed"
+                tracker.record(f"source_analysis_batch_{batch_num}",
+                               GROQ_ANALYSIS_PRIMARY, "groq", status)
                 logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
-                               f"70b rate limited. Trying 4-scout fallback.")
-                # ── GROQ FALLBACK 1 (4-scout-17b) ───────────────────────────
+                               f"70b {status}. Trying specdec fallback.")
+
+                # ── GROQ FALLBACK 1 (70b-specdec) ───────────────────────────
                 raw = await asyncio.to_thread(
                     self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_FALLBACK_1
                 )
-                if raw == "RATE_LIMITED":
-                    tracker.record(f"source_analysis_batch_{batch_num}", GROQ_ANALYSIS_FALLBACK_1, "groq", "rate_limited")
+                if raw == "RATE_LIMITED" or raw is None:
+                    status = "rate_limited" if raw == "RATE_LIMITED" else "failed"
+                    tracker.record(f"source_analysis_batch_{batch_num}",
+                                   GROQ_ANALYSIS_FALLBACK_1, "groq", status)
                     logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
-                                   f"4-scout rate limited. Trying 8b last resort.")
-                    # ── GROQ FALLBACK 2 (8b — quality warning) ───────────────
-                    logger.warning(f"[SourceAnalyzer] QUALITY WARNING: Falling back to "
-                                   f"8b for source analysis. Quality may be reduced.")
+                                   f"specdec {status}. Trying qwen-2.5-32b fallback.")
+
+                    # ── GROQ FALLBACK 2 (qwen-2.5-32b) ──────────────────────────
                     raw = await asyncio.to_thread(
                         self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_FALLBACK_2
                     )
-                    if raw == "RATE_LIMITED":
-                        tracker.record(f"source_analysis_batch_{batch_num}", GROQ_ANALYSIS_FALLBACK_2, "groq", "rate_limited")
+                    if raw == "RATE_LIMITED" or raw is None:
+                        status = "rate_limited" if raw == "RATE_LIMITED" else "failed"
+                        tracker.record(f"source_analysis_batch_{batch_num}",
+                                       GROQ_ANALYSIS_FALLBACK_2, "groq", status)
+                        logger.warning(
+                            f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
+                            f"qwen-32b {status}. Trying 8b last resort. "
+                            f"QUALITY WARNING: 8b quality is reduced."
+                        )
+
+                        # ── GROQ FALLBACK 3 (8b) ────────────────────────────────
+                        raw = await asyncio.to_thread(
+                            self._call_groq_batch, claim, batch, prompt,
+                            GROQ_ANALYSIS_FALLBACK_3
+                        )
+                        if raw == "RATE_LIMITED" or raw is None:
+                            status = "rate_limited" if raw == "RATE_LIMITED" else "failed"
+                            tracker.record(f"source_analysis_batch_{batch_num}",
+                                           GROQ_ANALYSIS_FALLBACK_3, "groq", status)
+                        elif raw is not None:
+                            tracker.record(f"source_analysis_batch_{batch_num}",
+                                           GROQ_ANALYSIS_FALLBACK_3, "groq", "fallback_used")
                     elif raw is not None:
-                        tracker.record(f"source_analysis_batch_{batch_num}", GROQ_ANALYSIS_FALLBACK_2, "groq", "fallback_used")
+                        tracker.record(f"source_analysis_batch_{batch_num}",
+                                       GROQ_ANALYSIS_FALLBACK_2, "groq", "fallback_used")
                 elif raw is not None:
-                    tracker.record(f"source_analysis_batch_{batch_num}", GROQ_ANALYSIS_FALLBACK_1, "groq", "fallback_used")
+                    tracker.record(f"source_analysis_batch_{batch_num}",
+                                   GROQ_ANALYSIS_FALLBACK_1, "groq", "fallback_used")
             elif raw is not None:
-                tracker.record(f"source_analysis_batch_{batch_num}", GROQ_ANALYSIS_PRIMARY, "groq", "success")
+                tracker.record(f"source_analysis_batch_{batch_num}",
+                               GROQ_ANALYSIS_PRIMARY, "groq", "success")
 
             if raw and raw != "RATE_LIMITED":
                 result = raw

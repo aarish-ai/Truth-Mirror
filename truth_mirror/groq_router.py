@@ -14,26 +14,23 @@ logger = logging.getLogger(__name__)
 # Simple structured tasks — 8b has more than enough capability
 # Uses 8b's separate 500K TPD pool, preserving 70b quota for analysis
 GROQ_SIMPLE_MODEL = "llama-3.1-8b-instant"
+GROQ_SIMPLE_FALLBACK = "llama3-8b-8192"
 
 # Complex analysis tasks — requires understanding of nuance and context
+# Fallback Chain: 70b-versatile -> 70b-specdec -> qwen-2.5-32b -> 8b-instant
 GROQ_ANALYSIS_PRIMARY = "llama-3.3-70b-versatile"
-
-# Fallback 1 for analysis: llama-4-scout is a MoE model that punches
-# significantly above its parameter count. 500K TPD makes it a strong
-# fallback. Quality loss versus 70b is minimal for stance detection.
-GROQ_ANALYSIS_FALLBACK_1 = "meta-llama/llama-4-scout-17b-16e-instruct"
-
-# Fallback 2 for analysis: 8b as absolute last resort.
-# Quality will degrade noticeably for source analysis.
-# Use only when both 70b and 4-scout are exhausted.
-GROQ_ANALYSIS_FALLBACK_2 = "llama-3.1-8b-instant"
+GROQ_ANALYSIS_FALLBACK_1 = "llama-3.3-70b-specdec"
+GROQ_ANALYSIS_FALLBACK_2 = "qwen-2.5-32b"
+GROQ_ANALYSIS_FALLBACK_3 = "llama-3.1-8b-instant"
 
 # Model metadata for logging
 GROQ_MODEL_LABELS = {
     GROQ_SIMPLE_MODEL:        "llama-3.1-8b (simple tasks)",
     GROQ_ANALYSIS_PRIMARY:    "llama-3.3-70b (analysis)",
-    GROQ_ANALYSIS_FALLBACK_1: "llama-4-scout-17b (analysis fallback 1)",
-    GROQ_ANALYSIS_FALLBACK_2: "llama-3.1-8b (analysis fallback 2 — quality reduced)",
+    GROQ_ANALYSIS_FALLBACK_1: "llama-3.3-70b-specdec (analysis fallback 1)",
+    GROQ_ANALYSIS_FALLBACK_2: "qwen-2.5-32b (analysis fallback 2)",
+    GROQ_ANALYSIS_FALLBACK_3: "llama-3.1-8b-instant (analysis fallback 3 — quality reduced)",
+    GROQ_SIMPLE_FALLBACK:     "llama3-8b-8192 (simple fallback)",
 }
 
 def get_model_label(model_id: str) -> str:

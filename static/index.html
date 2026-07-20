@@ -363,6 +363,68 @@
       color: var(--text-main);
       line-height: 1.5;
     }
+
+    .error-panel-icon {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        border-radius: 50%;
+        background: rgba(239, 68, 68, 0.15);
+        border: 2px solid var(--danger);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        color: var(--danger);
+        font-weight: 700;
+        margin-top: 0.2rem;
+    }
+
+    #errorPanel {
+        display: none;
+        align-items: flex-start;
+        gap: 1.25rem;
+        margin: 2rem 2.5rem;
+        padding: 1.5rem 1.75rem;
+        background: rgba(239, 68, 68, 0.07);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-left: 4px solid var(--danger);
+        border-radius: 16px;
+        backdrop-filter: var(--glass-blur);
+        animation: fadeIn 0.3s ease;
+    }
+
+    .error-panel-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .error-panel-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--danger);
+    }
+
+    .error-panel-msg {
+        font-size: 0.95rem;
+        color: var(--text-main);
+        line-height: 1.6;
+    }
+
+    .error-panel-detail {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-family: monospace;
+        margin-top: 0.25rem;
+    }
+
+    .error-panel-retry {
+        margin-top: 1rem;
+        padding: 0.6rem 1.5rem;
+        font-size: 0.9rem;
+        align-self: flex-start;
+    }
   </style>
 </head>
 <body>
@@ -541,6 +603,45 @@
       }
     }
 
+    function showErrorPanel(detail) {
+        // Hide the dashboard and initial state if visible
+        elements.dashboard.style.display = "none";
+
+        // Show or reuse the error panel
+        let errorPanel = document.getElementById("errorPanel");
+        if (!errorPanel) {
+            errorPanel = document.createElement("div");
+            errorPanel.id = "errorPanel";
+            // Insert it into main-content, after the top-bar
+            const mainContent = document.querySelector(".main-content");
+            mainContent.appendChild(errorPanel);
+        }
+
+        errorPanel.style.display = "flex";
+        errorPanel.innerHTML = `
+            <div class="error-panel-icon">✕</div>
+            <div class="error-panel-body">
+                <div class="error-panel-title">Something went wrong</div>
+                <div class="error-panel-msg">
+                    An error occurred while verifying this claim. Please try
+                    again. If the problem persists, refresh the page and
+                    resubmit.
+                </div>
+                <div class="error-panel-detail">${detail || ""}</div>
+                <button class="btn btn-primary error-panel-retry"
+                        onclick="dismissError()">
+                    Try Again
+                </button>
+            </div>
+        `;
+    }
+
+    function dismissError() {
+        const errorPanel = document.getElementById("errorPanel");
+        if (errorPanel) errorPanel.style.display = "none";
+        elements.initialState.style.display = "block";
+    }
+
     function buildSourceRow(sa) {
       let sColor = "var(--text-muted)";
       if (sa.stance === "SUPPORTS")          sColor = "var(--success)";
@@ -627,6 +728,10 @@
       elements.loadingStatus.textContent = STAGE_MESSAGES[currentStage];
       const mInt = setInterval(pollStatus, 1500);
 
+      const existingError = document.getElementById("errorPanel");
+      if (existingError) existingError.style.display = "none";
+      elements.initialState.style.display = "none";
+
       try {
         const res = await fetch("/api/verify", {
           method: "POST",
@@ -651,7 +756,7 @@
         renderDashboard(data);
         
       } catch (err) {
-        alert("Error verifying claim: " + err.message);
+        showErrorPanel(err.message);
       } finally {
         elements.btnText.style.display = "block";
         elements.verifyLoader.style.display = "none";
@@ -662,10 +767,19 @@
     }
 
     function renderDashboard(data) {
+      // Check for infrastructure failure — show error panel, not dashboard
+      const vdata = data.verdict_data || {};
+      if (vdata.verdict === "ANALYSIS_FAILED" || data.verdict === "ANALYSIS_FAILED") {
+          showErrorPanel(
+              "API capacity was temporarily exhausted. All available models " +
+              "were rate-limited simultaneously. Please wait 2-3 minutes " +
+              "and resubmit your claim."
+          );
+          return;   // Do not render the dashboard for infra failures
+      }
+
       elements.initialState.style.display = "none";
       elements.dashboard.style.display = "grid";
-
-      const vdata = data.verdict_data || {};
       
       // Verdict Banner
       elements.verdictValue.textContent = vdata.verdict || data.verdict || "UNVERIFIABLE";

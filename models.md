@@ -14,6 +14,7 @@ possible.
 Determines whether a claim is geopolitical and within scope (2015–present).
 
 * **Primary:** `llama-3.1-8b-instant` (Groq — Key 1, then Key 2)
+* **Secondary:** `llama3-8b-8192` (Groq — Key 1, then Key 2)
 * **Fallback 1:** `gemini-2.5-flash` (Google Gemini — key rotation)
 * **Fallback 2:** `qwen/qwen3-next-80b-a3b-instruct:free` (OpenRouter)
 * **Fallback 3:** Regex keyword matching (zero-cost local fallback)
@@ -24,6 +25,7 @@ Determines whether a claim is geopolitical and within scope (2015–present).
 Determines whether search queries should include the current date.
 
 * **Primary:** `llama-3.1-8b-instant` (Groq — Key 1, then Key 2)
+* **Secondary:** `llama3-8b-8192` (Groq — Key 1, then Key 2)
 * **Fallback:** Keyword-based heuristic in normalization.py
 
 ---
@@ -32,6 +34,7 @@ Determines whether search queries should include the current date.
 Breaks compound claims into atomic verifiable sub-claims.
 
 * **Primary:** `llama-3.1-8b-instant` (Groq — Key 1, then Key 2)
+* **Secondary:** `llama3-8b-8192` (Groq — Key 1, then Key 2)
 * **Fallback:** Returns original claim as single-element list
 
 ---
@@ -40,6 +43,7 @@ Breaks compound claims into atomic verifiable sub-claims.
 Generates targeted search queries per sub-claim across multiple perspectives.
 
 * **Primary:** `llama-3.1-8b-instant` (Groq — Key 1, then Key 2)
+* **Secondary:** `llama3-8b-8192` (Groq — Key 1, then Key 2)
 * **Fallback:** Deterministic fallback queries in `_get_fallback_queries()`
 
 ---
@@ -49,6 +53,7 @@ Determines if a claim is geopolitical and identifies involved parties and subtyp
 Used by the scope gate before routing to GeopoliticalPipeline.
 
 * **Primary:** `llama-3.1-8b-instant` (Groq — Key 1, then Key 2)
+* **Secondary:** `llama3-8b-8192` (Groq — Key 1, then Key 2)
 * **Fallback 1:** `qwen/qwen3-next-80b-a3b-instruct:free` (OpenRouter)
 * **Fallback 2:** Regex keyword matching (`_regex_fallback()`)
 
@@ -60,12 +65,14 @@ claims, emphasis, omissions, and hidden implications relative to the claim.
 
 * **Primary:** `llama-3.3-70b-versatile` (Groq — Key 1, then Key 2)
   Top-tier reasoning model. Exhausts both keys before any downgrade.
-* **Fallback 1:** `meta-llama/llama-4-scout-17b-16e-instruct` (Groq — Key 1, then Key 2)
-  MoE model with strong analytical capability and 500K TPD pool.
-* **Fallback 2:** `llama-3.1-8b-instant` (Groq — Key 1, then Key 2)
-  Quality reduction is logged as WARNING. Used only when 70b and scout exhausted.
-* **Fallback 3:** `gemini-2.5-flash` (Google Gemini — key rotation)
-  Activated only if all three Groq model tiers are exhausted on all keys.
+* **Fallback 1:** `llama-3.3-70b-specdec` (Groq — Key 1, then Key 2)
+  Fast speculative decoding variant of 70b. Same quality, separate quota.
+* **Fallback 2:** `qwen-2.5-32b` (Groq — Key 1, then Key 2)
+  Strong mid-tier model with separate quota.
+* **Fallback 3:** `llama-3.1-8b-instant` (Groq — Key 1, then Key 2)
+  Quality reduction is logged as WARNING. Used only when larger models are exhausted.
+* **Fallback 4:** `gemini-3.5-flash` (Google Gemini — key rotation)
+  Activated only if all four Groq model tiers are exhausted on all keys. Uses json_repair for robustness.
 
 ---
 
@@ -114,8 +121,10 @@ Produces contextual background and current situation narrative for the result.
 | Model | RPM | RPD | TPM | TPD | Keys |
 |-------|-----|-----|-----|-----|------|
 | llama-3.3-70b-versatile | 30 | 1K | 12K | 100K | ×2 → 200K TPD effective |
-| llama-4-scout-17b | 30 | 1K | 30K | 500K | ×2 → 1M TPD effective |
+| llama-3.3-70b-specdec | 30 | 1K | 12K | 100K | ×2 → 200K TPD effective |
+| qwen-2.5-32b | 30 | 1K | 18K | 250K | ×2 → 500K TPD effective |
 | llama-3.1-8b-instant | 30 | 14.4K | 6K | 500K | ×2 → 1M TPD effective |
+| llama3-8b-8192 | 30 | 14.4K | 6K | 500K | ×2 → 1M TPD effective |
 
 Gemini: 5 project keys in rotation. Each project is independent quota.
 OpenRouter: Last resort only. Free tier is heavily contested.

@@ -4,7 +4,7 @@ import requests
 import logging
 from dataclasses import dataclass
 from typing import Optional
-from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label, call_groq_with_key_rotation
+from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, GROQ_SIMPLE_FALLBACK, get_model_label, call_groq_with_key_rotation
 from truth_mirror.run_tracker import tracker
 
 logger = logging.getLogger(__name__)
@@ -95,7 +95,32 @@ Rules:
             if status != "success" or content is None:
                 record_status = "rate_limited" if status == "rate_limited" else "failed"
                 tracker.record("temporal_classifier", GROQ_SIMPLE_MODEL, "groq", record_status)
-                return None
+
+                # Try GROQ_SIMPLE_FALLBACK before giving up on Groq
+                logger.info(f"[TemporalClassifier] Primary 8b failed. Trying fallback 8b "
+                            f"({GROQ_SIMPLE_FALLBACK}).")
+                fallback_payload = payload.copy()
+                fallback_payload["model"] = GROQ_SIMPLE_FALLBACK
+
+                content, status = call_groq_with_key_rotation(
+                    payload=fallback_payload,
+                    timeout=25,
+                    log_prefix="[TemporalClassifier-fallback]"
+                )
+
+                if status != "success" or content is None:
+                    tracker.record("temporal_classifier", GROQ_SIMPLE_FALLBACK, "groq",
+                                   "rate_limited" if status == "rate_limited" else "failed")
+                    return None
+
+                try:
+                    parsed = json.loads(content)
+                    tracker.record("temporal_classifier", GROQ_SIMPLE_FALLBACK, "groq", "fallback_used")
+                    return parsed
+                except Exception as e:
+                    logger.warning(f"[TemporalClassifier] Fallback 8b parse failed: {e}")
+                    tracker.record("temporal_classifier", GROQ_SIMPLE_FALLBACK, "groq", "failed")
+                    return None
 
             try:
                 parsed = json.loads(content)

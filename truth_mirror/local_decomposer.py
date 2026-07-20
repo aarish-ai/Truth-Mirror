@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label, call_groq_with_key_rotation
+from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, GROQ_SIMPLE_FALLBACK, get_model_label, call_groq_with_key_rotation
 from truth_mirror.run_tracker import tracker
 import requests
 import re
@@ -53,7 +53,37 @@ Output:"""
             if status != "success" or content is None:
                 record_status = "rate_limited" if status == "rate_limited" else "failed"
                 tracker.record("decomposer", GROQ_SIMPLE_MODEL, "groq", record_status)
-                return None
+
+                # Try GROQ_SIMPLE_FALLBACK before giving up on Groq
+                logger.info(f"[LocalDecomposer] Primary 8b failed. Trying fallback 8b "
+                            f"({GROQ_SIMPLE_FALLBACK}).")
+                fallback_payload = payload.copy()
+                fallback_payload["model"] = GROQ_SIMPLE_FALLBACK
+
+                content, status = call_groq_with_key_rotation(
+                    payload=fallback_payload,
+                    timeout=25,
+                    log_prefix="[LocalDecomposer-fallback]"
+                )
+
+                if status != "success" or content is None:
+                    tracker.record("decomposer", GROQ_SIMPLE_FALLBACK, "groq",
+                                   "rate_limited" if status == "rate_limited" else "failed")
+                    return None
+
+                try:
+                    parsed = json.loads(content)
+                    tracker.record("decomposer", GROQ_SIMPLE_FALLBACK, "groq", "fallback_used")
+                    if isinstance(parsed, list):
+                        return parsed
+                    for key in parsed:
+                        if isinstance(parsed[key], list):
+                            return parsed[key]
+                    return None
+                except Exception as e:
+                    logger.warning(f"[LocalDecomposer] Fallback 8b parse failed: {e}")
+                    tracker.record("decomposer", GROQ_SIMPLE_FALLBACK, "groq", "failed")
+                    return None
 
             try:
                 parsed = json.loads(content)

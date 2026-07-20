@@ -7,7 +7,7 @@ import time
 from dotenv import load_dotenv
 from typing import List, Optional
 from truth_mirror.temporal_classifier import TemporalContext
-from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, get_model_label, call_groq_with_key_rotation
+from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, GROQ_SIMPLE_FALLBACK, get_model_label, call_groq_with_key_rotation
 from truth_mirror.run_tracker import tracker
 
 load_dotenv()
@@ -91,7 +91,37 @@ Output JSON Array of 3 strings:
             if status != "success" or content is None:
                 record_status = "rate_limited" if status == "rate_limited" else "failed"
                 tracker.record("query_generator", GROQ_SIMPLE_MODEL, "groq", record_status)
-                return None
+
+                # Try GROQ_SIMPLE_FALLBACK before giving up on Groq
+                logger.info(f"[GeoQueryGenerator] Primary 8b failed. Trying fallback 8b "
+                            f"({GROQ_SIMPLE_FALLBACK}).")
+                fallback_payload = payload.copy()
+                fallback_payload["model"] = GROQ_SIMPLE_FALLBACK
+
+                content, status = call_groq_with_key_rotation(
+                    payload=fallback_payload,
+                    timeout=25,
+                    log_prefix="[GeoQueryGenerator-fallback]"
+                )
+
+                if status != "success" or content is None:
+                    tracker.record("query_generator", GROQ_SIMPLE_FALLBACK, "groq",
+                                   "rate_limited" if status == "rate_limited" else "failed")
+                    return None
+
+                try:
+                    parsed = json.loads(content)
+                    tracker.record("query_generator", GROQ_SIMPLE_FALLBACK, "groq", "fallback_used")
+                    if isinstance(parsed, list):
+                        return parsed
+                    for key in parsed:
+                        if isinstance(parsed[key], list):
+                            return parsed[key]
+                    return None
+                except Exception as e:
+                    logger.warning(f"[GeoQueryGenerator] Fallback 8b parse failed: {e}")
+                    tracker.record("query_generator", GROQ_SIMPLE_FALLBACK, "groq", "failed")
+                    return None
 
             try:
                 parsed = json.loads(content)

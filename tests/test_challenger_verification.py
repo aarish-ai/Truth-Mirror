@@ -83,7 +83,11 @@ class TestTruthMirrorPipeline(unittest.TestCase):
             "embedding": {"values": [0.1, 0.2, 0.3]}
         }).encode("utf-8")
         
-        mock_urlopen.side_effect = [err_429, err_429, mock_resp]
+        mock_ctx = MagicMock()
+        mock_ctx.__enter__.return_value = mock_resp
+        mock_ctx.__exit__.return_value = None
+        
+        mock_urlopen.side_effect = [err_429, err_429, mock_ctx]
         
         # Initial key should be KEY_A
         self.assertEqual(kr.get_current_key(), "KEY_A")
@@ -106,33 +110,19 @@ class TestTruthMirrorPipeline(unittest.TestCase):
         self.assertEqual(emb_fallback, [0.0] * 768)
         self.assertEqual(mock_urlopen.call_count, 5)
 
-    @patch("truth_mirror.claim_scope_gate._call_groq")
+    @patch("truth_mirror.claim_scope_gate.call_groq_with_key_rotation")
     @patch("urllib.request.urlopen")
-    def test_openrouter_fallback_when_gemini_key_blocked_or_missing(self, mock_urlopen, mock_call_groq):
+    @patch("os.getenv")
+    def test_openrouter_fallback_when_gemini_key_blocked_or_missing(self, mock_getenv, mock_urlopen, mock_call_groq):
         """
-        Test that when Groq and Gemini calls fail (due to being blocked or missing keys),
+        Test that when Groq calls fail (due to being blocked or missing keys),
         the pipeline falls back to OpenRouter.
         """
         # Ensure OpenRouter API key is set
-        os.environ["OPENROUTER_API_KEY"] = "fake-openrouter-key"
-        # Ensure Gemini API keys are configured (so it tries them)
-        os.environ["GEMINI_API_KEYS"] = "FAKE_GEMINI_KEY"
-        
-        kr._gemini_keys = []
-        kr._gemini_key_cycle = None
-        kr._current_key = None
+        mock_getenv.side_effect = lambda k, d=None: "fake-openrouter-key" if k == "OPENROUTER_API_KEY" else os.environ.get(k, d)
         
         # Groq returns None (fail)
-        mock_call_groq.return_value = None
-        
-        # Gemini urlopen raises a 400 error (blocked key or bad request)
-        err_400 = urllib.error.HTTPError(
-            url="http://fake.gemini.api",
-            code=400,
-            msg="Bad Request",
-            hdrs=None,
-            fp=None
-        )
+        mock_call_groq.side_effect = [(None, "failed"), (None, "failed")]
         
         # OpenRouter returns a successful response
         openrouter_response_data = {
@@ -153,13 +143,17 @@ class TestTruthMirrorPipeline(unittest.TestCase):
             ]
         }
         
-        mock_openrouter_resp = MagicMock()
-        mock_openrouter_resp.read.return_value = json.dumps(openrouter_response_data).encode("utf-8")
+        mock_openrouter_ctx = MagicMock()
+        mock_openrouter_ctx.__enter__.return_value.read.return_value = json.dumps(openrouter_response_data).encode("utf-8")
         
-        # urlopen side effect:
-        # Attempt 1, 2, 3: Gemini attempts (400 error)
-        # Attempt 4: OpenRouter attempt (succeeds)
-        mock_urlopen.side_effect = [err_400, err_400, err_400, mock_openrouter_resp]
+        err_400 = urllib.error.HTTPError(
+            url="http://fake.gemini.api",
+            code=400,
+            msg="Bad Request",
+            hdrs=None,
+            fp=None
+        )
+        mock_urlopen.side_effect = [err_400, mock_openrouter_ctx]
         
         # Call the gate claim function
         res = gate_claim("The US attacked Iran in 2026")
@@ -170,7 +164,7 @@ class TestTruthMirrorPipeline(unittest.TestCase):
         self.assertEqual(res.topic_reason, "simulated openrouter fallback")
         self.assertEqual(res.involved_parties, ["US", "Iran"])
         self.assertEqual(res.claim_subtype, "military")
-
+        
     @patch("requests.post")
     def test_prompt_time_blindness_with_dates(self, mock_post):
         """
@@ -209,11 +203,6 @@ class TestTruthMirrorPipeline(unittest.TestCase):
         # Case C: GeoQueryGenerator (geopolitical)
         # Geopolitical query generation must explicitly instruct to avoid hardcoding dates
         geo_qgen = GeoQueryGenerator()
-        # Mock Groq to fail so we can see the OpenRouter prompt, or just check the prompt directly.
-        # Let's verify the prompt instruction template directly.
-        date_instruction = "Generate search queries that are broad and timeline-agnostic. Do not include specific dates, months, or years in the queries.\n\n"
-        self.assertIn(date_instruction, geo_qgen.generate.__doc__ or "") # Wait, let's verify where it is defined.
-        
         # We can also call generate and mock requests.post to check what prompt it gets
         mock_post.reset_mock()
         mock_resp_geo = MagicMock()
@@ -227,7 +216,9 @@ class TestTruthMirrorPipeline(unittest.TestCase):
         os.environ["OPENROUTER_API_KEY"] = "fake-key"
         os.environ.pop("GROQ_API_KEY", None)
         
-        geo_qgen.generate("The US attacked Iran in February 2026", ["US", "Iran"], "military")
+        from truth_mirror.temporal_classifier import TemporalContext
+        tc = TemporalContext(temporal_type="historical_completed", needs_date=False, date_qualifier="", reasoning="past event")
+        geo_qgen.generate("The US attacked Iran in February 2026", ["US", "Iran"], "military", temporal_context=tc)
         
         # Inspect prompt
         call_args, call_kwargs = mock_post.call_args
@@ -235,7 +226,7 @@ class TestTruthMirrorPipeline(unittest.TestCase):
         messages = call_kwargs["json"]["messages"]
         user_content = messages[0]["content"]
         
-        self.assertIn("Do not include specific dates, months, or years in the queries", user_content)
+        self.assertIn("Do NOT append the current date to queries", user_content)
 
 if __name__ == "__main__":
     unittest.main()
