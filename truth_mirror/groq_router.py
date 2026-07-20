@@ -1,6 +1,7 @@
 """
 Centralized Groq model routing configuration.
 All Groq model strings are defined here — never hardcoded in other files.
+Fallback Chain for Analysis: 70b-versatile -> 70b-specdec -> qwen-2.5-32b -> 8b-instant
 """
 
 import os
@@ -17,20 +18,26 @@ GROQ_SIMPLE_MODEL = "llama-3.1-8b-instant"
 GROQ_SIMPLE_FALLBACK = "llama3-8b-8192"
 
 # Complex analysis tasks — requires understanding of nuance and context
-# Fallback Chain: 70b-versatile -> 70b-specdec -> qwen-2.5-32b -> 8b-instant
 GROQ_ANALYSIS_PRIMARY = "llama-3.3-70b-versatile"
+
+# Fallback 1 for analysis: 70b-specdec. Same model, separate API pool.
 GROQ_ANALYSIS_FALLBACK_1 = "llama-3.3-70b-specdec"
+
+# Fallback 2 for analysis: qwen-2.5-32b.
 GROQ_ANALYSIS_FALLBACK_2 = "qwen-2.5-32b"
+
+# Fallback 3 for analysis: 8b as absolute last resort on Groq.
+# Quality will degrade noticeably for source analysis.
 GROQ_ANALYSIS_FALLBACK_3 = "llama-3.1-8b-instant"
 
 # Model metadata for logging
 GROQ_MODEL_LABELS = {
     GROQ_SIMPLE_MODEL:        "llama-3.1-8b (simple tasks)",
+    GROQ_SIMPLE_FALLBACK:     "llama3-8b-8192 (simple fallback)",
     GROQ_ANALYSIS_PRIMARY:    "llama-3.3-70b (analysis)",
     GROQ_ANALYSIS_FALLBACK_1: "llama-3.3-70b-specdec (analysis fallback 1)",
     GROQ_ANALYSIS_FALLBACK_2: "qwen-2.5-32b (analysis fallback 2)",
     GROQ_ANALYSIS_FALLBACK_3: "llama-3.1-8b-instant (analysis fallback 3 — quality reduced)",
-    GROQ_SIMPLE_FALLBACK:     "llama3-8b-8192 (simple fallback)",
 }
 
 def get_model_label(model_id: str) -> str:
