@@ -7,8 +7,8 @@ from truth_mirror.models import GeopoliticalResult
 
 class TestingLogger:
     def __init__(self):
-        self.log_file = "testing.md"
-        self.count_file = "testing_run_count.txt"
+        self.log_file = "misc/testing.md"
+        self.count_file = "misc/testing_run_count.txt"
         self._lock = threading.Lock()
 
     def _get_and_increment_run_count(self) -> int:
