@@ -69,3 +69,6 @@ Then, open your web browser and navigate to `http://localhost:8080` to access th
 ## 6. Other Notes
 - The system incorporates aggressive rate-limit protections, including sequential mini-batching and sleep intervals. Do not modify these unless you have upgraded to paid API tiers.
 - The system heavily relies on structured JSON generation. We utilize `json-repair` and robust fence-stripping to automatically handle improperly formatted LLM responses, ensuring high pipeline resilience.
+
+## 7. License
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See the [LICENSE.md](LICENSE.md) file for details. This means if you modify this software and provide it as a network service, you must offer the source code of your modifications to the users of that service.
