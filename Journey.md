@@ -139,4 +139,15 @@ We encountered rate limits on Groq despite its high capacity, needed better visi
 
 ---
 
+## 🛡️ Step 10 — Hardened Fallback Pipelines & UI Error Handling
+
+We encountered pipeline crashes due to unexpected `None` responses when `llama-4-scout` (OpenRouter) returned 404s, leading to silent failures. We also suffered JSON parse failures due to Gemini sometimes wrapping responses in Markdown fences. Then we did:
+- Rewrote the cascade logic in `source_analyzer.py` so that empty/None responses from hard API errors correctly cascade to the next fallback model.
+- Built a robust 4-tier Groq fallback chain for `source_analyzer` (`llama-3.3-70b-versatile` → `llama-3.3-70b-specdec` → `qwen-2.5-32b` → `llama-3.1-8b-instant`), dropping the broken `llama-4-scout`.
+- Explicitly established `llama3-8b-8192` as the `GROQ_SIMPLE_FALLBACK` for all structural tasks (scope, decomposition, temporal classification, query generation).
+- Strengthened JSON parsing with robust Markdown fence-stripping before falling back to `json-repair` to handle Gemini outputs reliably.
+- Added dynamic frontend error panels to gracefully communicate pipeline infrastructure failures to the user rather than leaving the UI hung.
+
+---
+
 *Truth Mirror — from broken Wikipedia summaries to a resilient, API-first geopolitical intelligence engine.*

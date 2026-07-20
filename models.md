@@ -72,7 +72,7 @@ claims, emphasis, omissions, and hidden implications relative to the claim.
 * **Fallback 3:** `llama-3.1-8b-instant` (Groq — Key 1, then Key 2)
   Quality reduction is logged as WARNING. Used only when larger models are exhausted.
 * **Fallback 4:** `gemini-3.5-flash` (Google Gemini — key rotation)
-  Activated only if all four Groq model tiers are exhausted on all keys. Uses json_repair for robustness.
+  Activated only if all four Groq model tiers are exhausted on all keys. JSON fence stripping now fixed, and uses json_repair for robustness.
 
 ---
 

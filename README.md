@@ -68,4 +68,4 @@ Then, open your web browser and navigate to `http://localhost:8080` to access th
 
 ## 6. Other Notes
 - The system incorporates aggressive rate-limit protections, including sequential mini-batching and sleep intervals. Do not modify these unless you have upgraded to paid API tiers.
-- The system heavily relies on structured JSON generation. If you experience parsing errors, ensure your API keys are valid and the models are responding correctly.
+- The system heavily relies on structured JSON generation. We utilize `json-repair` and robust fence-stripping to automatically handle improperly formatted LLM responses, ensuring high pipeline resilience.
