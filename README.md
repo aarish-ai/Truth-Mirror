@@ -13,11 +13,11 @@ Truth Mirror takes a hybrid multi-agent approach to fact-checking and narrative 
 ## 3. Tech Stack
 Our architecture relies on the following technologies:
 
-- **Frontend UI**: Built with pure HTML, CSS, and Vanilla JavaScript for a lightweight, fast, and responsive user experience. We utilize dark mode aesthetics and dynamic layout panels.
-- **Backend Server**: Python-based lightweight `BaseHTTPRequestHandler` acting as a REST API to serve the UI and orchestrate the pipeline.
+- **Frontend UI**: Built with pure HTML, CSS, and Vanilla JavaScript for a lightweight, fast, and responsive user experience. Features dark mode aesthetics, dynamic layout panels, a dismissible terms banner, and a WhatsApp contact link.
+- **Backend Server**: Python-based lightweight `BaseHTTPRequestHandler` acting as a REST API to serve the UI and orchestrate the pipeline. Now features Basic HTTP Authentication to protect all routes.
 - **High-Volume AI (Groq)**: We use Groq's lightning-fast inference for `llama-3.1-8b-instant` to handle simple structural tasks: classifying whether a claim is geopolitical, extracting temporal intent from claims, decomposing complex claims into sub-claims, and generating targeted search queries. We use `llama-3.3-70b-versatile` (with robust fallbacks to `llama-3.3-70b-specdec` and `qwen-2.5-32b`) for heavy batch-analyzing of sources.
 - **Deep Synthesis AI (Google Gemini)**: We utilize `gemini-3.5-flash` to perform the heavy lifting: synthesizing evidence, detecting narrative divergence, and writing the final geopolitical story. We also use `gemini-2.5-flash` as an absolute last resort fallback for source analysis. A custom key-rotator intelligently cycles through a pool of API keys to gracefully manage rate limits.
-- **Result Caching**: We utilize an embedded SQLite database (`caching.py`) to map full claim hashes to their `GeopoliticalResult`, saving 100% of API calls on repeated queries with adaptive TTLs based on the temporal nature of the claim.
+- **Result Caching**: We utilize an embedded SQLite database (`caching.py`) operating in WAL (Write-Ahead Logging) mode. This safely maps full claim hashes to their `GeopoliticalResult` with full concurrency support, saving 100% of API calls on repeated queries with adaptive TTLs based on the temporal nature of the claim.
 - **Tertiary Fallback (OpenRouter)**: To ensure absolute high availability, if both Groq and Gemini face rate limits or high load during synthesis, the system automatically falls back to `qwen/qwen3-next-80b-a3b-instruct:free` via the OpenRouter API.
 - **Retrieval Sources**: Live data is pulled in parallel using custom Python connectors for Wikipedia, Wikinews, ArXiv, Crossref, Semantic Scholar, PubMed, Google News RSS, and Non-Western Media outlets (Al Jazeera, TASS, CGTN).
 - **Run Logging**: Every end-to-end pipeline run is fully logged into a local `misc/testing.md` file, tracking the models used, runtimes, and the complete synthesized geopolitical breakdown for easy review.
@@ -57,14 +57,25 @@ Consider the claim: **"US invaded Venezuela"**
    GROQ_API_KEY_1=your_primary_groq_api_key
    GROQ_API_KEY_2=your_secondary_groq_api_key
    OPENROUTER_API_KEY=your_openrouter_api_key_here
+   AUTH_PASSWORD=tmirror2024
+   WHATSAPP_NUMBER=+923135247525
    ```
 
-### Running the App
+### Running with Docker (Recommended)
+We provide a production-ready `docker-compose.yml`.
+1. Ensure your `.env` file is fully configured.
+2. Build and start the container:
+   ```bash
+   docker compose up -d --build
+   ```
+3. The Truth Mirror dashboard will be available at `http://localhost:8080`.
+
+### Running Locally (Without Docker)
 Start the backend server:
 ```bash
 python app.py
 ```
-Then, open your web browser and navigate to `http://localhost:8080` to access the Truth Mirror dashboard.
+Then, open your web browser and navigate to `http://localhost:8080`. If you set `AUTH_PASSWORD` in your `.env`, you will be prompted for Basic Authentication (username can be anything, password must match).
 
 ## 6. Other Notes
 - The system incorporates aggressive rate-limit protections, including sequential mini-batching and sleep intervals. Do not modify these unless you have upgraded to paid API tiers.

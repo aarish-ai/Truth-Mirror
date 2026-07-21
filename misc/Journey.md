@@ -150,4 +150,24 @@ We encountered pipeline crashes due to unexpected `None` responses when `llama-4
 
 ---
 
+## 🏗️ Step 11 — Beta Readiness: Stability & Concurrency
+
+We encountered stability issues when running under concurrent load and faced UI crashes when language models hallucinated missing JSON keys. Then we did:
+- Migrated the global pipeline status dictionary to use per-request UUIDs, successfully isolating concurrent loading screens.
+- Enabled `WAL` (Write-Ahead Logging) journal mode with a 5-second busy timeout in SQLite, allowing concurrent reads and serialized writes without `database is locked` errors.
+- Applied robust null-coalescing guards (`|| []`, `|| "N/A"`) across the frontend rendering logic to prevent the UI from crashing if models drop fields.
+- Wrapped the main verification pipeline in a `ThreadPoolExecutor` with a strict 300-second (5 minute) hard timeout to catch and gracefully handle heavily congested upstream API conditions, returning a clean 503 instead of a hung pipeline.
+
+---
+
+## 🐳 Step 12 — Auth, Dockerization & User Feedback
+
+We needed to protect the app for closed beta, host it consistently, and collect user feedback. Then we did:
+- Implemented Basic HTTP Authentication directly inside the `BaseHTTPRequestHandler` using `python-dotenv` to secure the platform.
+- Fully Dockerized the application using `python:3.12-slim` with a `docker-compose.yml` orchestrating persistent bind-mount volumes for SQLite and Vector Stores.
+- Added a dismissible "Beta Notice" terms banner explaining that results are experimental and take 2-4 minutes.
+- Integrated a secure WhatsApp feedback link dynamically populated from `.env` directly into the top bar UI.
+
+---
+
 *Truth Mirror — from broken Wikipedia summaries to a resilient, API-first geopolitical intelligence engine.*
