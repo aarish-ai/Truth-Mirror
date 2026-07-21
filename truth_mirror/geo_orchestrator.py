@@ -132,11 +132,11 @@ class GeopoliticalPipeline:
                     
         return all_results
 
-    def verify(self, claim: str, scope_gate=None) -> GeopoliticalResult:
+    def verify(self, claim: str, scope_gate=None, request_id: str = '__global__') -> GeopoliticalResult:
         import asyncio
-        return asyncio.run(self.run_async(claim, scope_gate))
+        return asyncio.run(self.run_async(claim, scope_gate, request_id=request_id))
 
-    async def run_async(self, claim: str, scope_gate=None) -> GeopoliticalResult:
+    async def run_async(self, claim: str, scope_gate=None, request_id: str = '__global__') -> GeopoliticalResult:
         import asyncio
         from datetime import datetime
         from truth_mirror.source_analyzer import SourceAnalyzer
@@ -181,14 +181,14 @@ class GeopoliticalPipeline:
         await asyncio.sleep(2)
         
         # 2. Decomposition
-        set_stage("decomposing")
+        set_stage("decomposing", request_id=request_id)
         sub_claims = self.decomposer.decompose(claim)
         
         await asyncio.sleep(2)
         
         # Classify temporal intent of the ORIGINAL claim (not sub-claims)
         # One Groq call here informs ALL query generation for this pipeline run
-        set_stage("classifying_temporal")
+        set_stage("classifying_temporal", request_id=request_id)
         temporal_classifier = TemporalClassifier()
         temporal_context = temporal_classifier.classify(claim)
         logger.info(
@@ -199,7 +199,7 @@ class GeopoliticalPipeline:
         )
         
         # 3. Query Generation
-        set_stage("querying")
+        set_stage("querying", request_id=request_id)
         all_queries = []
         for sub_claim in sub_claims:
             if sub_claim.lower().startswith("the period in question") or sub_claim.lower().startswith("the action is currently"):
@@ -231,7 +231,7 @@ class GeopoliticalPipeline:
         all_queries.extend(perspective_queries)
         
         # Parallel Retrieval
-        set_stage("retrieving")
+        set_stage("retrieving", request_id=request_id)
         all_evidence = self._parallel_retrieve(all_queries, claim_subtype)
         
         # Deduplicate evidence
@@ -244,7 +244,7 @@ class GeopoliticalPipeline:
                 deduped_evidence.append(item)
                 
         # Stage 2: Per-source stance analysis
-        set_stage("analyzing_sources")
+        set_stage("analyzing_sources", request_id=request_id)
         analyzer = SourceAnalyzer()
         source_analyses = await analyzer.analyze_all(deduped_evidence, claim, max_concurrent=3)
         source_analyses = [s for s in source_analyses if s.summary]
@@ -313,19 +313,19 @@ class GeopoliticalPipeline:
         gemini_client = getattr(self.synthesizer, "client", None)
         
         # Stage 3: Perspective synthesis
-        set_stage("synthesizing_perspectives")
+        set_stage("synthesizing_perspectives", request_id=request_id)
         synthesizer = PerspectiveSynthesizer()
         perspective_groups = await synthesizer.synthesize(source_analyses, claim, gemini_client)
         await asyncio.sleep(15)
         
         # Stage 4: Hidden story extraction
-        set_stage("extracting_stories")
+        set_stage("extracting_stories", request_id=request_id)
         extractor = HiddenStoryExtractor()
         hidden_stories = await extractor.extract(source_analyses, perspective_groups, claim, gemini_client)
         await asyncio.sleep(15)
         
         # Stage 5: Verdict generation
-        set_stage("generating_verdict")
+        set_stage("generating_verdict", request_id=request_id)
         engine = VerdictEngine()
         verdict = await engine.generate(source_analyses, perspective_groups, hidden_stories, claim, gemini_client)
         await asyncio.sleep(15)

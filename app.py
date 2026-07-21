@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import json
+import uuid
+import concurrent.futures
+from urllib.parse import urlparse, parse_qs
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from truth_mirror import TruthMirrorPipeline
 from truth_mirror.models import GeopoliticalResult
-from truth_mirror.pipeline_status import set_stage, get_status
+from truth_mirror.pipeline_status import set_stage, get_status, clear_status
 from dataclasses import asdict
 
 BASE_DIR = Path(__file__).parent
@@ -37,8 +40,11 @@ class TruthMirrorHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(html)
             return
-        if self.path == "/api/status":
-            self._write_json(get_status(), status=200)
+        parsed_path = urlparse(self.path)
+        if parsed_path.path == "/api/status":
+            query = parse_qs(parsed_path.query)
+            req_id = query.get("request_id", ["__global__"])[0]
+            self._write_json(get_status(req_id), status=200)
             return
         self._write_json({"error": "Not found"}, status=404)
 
@@ -57,20 +63,46 @@ class TruthMirrorHandler(BaseHTTPRequestHandler):
             self._write_json({"error": "Invalid JSON"}, status=400)
             return
         claim = str(payload.get("claim", "")).strip()
+        request_id = payload.get("request_id", str(uuid.uuid4()))
         if not claim:
             self._write_json({"error": "Claim is required"}, status=400)
             return
-        set_stage("classifying")
+        
+        set_stage("classifying", request_id=request_id)
         try:
-            result = self.pipeline.verify(claim)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(self.pipeline.verify, claim, request_id=request_id)
+                try:
+                    result = future.result(timeout=300)  # 5-minute hard timeout
+                except concurrent.futures.TimeoutError:
+                    self._write_json({
+                        "error": "Analysis timed out",
+                        "verdict": "TIMEOUT",
+                        "verdict_data": {
+                            "verdict": "TIMEOUT",
+                            "confidence": 0.0,
+                            "confidence_label": "N/A",
+                            "one_line_verdict": "The system is under heavy load. Please try again in a few minutes.",
+                            "full_reasoning": "The analysis pipeline exceeded the 5-minute timeout. This usually means upstream API services are slow or unresponsive.",
+                            "what_is_true": "N/A — analysis timed out.",
+                            "what_is_false": "N/A — analysis timed out.",
+                            "what_is_unclear": "N/A — analysis timed out.",
+                        },
+                        "is_geopolitical": True,
+                    }, status=503)
+                    return
+
             if isinstance(result, GeopoliticalResult):
                 res_dict = asdict(result)
                 res_dict["final_verdict"] = res_dict.get("verdict")
+                res_dict["request_id"] = request_id
                 self._write_json(res_dict, status=200)
             else:
-                self._write_json(self.pipeline.to_json(result), status=200)
+                res_dict = self.pipeline.to_json(result)
+                res_dict["request_id"] = request_id
+                self._write_json(res_dict, status=200)
         finally:
-            set_stage("idle")
+            clear_status(request_id)
 
 
 def run_server(host: str = "127.0.0.1", port: int = 8080) -> None:

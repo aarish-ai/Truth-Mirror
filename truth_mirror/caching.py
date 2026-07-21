@@ -15,8 +15,15 @@ class EvidenceCache:
         self.db_path = db_path
         self._init_db()
 
+    def _connect(self) -> sqlite3.Connection:
+        """Create a connection with WAL mode and a 5-second busy timeout."""
+        conn = sqlite3.connect(self.db_path, timeout=5.0)
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=5000")
+        return conn
+
     def _init_db(self) -> None:
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS cache (
@@ -40,7 +47,7 @@ class EvidenceCache:
 
     def get(self, key: str) -> list[dict[str, Any]] | None:
         """Get cached data for a key."""
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.execute("SELECT data FROM cache WHERE key = ?", (key,))
             row = cursor.fetchone()
             if row:
@@ -52,7 +59,7 @@ class EvidenceCache:
 
     def set(self, key: str, data: list[dict[str, Any]]) -> None:
         """Set cache data for a key."""
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             conn.execute(
                 "INSERT OR REPLACE INTO cache (key, data) VALUES (?, ?)",
                 (key, json.dumps(data)),
@@ -61,7 +68,7 @@ class EvidenceCache:
     def get_result(self, claim_key: str) -> dict | None:
         """Get cached pipeline result if it exists and has not expired."""
         from datetime import datetime
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.execute(
                 """
                 SELECT data FROM result_cache
@@ -96,7 +103,7 @@ class EvidenceCache:
         hours = TTL_HOURS.get(temporal_type, 12)
         expires_at = (datetime.utcnow() + timedelta(hours=hours)).isoformat()
 
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO result_cache
@@ -109,7 +116,7 @@ class EvidenceCache:
     def cleanup_expired_results(self) -> int:
         """Delete expired result cache entries. Returns count deleted."""
         from datetime import datetime
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.execute(
                 "DELETE FROM result_cache WHERE expires_at < ?",
                 (datetime.utcnow().isoformat(),)

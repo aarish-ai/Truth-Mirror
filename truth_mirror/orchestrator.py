@@ -50,7 +50,7 @@ class TruthMirrorPipeline:
         self.query_generator = GeoQueryGenerator()
         self.search_planner = SearchPlanner(self.retriever, self.query_generator)
 
-    def verify(self, claim: str) -> VerificationResult:
+    def verify(self, claim: str, request_id: str = "__global__") -> VerificationResult:
         from truth_mirror.claim_scope_gate import gate_claim, ClaimScopeResult
         from truth_mirror.models import GeopoliticalResult
         
@@ -64,7 +64,7 @@ class TruthMirrorPipeline:
             
         from truth_mirror.geo_orchestrator import GeopoliticalPipeline
         geo_pipeline = GeopoliticalPipeline()
-        return geo_pipeline.verify(claim, gate_res)
+        return geo_pipeline.verify(claim, gate_res, request_id=request_id)
 
     @staticmethod
     def to_json(result) -> dict:

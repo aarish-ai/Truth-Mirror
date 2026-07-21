@@ -643,29 +643,32 @@
     }
 
     function buildSourceRow(sa) {
+      const stance = sa.stance || "UNKNOWN";
       let sColor = "var(--text-muted)";
-      if (sa.stance === "SUPPORTS")          sColor = "var(--success)";
-      if (sa.stance === "CONTRADICTS")       sColor = "var(--danger)";
-      if (sa.stance === "PARTIALLY_SUPPORTS") sColor = "var(--warning)";
+      if (stance === "SUPPORTS")          sColor = "var(--success)";
+      if (stance === "CONTRADICTS")       sColor = "var(--danger)";
+      if (stance === "PARTIALLY_SUPPORTS") sColor = "var(--warning)";
+      
+      const confidence = typeof sa.stance_confidence === 'number' 
+        ? (sa.stance_confidence * 100).toFixed(0) + '%'
+        : 'N/A';
 
       return `
-          <tr>
-            <td>
-              <div style="font-weight: 600;">${sa.source_name || "Unknown"}</div>
-              <a href="${sa.url || "#"}" target="_blank"
-                 style="font-size: 0.8rem; color: var(--accent);
-                        text-decoration: none;">
-                View Source ↗
-              </a>
-            </td>
-            <td>${sa.alignment || "unknown"}</td>
-            <td style="color: ${sColor}; font-weight: 600;">${sa.stance}</td>
-            <td>${((sa.stance_confidence || 0) * 100).toFixed(0)}%</td>
-            <td style="font-size: 0.85rem; color: var(--text-muted);
-                       max-width: 300px;">
-              ${sa.what_emphasized || ""}
-            </td>
-          </tr>
+        <tr>
+          <td>
+            <div style="font-weight: 600;">${sa.source_name || "Unknown"}</div>
+            <a href="${sa.url || "#"}" target="_blank"
+               style="font-size: 0.8rem; color: var(--accent); text-decoration: none;">
+              View Source ↗
+            </a>
+          </td>
+          <td>${sa.alignment || "unknown"}</td>
+          <td style="color: ${sColor}; font-weight: 600;">${stance}</td>
+          <td>${confidence}</td>
+          <td style="font-size: 0.85rem; color: var(--text-muted); max-width: 300px;">
+            ${sa.what_emphasized || ""}
+          </td>
+        </tr>
       `;
     }
 
@@ -703,9 +706,11 @@
       let stageCounter = 0;
       let funMsgIdx = 0;
 
+      const requestId = crypto.randomUUID();
+
       const pollStatus = async () => {
         try {
-          const res = await fetch("/api/status");
+          const res = await fetch("/api/status?request_id=" + requestId);
           if (res.ok) {
             const data = await res.json();
             if (data.stage !== currentStage) {
@@ -736,10 +741,20 @@
         const res = await fetch("/api/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ claim })
+          body: JSON.stringify({ claim, request_id: requestId })
         });
         
-        if (!res.ok) throw new Error("Verification failed");
+        if (!res.ok) {
+          if (res.status === 503) {
+            const errData = await res.json();
+            showErrorPanel(
+              errData.verdict_data?.one_line_verdict || 
+              "The system is under heavy load. Please try again in a few minutes."
+            );
+            return;
+          }
+          throw new Error("Verification failed");
+        }
         const data = await res.json();
         
         if (data.is_geopolitical === false) {
@@ -769,6 +784,15 @@
     function renderDashboard(data) {
       // Check for infrastructure failure — show error panel, not dashboard
       const vdata = data.verdict_data || {};
+      
+      if (vdata.verdict === "TIMEOUT" || data.verdict === "TIMEOUT") {
+          showErrorPanel(
+              "The analysis timed out due to heavy load. " +
+              "Please wait a few minutes and resubmit."
+          );
+          return;
+      }
+      
       if (vdata.verdict === "ANALYSIS_FAILED" || data.verdict === "ANALYSIS_FAILED") {
           showErrorPanel(
               "API capacity was temporarily exhausted. All available models " +
@@ -813,17 +837,22 @@
 
       // Perspectives
       elements.blocGrid.innerHTML = "";
-      if (data.perspective_groups) {
+      if (data.perspective_groups && Array.isArray(data.perspective_groups)) {
         data.perspective_groups.forEach(pg => {
+          const label = pg.group_label || "Unknown Bloc";
+          const stance = pg.collective_stance || "Unknown";
+          const narrative = pg.collective_narrative || "No narrative available.";
+          const emphasizes = pg.what_they_emphasize || "N/A";
+          const omits = pg.what_they_omit || "N/A";
           elements.blocGrid.innerHTML += `
             <div class="bloc-card">
-              <h4 class="bloc-title">${pg.group_label}</h4>
-              <span class="bloc-stance">${pg.collective_stance}</span>
+              <h4 class="bloc-title">${label}</h4>
+              <span class="bloc-stance">${stance}</span>
               <div class="bloc-content">
-                <p style="margin-top:0">${pg.collective_narrative}</p>
+                <p style="margin-top:0">${narrative}</p>
                 <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">
-                  <strong>Emphasizes:</strong> ${pg.what_they_emphasize}<br>
-                  <strong>Omits:</strong> ${pg.what_they_omit}
+                  <strong>Emphasizes:</strong> ${emphasizes}<br>
+                  <strong>Omits:</strong> ${omits}
                 </div>
               </div>
             </div>
@@ -833,20 +862,30 @@
 
       // Hidden Stories
       elements.hiddenStoriesContainer.innerHTML = "";
-      if (data.hidden_stories && data.hidden_stories.length > 0) {
+      if (data.hidden_stories && Array.isArray(data.hidden_stories) && data.hidden_stories.length > 0) {
         data.hidden_stories.forEach(hs => {
+          const title = hs.title || "Untitled Story";
+          const explanation = hs.explanation || "No explanation available.";
+          const significance = hs.significance || "Unknown significance.";
+          const hintSources = Array.isArray(hs.which_sources_hint_at_this)
+            ? hs.which_sources_hint_at_this.join(", ")
+            : "None identified";
+          const suppressSources = Array.isArray(hs.which_sources_suppress_this)
+            ? hs.which_sources_suppress_this.join(", ")
+            : "None identified";
+          
           elements.hiddenStoriesContainer.innerHTML += `
             <div class="accordion-item">
               <div class="accordion-header" onclick="toggleAccordion(this)">
-                <span>🕵️ ${hs.title}</span>
+                <span>🕵️ ${title}</span>
                 <span style="font-size: 0.8rem; color: var(--accent);">Expand ▼</span>
               </div>
               <div class="accordion-content">
-                <p style="margin-top: 1rem;">${hs.explanation}</p>
-                <p><strong>Significance:</strong> ${hs.significance}</p>
+                <p style="margin-top: 1rem;">${explanation}</p>
+                <p><strong>Significance:</strong> ${significance}</p>
                 <div style="display: flex; gap: 2rem; font-size: 0.85rem; margin-top: 1rem;">
-                  <div><strong style="color: var(--success);">Hinted By:</strong> ${hs.which_sources_hint_at_this.join(", ")}</div>
-                  <div><strong style="color: var(--danger);">Suppressed By:</strong> ${hs.which_sources_suppress_this.join(", ")}</div>
+                  <div><strong style="color: var(--success);">Hinted By:</strong> ${hintSources}</div>
+                  <div><strong style="color: var(--danger);">Suppressed By:</strong> ${suppressSources}</div>
                 </div>
               </div>
             </div>
