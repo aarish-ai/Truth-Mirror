@@ -53,7 +53,6 @@ Determines if a claim is geopolitical and identifies involved parties and subtyp
 Used by the scope gate before routing to GeopoliticalPipeline.
 
 * **Primary:** `llama-3.1-8b-instant` (Groq — Key 1, then Key 2)
-* **Secondary:** `llama3-8b-8192` (Groq — Key 1, then Key 2)
 * **Fallback 1:** `qwen/qwen3-next-80b-a3b-instruct:free` (OpenRouter)
 * **Fallback 2:** Regex keyword matching (`_regex_fallback()`)
 
@@ -71,7 +70,7 @@ claims, emphasis, omissions, and hidden implications relative to the claim.
   Strong mid-tier model with separate quota.
 * **Fallback 3:** `llama-3.1-8b-instant` (Groq — Key 1, then Key 2)
   Quality reduction is logged as WARNING. Used only when larger models are exhausted.
-* **Fallback 4:** `gemini-3.5-flash` (Google Gemini — key rotation)
+* **Fallback 4:** `gemini-2.5-flash` (Google Gemini — key rotation)
   Activated only if all four Groq model tiers are exhausted on all keys. JSON fence stripping now fixed, and uses json_repair for robustness.
 
 ---

@@ -39,7 +39,7 @@ We encountered widespread systemic issues across multiple files due to repetitiv
 ## 🧠 Step 3 — The Smart Model Split & Mini-Batching
 
 We encountered total daily quota exhaustion (hitting the 20 requests/day per key limit) due to the pipeline executing ~76 Gemini calls per run on `gemini-3.5-flash`. Then we did:
-- Switched bulk classification tasks (source analysis, scope gate, stance) to `gemini-2.0-flash` which has a 1,500 req/day limit.
+- Switched bulk classification tasks (source analysis, scope gate, stance) to `gemini-2.5-flash` which has a 1,500 req/day limit.
 - Reserved the smarter `gemini-3.5-flash` exclusively for Intelligence Synthesis tasks (hidden stories, verdicts, orchestration).
 - Implemented "True Mini-Batching" by splitting the 36 sources into chunks of 6, converting 36 API calls into just 6 batch calls.
 - Enforced sequential mini-batch execution (1 concurrent task) to stay under the 15 requests per minute limit.
@@ -122,7 +122,7 @@ We encountered rate limits on Groq despite its high capacity, needed better visi
 |---|---|---|
 | Local model downloads | Downloaded 500MB+ at startup | Zero — pure API calls |
 | Source analysis | 36 individual calls on gemini-3.5-flash | 5 mini-batch calls on Groq (Llama 3.3 70B) |
-| Daily API budget | ~100 calls/day (burned in 1 run) | 14,400 req/day (Groq) + 7,500 calls/day (Gemini 2.0) |
+| Daily API budget | ~100 calls/day (burned in 1 run) | 14,400 req/day (Groq) + 7,500 calls/day (Gemini 2.5) |
 | Noise articles | Tenet movie, football scores hitting the API | Pre-filtered by keyword and hard-capped at 15 items |
 | OpenRouter fallback | Calling a non-existent model | Repurposed as a tertiary fallback behind Groq (`qwen3-next`) |
 | Time-blindness | Queries hardcoded with current month/year | Prompts explicitly say "timeline-agnostic" |
