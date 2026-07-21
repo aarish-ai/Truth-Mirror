@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+.git/
+.env
+*.pyc
+.tm_cache.db*
+.tm_cache.json
+.tm_narrative_history.json
+.tm_vectorstore/
+misc/
+.pytest_cache/

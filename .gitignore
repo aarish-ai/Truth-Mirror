@@ -8,3 +8,4 @@ __pycache__/
 venv/
 misc/testing.md
 misc/testing_run_count.txt
+data/

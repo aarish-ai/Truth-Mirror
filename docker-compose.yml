@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  truth-mirror:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - CACHE_DB_PATH=/app/data/cache.db
+      - VECTOR_STORE_PATH=/app/data/vectorstore
+    volumes:
+      - tm-data:/app/data
+    restart: unless-stopped
+volumes:
+  tm-data:

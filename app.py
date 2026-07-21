@@ -9,6 +9,13 @@ from urllib.parse import urlparse, parse_qs
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+import os
+import base64
+from dotenv import load_dotenv
+
+load_dotenv()
+AUTH_PASSWORD = os.environ.get("AUTH_PASSWORD")
+WHATSAPP_NUMBER = os.environ.get("WHATSAPP_NUMBER", "+923135247525")
 
 from truth_mirror import TruthMirrorPipeline
 from truth_mirror.models import GeopoliticalResult
@@ -23,6 +30,24 @@ INDEX_FILE = STATIC_DIR / "index.html"
 class TruthMirrorHandler(BaseHTTPRequestHandler):
     pipeline = TruthMirrorPipeline()
 
+    def _check_auth(self) -> bool:
+        if not AUTH_PASSWORD:
+            return True
+        auth_header = self.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Basic "):
+            try:
+                decoded = base64.b64decode(auth_header[6:]).decode("utf-8")
+                username, password = decoded.split(":", 1)
+                if password == AUTH_PASSWORD:
+                    return True
+            except Exception:
+                pass
+        self.send_response(401)
+        self.send_header("WWW-Authenticate", 'Basic realm="Truth Mirror"')
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+        return False
+
     def _write_json(self, payload: dict, status: int = 200) -> None:
         body = json.dumps(payload).encode("utf-8")
         self.send_response(status)
@@ -32,13 +57,18 @@ class TruthMirrorHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self) -> None:
+        if not self._check_auth():
+            return
         if self.path in {"/", "/index.html"}:
-            html = INDEX_FILE.read_bytes()
+            html = INDEX_FILE.read_text(encoding="utf-8")
+            if WHATSAPP_NUMBER:
+                html = html.replace("{{WHATSAPP_NUMBER}}", WHATSAPP_NUMBER)
+            html_bytes = html.encode("utf-8")
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(html)))
+            self.send_header("Content-Length", str(len(html_bytes)))
             self.end_headers()
-            self.wfile.write(html)
+            self.wfile.write(html_bytes)
             return
         parsed_path = urlparse(self.path)
         if parsed_path.path == "/api/status":
@@ -49,6 +79,8 @@ class TruthMirrorHandler(BaseHTTPRequestHandler):
         self._write_json({"error": "Not found"}, status=404)
 
     def do_POST(self) -> None:
+        if not self._check_auth():
+            return
         if self.path != "/api/verify":
             self._write_json({"error": "Not found"}, status=404)
             return
@@ -105,7 +137,7 @@ class TruthMirrorHandler(BaseHTTPRequestHandler):
             clear_status(request_id)
 
 
-def run_server(host: str = "127.0.0.1", port: int = 8080) -> None:
+def run_server(host: str = "0.0.0.0", port: int = 8080) -> None:
     server = ThreadingHTTPServer((host, port), TruthMirrorHandler)
     print(f"Truth Mirror running on http://{host}:{port}")
     server.serve_forever()

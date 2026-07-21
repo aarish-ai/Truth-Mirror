@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import os
 from typing import Any
 from pathlib import Path
 
@@ -11,8 +12,8 @@ from pathlib import Path
 class EvidenceCache:
     """SQLite cache to persist retrieved evidence items."""
 
-    def __init__(self, db_path: str = ".tm_cache.db"):
-        self.db_path = db_path
+    def __init__(self, db_path: str = None):
+        self.db_path = db_path or os.environ.get("CACHE_DB_PATH", ".tm_cache.db")
         self._init_db()
 
     def _connect(self) -> sqlite3.Connection:
