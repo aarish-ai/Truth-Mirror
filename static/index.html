@@ -7,17 +7,29 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #050505;
-      --panel-bg: rgba(17, 24, 39, 0.6);
-      --panel-border: rgba(255, 255, 255, 0.1);
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
-      --success: #10b981;
-      --warning: #f59e0b;
+      --bg-color: #050508;
+      --bg-secondary: #0a0a0f;
+      --panel-bg: rgba(12, 15, 22, 0.7);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --panel-border-hover: rgba(255, 255, 255, 0.15);
+      --text-main: #e8eaed;
+      --text-muted: #8b8fa3;
+      --text-dim: #5a5e72;
+      --accent: #6366f1;
+      --accent-secondary: #818cf8;
+      --success: #22c55e;
+      --success-dim: rgba(34, 197, 94, 0.12);
+      --warning: #eab308;
+      --warning-dim: rgba(234, 179, 8, 0.12);
       --danger: #ef4444;
-      --glass-blur: blur(16px);
+      --danger-dim: rgba(239, 68, 68, 0.12);
+      --glass-blur: blur(20px);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --transition-fast: 0.2s ease;
+      --transition-normal: 0.3s ease;
     }
 
     * { box-sizing: border-box; }
@@ -25,8 +37,11 @@
     body {
       margin: 0;
       font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
       background-color: var(--bg-color);
-      background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+      background-image: 
+        radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(34, 197, 94, 0.03) 0%, transparent 50%);
       color: var(--text-main);
       display: flex;
       flex-direction: column;
@@ -43,8 +58,8 @@
     }
 
     .top-bar {
-      padding: 1.5rem 2rem;
-      background: rgba(5, 5, 5, 0.7);
+      padding: 1rem 2rem;
+      background: rgba(5, 5, 8, 0.85);
       backdrop-filter: var(--glass-blur);
       border-bottom: 1px solid var(--panel-border);
       display: flex;
@@ -64,20 +79,21 @@
     input[type="text"] {
       flex: 1;
       padding: 1rem 1.5rem;
-      border-radius: 12px;
+      border-radius: var(--radius-md);
       border: 1px solid rgba(255, 255, 255, 0.15);
       background: rgba(255, 255, 255, 0.05);
       color: var(--text-main);
       font-size: 1.1rem;
       font-family: 'Outfit', sans-serif;
       outline: none;
-      transition: all 0.3s ease;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+      transition: all var(--transition-normal);
     }
 
     input[type="text"]:focus {
       border-color: var(--accent);
       background: rgba(255, 255, 255, 0.1);
-      box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.3), inset 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .btn {
@@ -120,12 +136,16 @@
       background: var(--panel-bg);
       backdrop-filter: var(--glass-blur);
       border: 1px solid var(--panel-border);
-      border-radius: 16px;
+      border-radius: var(--radius-xl);
       padding: 2rem;
       display: flex;
       flex-direction: column;
       animation: fadeIn 0.5s ease;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      transition: border-color var(--transition-normal);
+    }
+
+    .panel:hover {
+      border-color: var(--panel-border-hover);
     }
     
     @keyframes fadeIn {
@@ -134,8 +154,11 @@
     }
 
     .panel-title {
-      font-size: 1.5rem;
+      font-size: 0.8rem;
       font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
       margin: 0 0 1.5rem 0;
       display: flex;
       align-items: center;
@@ -145,133 +168,167 @@
     .panel-title::before {
       content: "";
       display: inline-block;
-      width: 4px;
-      height: 1.2em;
+      width: 3px;
+      height: 1em;
       background: var(--accent);
       border-radius: 2px;
     }
 
     /* Verdict Section */
     .verdict-banner {
-      background: rgba(0, 0, 0, 0.4);
-      border: 2px solid var(--panel-border);
-      border-radius: 16px;
-      padding: 3rem 2rem;
-      text-align: center;
-      margin-bottom: 2rem;
+      background: var(--panel-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-xl);
+      padding: 2.5rem 2.5rem;
+      text-align: left;
+      margin-bottom: 0;
       transition: all 0.4s ease;
       position: relative;
       overflow: hidden;
     }
-    
-    .verdict-banner::after {
-        content: "";
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
-        pointer-events: none;
+
+    .verdict-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .verdict-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .verdict-claim {
+      font-size: 1.05rem;
+      font-style: italic;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
     }
 
     .verdict-value {
-      font-size: 3rem;
+      font-size: 2.2rem;
       font-weight: 700;
-      letter-spacing: -1px;
-      margin-bottom: 0.5rem;
+      letter-spacing: -0.5px;
+      margin-bottom: 0.75rem;
       text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
     }
 
     .verdict-one-line {
-      font-size: 1.25rem;
-      color: var(--text-main);
-      opacity: 0.9;
-      max-width: 800px;
-      margin: 0 auto 1.5rem auto;
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 700px;
     }
 
     .confidence-badge {
       display: inline-block;
-      padding: 0.5rem 1rem;
+      padding: 0.4rem 1rem;
       border-radius: 999px;
-      background: rgba(255,255,255,0.1);
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
 
     /* Breakdown Grid */
     .breakdown-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
     }
 
     .breakdown-card {
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--panel-border);
-      border-radius: 12px;
+      border-radius: var(--radius-lg);
       padding: 1.5rem;
+      border-top: none;
+      border-left: 3px solid transparent;
     }
 
     .breakdown-card h4 {
       margin: 0 0 1rem 0;
-      font-size: 1.1rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     .breakdown-card p {
       margin: 0;
       color: var(--text-muted);
-      line-height: 1.6;
+      line-height: 1.7;
+      font-size: 1rem;
     }
 
     /* Bloc Cards */
     .bloc-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.25rem;
     }
 
     .bloc-card {
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--panel-border);
-      border-radius: 12px;
+      border-radius: var(--radius-lg);
       padding: 1.5rem;
-      transition: transform 0.2s ease, background 0.2s ease;
+      transition: all var(--transition-normal);
     }
 
     .bloc-card:hover {
-      transform: translateY(-5px);
-      background: rgba(255, 255, 255, 0.06);
+      transform: translateY(-3px);
+      border-color: var(--panel-border-hover);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .bloc-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
     }
 
     .bloc-title {
-      font-size: 1.2rem;
+      font-size: 1.05rem;
       font-weight: 600;
-      margin: 0 0 0.5rem 0;
-      color: var(--accent);
+      margin: 0;
+      color: var(--text-main);
     }
 
     .bloc-stance {
       display: inline-block;
       padding: 0.25rem 0.75rem;
-      border-radius: 4px;
-      font-size: 0.8rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
       font-weight: 700;
-      background: rgba(255,255,255,0.1);
-      margin-bottom: 1rem;
-    }
-
-    .bloc-content {
-      font-size: 0.95rem;
-      color: #d1d5db;
-      line-height: 1.6;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
 
     /* Accordion */
     .accordion-item {
       border: 1px solid var(--panel-border);
-      border-radius: 12px;
-      margin-bottom: 1rem;
+      border-radius: var(--radius-lg);
+      margin-bottom: 0.75rem;
       overflow: hidden;
       background: rgba(255, 255, 255, 0.02);
+      transition: border-color var(--transition-normal);
+    }
+
+    .accordion-item:hover {
+      border-color: var(--panel-border-hover);
     }
 
     .accordion-header {
@@ -280,12 +337,13 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-weight: 600;
-      transition: background 0.2s;
+      font-weight: 500;
+      font-size: 1rem;
+      transition: background var(--transition-fast);
     }
 
     .accordion-header:hover {
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.03);
     }
 
     .accordion-content {
@@ -294,12 +352,38 @@
       overflow: hidden;
       transition: max-height 0.3s ease, padding 0.3s ease;
       color: var(--text-muted);
-      line-height: 1.6;
+      line-height: 1.7;
+      font-size: 1rem;
     }
 
     .accordion-item.active .accordion-content {
       padding: 0 1.5rem 1.5rem 1.5rem;
-      max-height: 1000px; /* arbitrary large value */
+      max-height: 2000px;
+    }
+
+    /* WHY IT MATTERS highlight box */
+    .why-it-matters {
+      background: rgba(99, 102, 241, 0.06);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+    }
+
+    .why-it-matters-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-main);
+      margin-bottom: 0.4rem;
+    }
+
+    .why-it-matters p {
+      margin: 0;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.6;
     }
 
     /* Sources Table */
@@ -309,25 +393,29 @@
 
     table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
       text-align: left;
-    }
-
-    th, td {
-      padding: 1rem;
-      border-bottom: 1px solid var(--panel-border);
     }
 
     th {
       font-weight: 600;
-      color: var(--text-muted);
+      color: var(--text-dim);
       text-transform: uppercase;
-      font-size: 0.85rem;
-      letter-spacing: 0.05em;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      padding: 1rem;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 0.95rem;
     }
 
     tbody tr {
-      transition: background 0.2s;
+      transition: background var(--transition-fast);
     }
 
     tbody tr:hover {
@@ -348,20 +436,20 @@
 
     .empty-state {
       text-align: center;
-      padding: 5rem 2rem;
+      padding: 6rem 2rem;
       color: var(--text-muted);
     }
 
     #lowEvidenceWarning {
-      background: rgba(245, 158, 11, 0.08);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      border-left: 4px solid var(--warning);
-      border-radius: 8px;
+      background: var(--warning-dim);
+      border: 1px solid rgba(234, 179, 8, 0.2);
+      border-left: 3px solid var(--warning);
+      border-radius: var(--radius-sm);
       padding: 1rem 1.25rem;
       margin-bottom: 1.5rem;
       font-size: 0.95rem;
       color: var(--text-main);
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
     .error-panel-icon {
@@ -381,17 +469,17 @@
     }
 
     #errorPanel {
-        display: none;
-        align-items: flex-start;
-        gap: 1.25rem;
-        margin: 2rem 2.5rem;
-        padding: 1.5rem 1.75rem;
-        background: rgba(239, 68, 68, 0.07);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        border-left: 4px solid var(--danger);
-        border-radius: 16px;
-        backdrop-filter: var(--glass-blur);
-        animation: fadeIn 0.3s ease;
+      display: none;
+      align-items: flex-start;
+      gap: 1.25rem;
+      margin: 2rem 2.5rem;
+      padding: 1.5rem 1.75rem;
+      background: var(--danger-dim);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-left: 3px solid var(--danger);
+      border-radius: var(--radius-lg);
+      backdrop-filter: var(--glass-blur);
+      animation: fadeIn 0.3s ease;
     }
 
     .error-panel-body {
@@ -427,9 +515,9 @@
     }
 
     .terms-banner {
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(168, 85, 247, 0.08));
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      border-radius: 12px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-lg);
       padding: 1rem 1.5rem;
       margin: 1rem 2.5rem 0 2.5rem;
       display: flex;
@@ -464,6 +552,141 @@
       background: rgba(255,255,255,0.1);
       color: var(--text-main);
     }
+
+    .claim-display-banner {
+      background: var(--panel-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 2rem;
+      margin: 1rem 2.5rem 0 2.5rem;
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .claim-display-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .claim-display-text {
+      font-size: 1.2rem;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--text-main);
+      margin: 0;
+    }
+
+    .pipeline-tracker {
+      background: var(--panel-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 2rem;
+      margin: 1rem 2.5rem 0 2.5rem;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .pipeline-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      display: block;
+      margin-bottom: 1rem;
+    }
+
+    .pipeline-steps {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .pipeline-step {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      transition: color var(--transition-normal);
+    }
+
+    .pipeline-step.active {
+      color: var(--text-main);
+    }
+
+    .pipeline-step.completed {
+      color: var(--success);
+    }
+
+    .pipeline-step.completed .step-indicator {
+      color: var(--success);
+    }
+
+    .pipeline-step.active .step-indicator {
+      color: var(--accent);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .step-indicator {
+      font-size: 1rem;
+      width: 1.2rem;
+      text-align: center;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .skeleton-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .skeleton-card::after {
+      content: "";
+      position: absolute;
+      top: 0; left: -100%; right: 0; bottom: 0;
+      width: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+      animation: shimmer 2s ease-in-out infinite;
+    }
+
+    .skeleton-lg { height: 160px; }
+    .skeleton-md { height: 140px; }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(200%); }
+    }
+
+    .main-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .main-content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .main-content::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    .main-content::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
   </style>
 </head>
 <body>
@@ -493,6 +716,37 @@
       </a>
     </div>
 
+    <div class="claim-display-banner" id="claimDisplayBanner" style="display: none;">
+      <span class="claim-display-label">CLAIM ANALYZED</span>
+      <p class="claim-display-text" id="claimDisplayText"></p>
+    </div>
+
+    <div class="pipeline-tracker" id="pipelineTracker" style="display: none;">
+      <span class="pipeline-label">ANALYSIS PIPELINE</span>
+      <div class="pipeline-steps" id="pipelineSteps">
+        <div class="pipeline-step" data-stage="classifying">
+          <span class="step-indicator">○</span>
+          <span class="step-text">Classifying claim scope</span>
+        </div>
+        <div class="pipeline-step" data-stage="decomposing">
+          <span class="step-indicator">○</span>
+          <span class="step-text">Decomposing sub-claims</span>
+        </div>
+        <div class="pipeline-step" data-stage="retrieving">
+          <span class="step-indicator">○</span>
+          <span class="step-text">Fetching global sources</span>
+        </div>
+        <div class="pipeline-step" data-stage="analyzing_sources">
+          <span class="step-indicator">○</span>
+          <span class="step-text">Analyzing media blocs</span>
+        </div>
+        <div class="pipeline-step" data-stage="generating_verdict">
+          <span class="step-indicator">○</span>
+          <span class="step-text">Synthesizing verdict</span>
+        </div>
+      </div>
+    </div>
+
     <div class="terms-banner" id="termsBanner">
       <span class="terms-banner-icon">ℹ️</span>
       <div>
@@ -513,9 +767,26 @@
       
       <!-- Panel 1: Verdict -->
       <div class="verdict-banner" id="verdictBanner">
+        <div class="verdict-header">
+          <span class="verdict-label">CLAIM ANALYZED</span>
+          <div class="confidence-badge" id="confidenceBadge">Medium Confidence</div>
+        </div>
+        <div class="verdict-claim" id="verdictClaim"></div>
         <div class="verdict-value" id="verdictValue">EVALUATING</div>
         <div class="verdict-one-line" id="verdictOneLine">Processing full intelligence report...</div>
-        <div class="confidence-badge" id="confidenceBadge">Confidence: --</div>
+      </div>
+
+      <div id="skeletonContainer" style="display: none;">
+        <!-- Full-width skeleton -->
+        <div class="skeleton-card skeleton-lg"></div>
+        <!-- 3-column skeleton row -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 1.5rem;">
+          <div class="skeleton-card skeleton-md"></div>
+          <div class="skeleton-card skeleton-md"></div>
+          <div class="skeleton-card skeleton-md"></div>
+        </div>
+        <!-- Full-width skeleton -->
+        <div class="skeleton-card skeleton-lg" style="margin-top: 1.5rem;"></div>
       </div>
 
       <!-- Panel 2: Breakdown -->
@@ -524,16 +795,16 @@
         <p style="color: #d1d5db; line-height: 1.6; margin-bottom: 2rem; font-size: 1.1rem;" id="fullReasoning"></p>
         
         <div class="breakdown-grid">
-          <div class="breakdown-card" style="border-top: 3px solid var(--success);">
-            <h4 style="color: var(--success);">Verified Facts</h4>
+          <div class="breakdown-card" style="border-left-color: var(--success);">
+            <h4 style="color: var(--success);">◉ Verified Facts</h4>
             <p id="whatIsTrue"></p>
           </div>
-          <div class="breakdown-card" style="border-top: 3px solid var(--danger);">
-            <h4 style="color: var(--danger);">Disproven Elements</h4>
+          <div class="breakdown-card" style="border-left-color: var(--danger);">
+            <h4 style="color: var(--danger);">◉ Disproven Elements</h4>
             <p id="whatIsFalse"></p>
           </div>
-          <div class="breakdown-card" style="border-top: 3px solid var(--warning);">
-            <h4 style="color: var(--warning);">Unclear / Disputed</h4>
+          <div class="breakdown-card" style="border-left-color: var(--warning);">
+            <h4 style="color: var(--warning);">◉ Unclear / Disputed</h4>
             <p id="whatIsUnclear"></p>
           </div>
         </div>
@@ -640,7 +911,12 @@
       initialState: document.getElementById("initialState"),
       dashboard: document.getElementById("dashboard"),
       
+      claimDisplayBanner: document.getElementById("claimDisplayBanner"),
+      claimDisplayText: document.getElementById("claimDisplayText"),
+      pipelineTracker: document.getElementById("pipelineTracker"),
+      
       verdictBanner: document.getElementById("verdictBanner"),
+      verdictClaim: document.getElementById("verdictClaim"),
       verdictValue: document.getElementById("verdictValue"),
       verdictOneLine: document.getElementById("verdictOneLine"),
       confidenceBadge: document.getElementById("confidenceBadge"),
@@ -682,6 +958,7 @@
     function showErrorPanel(detail) {
         // Hide the dashboard and initial state if visible
         elements.dashboard.style.display = "none";
+        document.getElementById('skeletonContainer').style.display = 'none';
 
         // Show or reuse the error panel
         let errorPanel = document.getElementById("errorPanel");
@@ -756,6 +1033,15 @@
       elements.verifyLoader.style.display = "block";
       elements.verifyBtn.disabled = true;
 
+      // Show claim display banner
+      elements.claimDisplayBanner.style.display = 'block';
+      elements.claimDisplayText.textContent = `"${claim}"`;
+      
+      // Show skeleton and pipeline tracker
+      elements.dashboard.style.display = 'grid';
+      document.getElementById('skeletonContainer').style.display = 'block';
+      elements.pipelineTracker.style.display = 'block';
+
       const STAGE_MESSAGES = {
         "idle": "Initializing...",
         "classifying": "Classifying claim scope...",
@@ -784,6 +1070,39 @@
 
       const requestId = crypto.randomUUID();
 
+      // Update pipeline tracker
+      const PIPELINE_ORDER = ["classifying", "decomposing", "retrieving", "analyzing_sources", "generating_verdict"];
+      // Map backend stages to pipeline display stages
+      const STAGE_MAP = {
+        "classifying": "classifying",
+        "decomposing": "decomposing",
+        "querying": "retrieving",
+        "retrieving": "retrieving",
+        "analyzing_sources": "analyzing_sources",
+        "synthesizing_perspectives": "analyzing_sources",
+        "extracting_stories": "analyzing_sources",
+        "generating_verdict": "generating_verdict"
+      };
+
+      function updatePipelineTracker(backendStage) {
+        const mappedStage = STAGE_MAP[backendStage] || backendStage;
+        const steps = document.querySelectorAll('.pipeline-step');
+        const currentIdx = PIPELINE_ORDER.indexOf(mappedStage);
+        
+        steps.forEach((step, idx) => {
+          step.classList.remove('active', 'completed');
+          if (idx < currentIdx) {
+            step.classList.add('completed');
+            step.querySelector('.step-indicator').textContent = '◉';
+          } else if (idx === currentIdx) {
+            step.classList.add('active');
+            step.querySelector('.step-indicator').textContent = '○';
+          } else {
+            step.querySelector('.step-indicator').textContent = '○';
+          }
+        });
+      }
+
       const pollStatus = async () => {
         try {
           const res = await fetch("/api/status?request_id=" + requestId);
@@ -793,6 +1112,7 @@
               currentStage = data.stage;
               stageCounter = 0;
               elements.loadingStatus.textContent = STAGE_MESSAGES[currentStage] || "Processing...";
+              updatePipelineTracker(currentStage);
             } else {
               stageCounter++;
               if (stageCounter > 2) {
@@ -854,10 +1174,12 @@
         elements.verifyBtn.disabled = false;
         clearInterval(mInt);
         elements.loadingStatus.textContent = "";
+        elements.pipelineTracker.style.display = 'none';
       }
     }
 
     function renderDashboard(data) {
+      document.getElementById('skeletonContainer').style.display = 'none';
       // Check for infrastructure failure — show error panel, not dashboard
       const vdata = data.verdict_data || {};
       
@@ -882,21 +1204,40 @@
       elements.dashboard.style.display = "grid";
       
       // Verdict Banner
+      document.getElementById('verdictClaim').textContent = `"${data.original_claim || data.claim || ''}"`;
       elements.verdictValue.textContent = vdata.verdict || data.verdict || "UNVERIFIABLE";
       elements.verdictOneLine.textContent = vdata.one_line_verdict || "No clear verdict generated.";
       elements.confidenceBadge.textContent = `${vdata.confidence_label || 'Low'} Confidence`;
       
       const v = elements.verdictValue.textContent;
+      let verdictColor, verdictGlow, badgeBg;
+
       if (v.includes("SUPPORTED") && !v.includes("PARTIALLY")) {
-        elements.verdictBanner.style.borderColor = "var(--success)";
-        elements.verdictValue.style.color = "var(--success)";
+        verdictColor = "var(--success)";
+        verdictGlow = "0 0 40px rgba(34, 197, 94, 0.1)";
+        badgeBg = "var(--success-dim)";
+        elements.verdictBanner.style.borderColor = "rgba(34, 197, 94, 0.3)";
+      } else if (v.includes("PARTIALLY")) {
+        verdictColor = "var(--warning)";
+        verdictGlow = "0 0 40px rgba(234, 179, 8, 0.1)";
+        badgeBg = "var(--warning-dim)";
+        elements.verdictBanner.style.borderColor = "rgba(234, 179, 8, 0.3)";
       } else if (v.includes("CONTRADICTED")) {
-        elements.verdictBanner.style.borderColor = "var(--danger)";
-        elements.verdictValue.style.color = "var(--danger)";
+        verdictColor = "var(--danger)";
+        verdictGlow = "0 0 40px rgba(239, 68, 68, 0.1)";
+        badgeBg = "var(--danger-dim)";
+        elements.verdictBanner.style.borderColor = "rgba(239, 68, 68, 0.3)";
       } else {
-        elements.verdictBanner.style.borderColor = "var(--warning)";
-        elements.verdictValue.style.color = "var(--warning)";
+        verdictColor = "var(--warning)";
+        verdictGlow = "0 0 40px rgba(234, 179, 8, 0.08)";
+        badgeBg = "var(--warning-dim)";
+        elements.verdictBanner.style.borderColor = "rgba(234, 179, 8, 0.2)";
       }
+
+      elements.verdictValue.style.color = verdictColor;
+      elements.verdictBanner.style.boxShadow = verdictGlow;
+      elements.confidenceBadge.style.background = badgeBg;
+      elements.confidenceBadge.style.color = verdictColor;
 
       if (data._from_cache) {
           elements.verdictBanner.insertAdjacentHTML('beforeend',
@@ -920,15 +1261,35 @@
           const narrative = pg.collective_narrative || "No narrative available.";
           const emphasizes = pg.what_they_emphasize || "N/A";
           const omits = pg.what_they_omit || "N/A";
+          
+          // Color-code stance badge
+          let stanceBg, stanceColor;
+          const stanceUpper = stance.toUpperCase();
+          if (stanceUpper.includes("SUPPORT")) {
+            stanceBg = "var(--success-dim)"; stanceColor = "var(--success)";
+          } else if (stanceUpper.includes("CONTRADICT")) {
+            stanceBg = "var(--danger-dim)"; stanceColor = "var(--danger)";
+          } else {
+            stanceBg = "rgba(255,255,255,0.08)"; stanceColor = "var(--text-muted)";
+          }
+          
           elements.blocGrid.innerHTML += `
             <div class="bloc-card">
-              <h4 class="bloc-title">${label}</h4>
-              <span class="bloc-stance">${stance}</span>
+              <div class="bloc-card-header">
+                <h4 class="bloc-title">${label}</h4>
+                <span class="bloc-stance" style="background: ${stanceBg}; color: ${stanceColor};">${stance}</span>
+              </div>
               <div class="bloc-content">
-                <p style="margin-top:0">${narrative}</p>
-                <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">
-                  <strong>Emphasizes:</strong> ${emphasizes}<br>
-                  <strong>Omits:</strong> ${omits}
+                <p style="margin: 0 0 1.25rem 0; font-size: 1rem; color: var(--text-muted); line-height: 1.7;">${narrative}</p>
+                <div style="margin-top: auto;">
+                  <div style="margin-bottom: 0.75rem;">
+                    <strong style="font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-main); display: block; margin-bottom: 0.4rem;">Emphasizes</strong>
+                    <span style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">${emphasizes}</span>
+                  </div>
+                  <div>
+                    <strong style="font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-main); display: block; margin-bottom: 0.4rem;">Omits</strong>
+                    <span style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">${omits}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -944,24 +1305,33 @@
           const explanation = hs.explanation || "No explanation available.";
           const significance = hs.significance || "Unknown significance.";
           const hintSources = Array.isArray(hs.which_sources_hint_at_this)
-            ? hs.which_sources_hint_at_this.join(", ")
+            ? hs.which_sources_hint_at_this.map(s => `<div style="margin-bottom: 0.25rem;">${s}</div>`).join("")
             : "None identified";
           const suppressSources = Array.isArray(hs.which_sources_suppress_this)
-            ? hs.which_sources_suppress_this.join(", ")
+            ? hs.which_sources_suppress_this.map(s => `<div style="margin-bottom: 0.25rem;">${s}</div>`).join("")
             : "None identified";
           
           elements.hiddenStoriesContainer.innerHTML += `
             <div class="accordion-item">
               <div class="accordion-header" onclick="toggleAccordion(this)">
-                <span>🕵️ ${title}</span>
-                <span style="font-size: 0.8rem; color: var(--accent);">Expand ▼</span>
+                <span>🔍 ${title}</span>
+                <span style="font-size: 1rem; color: var(--text-dim); transition: transform 0.3s ease;">∨</span>
               </div>
               <div class="accordion-content">
-                <p style="margin-top: 1rem;">${explanation}</p>
-                <p><strong>Significance:</strong> ${significance}</p>
-                <div style="display: flex; gap: 2rem; font-size: 0.85rem; margin-top: 1rem;">
-                  <div><strong style="color: var(--success);">Hinted By:</strong> ${hintSources}</div>
-                  <div><strong style="color: var(--danger);">Suppressed By:</strong> ${suppressSources}</div>
+                <p style="margin-top: 1rem; font-size: 1rem; line-height: 1.7;">${explanation}</p>
+                <div class="why-it-matters">
+                  <div class="why-it-matters-label">Why It Matters</div>
+                  <p>${significance}</p>
+                </div>
+                <div style="display: flex; gap: 3rem; font-size: 0.9rem; margin-top: 1rem;">
+                  <div>
+                    <strong style="font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-main); display: block; margin-bottom: 0.5rem;">Sources Hinting At This</strong>
+                    <div style="color: var(--text-muted);">${hintSources}</div>
+                  </div>
+                  <div>
+                    <strong style="font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-main); display: block; margin-bottom: 0.5rem;">Sources Suppressing This</strong>
+                    <div style="color: var(--text-muted);">${suppressSources}</div>
+                  </div>
                 </div>
               </div>
             </div>
