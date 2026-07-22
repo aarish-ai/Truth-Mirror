@@ -80,8 +80,9 @@
       flex: 1;
       padding: 1rem 1.5rem;
       border-radius: var(--radius-md);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: var(--glass-blur);
       color: var(--text-main);
       font-size: 1.1rem;
       font-family: 'Outfit', sans-serif;
@@ -92,7 +93,7 @@
 
     input[type="text"]:focus {
       border-color: var(--accent);
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.06);
       box-shadow: 0 0 15px rgba(99, 102, 241, 0.3), inset 0 2px 4px rgba(0,0,0,0.1);
     }
 
@@ -112,14 +113,18 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--accent), #6366f1);
+      background: rgba(99, 102, 241, 0.15);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid rgba(99, 102, 241, 0.5);
       color: white;
-      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
     }
 
-    .btn-primary:hover {
+    .btn-primary:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+      background: rgba(99, 102, 241, 0.25);
+      border-color: rgba(99, 102, 241, 0.8);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
     }
 
     .dashboard {
@@ -553,34 +558,6 @@
       color: var(--text-main);
     }
 
-    .claim-display-banner {
-      background: var(--panel-bg);
-      backdrop-filter: var(--glass-blur);
-      border: 1px solid var(--panel-border);
-      border-radius: var(--radius-lg);
-      padding: 1.25rem 2rem;
-      margin: 1rem 2.5rem 0 2.5rem;
-      text-align: center;
-      animation: fadeIn 0.5s ease;
-    }
-
-    .claim-display-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      display: block;
-      margin-bottom: 0.5rem;
-    }
-
-    .claim-display-text {
-      font-size: 1.2rem;
-      font-style: italic;
-      font-weight: 400;
-      color: var(--text-main);
-      margin: 0;
-    }
 
     .pipeline-tracker {
       background: var(--panel-bg);
@@ -716,10 +693,6 @@
       </a>
     </div>
 
-    <div class="claim-display-banner" id="claimDisplayBanner" style="display: none;">
-      <span class="claim-display-label">CLAIM ANALYZED</span>
-      <p class="claim-display-text" id="claimDisplayText"></p>
-    </div>
 
     <div class="pipeline-tracker" id="pipelineTracker" style="display: none;">
       <span class="pipeline-label">ANALYSIS PIPELINE</span>
@@ -911,8 +884,6 @@
       initialState: document.getElementById("initialState"),
       dashboard: document.getElementById("dashboard"),
       
-      claimDisplayBanner: document.getElementById("claimDisplayBanner"),
-      claimDisplayText: document.getElementById("claimDisplayText"),
       pipelineTracker: document.getElementById("pipelineTracker"),
       
       verdictBanner: document.getElementById("verdictBanner"),
@@ -1033,10 +1004,7 @@
       elements.verifyLoader.style.display = "block";
       elements.verifyBtn.disabled = true;
 
-      // Show claim display banner
-      elements.claimDisplayBanner.style.display = 'block';
-      elements.claimDisplayText.textContent = `"${claim}"`;
-      
+
       // Show skeleton and pipeline tracker
       elements.dashboard.style.display = 'grid';
       document.getElementById('skeletonContainer').style.display = 'block';
@@ -1205,7 +1173,7 @@
       
       // Verdict Banner
       document.getElementById('verdictClaim').textContent = `"${data.original_claim || data.claim || ''}"`;
-      elements.verdictValue.textContent = vdata.verdict || data.verdict || "UNVERIFIABLE";
+      elements.verdictValue.textContent = (vdata.verdict || data.verdict || "UNVERIFIABLE").replace(/_/g, " ");
       elements.verdictOneLine.textContent = vdata.one_line_verdict || "No clear verdict generated.";
       elements.confidenceBadge.textContent = `${vdata.confidence_label || 'Low'} Confidence`;
       
