@@ -640,6 +640,13 @@
       50% { opacity: 0.4; }
     }
 
+    .skeleton-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
     .skeleton-card {
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
@@ -681,6 +688,108 @@
     .main-content::-webkit-scrollbar-thumb:hover {
       background: rgba(255, 255, 255, 0.2);
     }
+    @media (max-width: 768px) {
+      .top-bar {
+        flex-wrap: wrap;
+        padding: 1rem;
+      }
+      .brand { order: 0; }
+      #loadingStatus { order: 1; margin-left: auto; }
+      .search-box { width: 100%; order: 2; }
+      #contactLink { order: 3; width: 100%; justify-content: center; }
+
+      .dashboard { padding: 1rem; gap: 1.25rem; }
+      .panel { padding: 1.25rem; }
+      .verdict-banner { padding: 1.5rem; }
+      .verdict-value { font-size: 1.6rem; }
+      .verdict-one-line { font-size: 0.95rem; }
+
+      .skeleton-grid { grid-template-columns: 1fr; }
+
+      #relevantSourcesTable thead,
+      #backgroundSourcesTable thead {
+        display: none;
+      }
+      #relevantSourcesTable tbody tr,
+      #backgroundSourcesTable tbody tr {
+        display: flex;
+        flex-direction: column;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--panel-border);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+      }
+      #relevantSourcesTable tbody tr:hover,
+      #backgroundSourcesTable tbody tr:hover {
+        background: rgba(255, 255, 255, 0.04);
+      }
+      #relevantSourcesTable td,
+      #backgroundSourcesTable td {
+        padding: 0.3rem 0;
+        border-bottom: none;
+        font-size: 0.9rem;
+      }
+      #relevantSourcesTable td:nth-child(2)::before,
+      #backgroundSourcesTable td:nth-child(2)::before {
+        content: "Alignment: "; font-weight: 600; color: var(--text-dim); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em;
+      }
+      #relevantSourcesTable td:nth-child(3)::before,
+      #backgroundSourcesTable td:nth-child(3)::before {
+        content: "Stance: "; font-weight: 600; color: var(--text-dim); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em;
+      }
+      #relevantSourcesTable td:nth-child(4)::before,
+      #backgroundSourcesTable td:nth-child(4)::before {
+        content: "Confidence: "; font-weight: 600; color: var(--text-dim); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em;
+      }
+      #relevantSourcesTable td:nth-child(5),
+      #backgroundSourcesTable td:nth-child(5) {
+        max-width: 100%; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--panel-border);
+      }
+
+      .breakdown-grid { grid-template-columns: 1fr; }
+      .bloc-grid { grid-template-columns: 1fr; }
+      .hidden-story-sources { flex-direction: column !important; gap: 1rem !important; }
+
+      .pipeline-tracker { margin: 0.5rem 1rem 0 1rem; padding: 1rem; }
+      .pipeline-steps { gap: 0.75rem; }
+      .pipeline-step { font-size: 0.8rem; }
+      #errorPanel { margin: 1rem !important; padding: 1rem !important; }
+      .terms-banner { margin: 0.5rem 1rem 0 1rem; padding: 0.75rem 1rem; }
+    }
+
+    @media (max-width: 480px) {
+      input[type="text"] { font-size: 1rem; padding: 0.75rem 1rem; }
+      .btn { padding: 0.75rem 1.25rem; font-size: 0.9rem; }
+      #contactLink { display: none !important; }
+
+      .dashboard { padding: 0.75rem; }
+      .panel { padding: 1rem; border-radius: var(--radius-md); }
+
+      #relevantSourcesTable td:nth-child(2),
+      #backgroundSourcesTable td:nth-child(2),
+      #relevantSourcesTable td:nth-child(4),
+      #backgroundSourcesTable td:nth-child(4) { display: none; }
+
+      #relevantSourcesTable tr.expanded td:nth-child(2),
+      #backgroundSourcesTable tr.expanded td:nth-child(2),
+      #relevantSourcesTable tr.expanded td:nth-child(4),
+      #backgroundSourcesTable tr.expanded td:nth-child(4) { display: block; }
+
+      .source-card-toggle {
+        display: block; width: 100%; background: none; border: none; border-top: 1px solid var(--panel-border);
+        color: var(--text-dim); font-size: 0.75rem; font-family: 'Outfit', sans-serif; letter-spacing: 0.05em;
+        padding: 0.5rem 0 0 0; margin-top: 0.5rem; cursor: pointer; text-align: center; transition: color 0.2s ease;
+      }
+      .source-card-toggle:hover { color: var(--text-muted); }
+      .source-card-toggle-cell { width: 100%; }
+    }
+
+    @media (min-width: 481px) {
+      .source-card-toggle { display: none !important; }
+    }
+
+    .source-card-toggle-cell { padding: 0; width: 0; border: none; }
   </style>
 </head>
 <body>
@@ -770,7 +879,7 @@
         <!-- Full-width skeleton -->
         <div class="skeleton-card skeleton-lg"></div>
         <!-- 3-column skeleton row -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 1.5rem;">
+        <div class="skeleton-grid">
           <div class="skeleton-card skeleton-md"></div>
           <div class="skeleton-card skeleton-md"></div>
           <div class="skeleton-card skeleton-md"></div>
@@ -832,6 +941,7 @@
                 <th>Stance</th>
                 <th>Confidence</th>
                 <th>Key Emphases</th>
+                <th class="source-card-toggle-cell"></th>
               </tr>
             </thead>
             <tbody id="relevantSourcesBody"></tbody>
@@ -863,6 +973,7 @@
                     <th>Stance</th>
                     <th>Confidence</th>
                     <th>Key Emphases</th>
+                    <th class="source-card-toggle-cell"></th>
                   </tr>
                 </thead>
                 <tbody id="backgroundSourcesBody"></tbody>
@@ -877,6 +988,38 @@
   </main>
 
   <script>
+    // ── Screen Wake Lock ────────────────────────────────────
+    let wakeLock = null;
+
+    async function requestWakeLock() {
+      if ('wakeLock' in navigator) {
+        try {
+          wakeLock = await navigator.wakeLock.request('screen');
+          console.log('[Wake Lock] Acquired — screen will stay on.');
+
+          wakeLock.addEventListener('release', () => {
+            console.log('[Wake Lock] Released.');
+            wakeLock = null;
+          });
+        } catch (err) {
+          console.warn('[Wake Lock] Failed to acquire:', err.message);
+          wakeLock = null;
+        }
+      }
+    }
+
+    async function releaseWakeLock() {
+      if (wakeLock) {
+        try {
+          await wakeLock.release();
+          console.log('[Wake Lock] Explicitly released.');
+        } catch (err) {
+          console.warn('[Wake Lock] Release failed:', err.message);
+        }
+        wakeLock = null;
+      }
+    }
+
     function dismissTermsBanner() {
       const banner = document.getElementById('termsBanner');
       if (banner) {
@@ -919,6 +1062,16 @@
       hiddenStoriesContainer: document.getElementById("hiddenStoriesContainer")
     };
 
+    // Re-acquire wake lock when user switches back to the tab during verification
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible' && wakeLock === null) {
+        const isRunning = elements.verifyBtn.disabled;
+        if (isRunning) {
+          await requestWakeLock();
+        }
+      }
+    });
+
     elements.verifyBtn.addEventListener("click", verifyClaim);
     elements.claimInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") verifyClaim();
@@ -941,6 +1094,18 @@
       } else {
           accordion.classList.add("active");
           label.textContent = "∧";
+      }
+    }
+
+    function toggleSourceCard(btn) {
+      const row = btn.closest('tr');
+      const isExpanded = row.classList.contains('expanded');
+      if (isExpanded) {
+        row.classList.remove('expanded');
+        btn.textContent = 'Show more ▼';
+      } else {
+        row.classList.add('expanded');
+        btn.textContent = 'Show less ▲';
       }
     }
 
@@ -992,7 +1157,7 @@
       if (stance === "SUPPORTS")          sColor = "var(--success)";
       if (stance === "CONTRADICTS")       sColor = "var(--danger)";
       if (stance === "PARTIALLY_SUPPORTS") sColor = "var(--warning)";
-      
+
       let confidence = 'N/A';
       if (typeof sa.stance_confidence === 'number') {
         const pct = sa.stance_confidence;
@@ -1018,6 +1183,11 @@
           <td style="font-size: 0.85rem; color: var(--text-muted); max-width: 300px;">
             ${sa.what_emphasized || ""}
           </td>
+          <td class="source-card-toggle-cell">
+            <button class="source-card-toggle" onclick="toggleSourceCard(this)">
+              Show more ▼
+            </button>
+          </td>
         </tr>
       `;
     }
@@ -1025,6 +1195,9 @@
     async function verifyClaim() {
       const claim = elements.claimInput.value.trim();
       if (!claim) return;
+
+      // Acquire wake lock to keep screen on during 2–4 min verification
+      await requestWakeLock();
 
       elements.btnText.style.display = "none";
       elements.verifyLoader.style.display = "block";
@@ -1183,6 +1356,9 @@
         elements.loadingStatus.style.fontSize = '';
         elements.loadingStatus.style.opacity = '';
         elements.pipelineTracker.style.display = 'none';
+
+        // Release wake lock — verification complete
+        await releaseWakeLock();
       }
     }
 
@@ -1343,7 +1519,7 @@
                   <div class="why-it-matters-label">Why It Matters</div>
                   <p>${significance}</p>
                 </div>
-                <div style="display: flex; gap: 3rem; font-size: 0.9rem; margin-top: 1rem;">
+                <div class="hidden-story-sources" style="display: flex; gap: 3rem; font-size: 0.9rem; margin-top: 1rem;">
                   <div>
                     <strong style="font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-main); display: block; margin-bottom: 0.5rem;">Sources Hinting At This</strong>
                     <div style="color: var(--text-muted);">${hintSources}</div>
