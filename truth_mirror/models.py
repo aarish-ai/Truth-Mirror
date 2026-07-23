@@ -158,6 +158,8 @@ class GeopoliticalResult:
     generated_at: str = field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
+    temporal_type: str = ""
+    temporal_qualifier: str = ""
 
     def to_json(self) -> dict:
         from dataclasses import asdict

@@ -215,11 +215,15 @@ class GeopoliticalPipeline:
         current_year = datetime.now().year
         if temporal_context.needs_date and temporal_context.date_qualifier:
             dq = temporal_context.date_qualifier
+            if dq.lower() in claim.lower():
+                dq_suffix = ""
+            else:
+                dq_suffix = f" {dq}"
             perspective_queries = [
-                f"{claim} {dq} Western media Reuters AP",
-                f"{claim} {dq} Russian Chinese media TASS CGTN",
-                f"{claim} {dq} Middle East Al Jazeera",
-                f"{claim} {dq} official government statement"
+                f"{claim}{dq_suffix} Western media Reuters AP",
+                f"{claim}{dq_suffix} Russian Chinese media TASS CGTN",
+                f"{claim}{dq_suffix} Middle East Al Jazeera",
+                f"{claim}{dq_suffix} official government statement"
             ]
         else:
             perspective_queries = [
@@ -246,7 +250,7 @@ class GeopoliticalPipeline:
         # Stage 2: Per-source stance analysis
         set_stage("analyzing_sources", request_id=request_id)
         analyzer = SourceAnalyzer()
-        source_analyses = await analyzer.analyze_all(deduped_evidence, claim, max_concurrent=3)
+        source_analyses = await analyzer.analyze_all(deduped_evidence, claim, max_concurrent=3, temporal_context=temporal_context)
         source_analyses = [s for s in source_analyses if s.summary]
         
         consensus_points, disputed_points = compute_consensus_disputes(source_analyses)
@@ -315,23 +319,23 @@ class GeopoliticalPipeline:
         # Stage 3: Perspective synthesis
         set_stage("synthesizing_perspectives", request_id=request_id)
         synthesizer = PerspectiveSynthesizer()
-        perspective_groups = await synthesizer.synthesize(source_analyses, claim, gemini_client)
+        perspective_groups = await synthesizer.synthesize(source_analyses, claim, gemini_client, temporal_context=temporal_context)
         await asyncio.sleep(15)
         
         # Stage 4: Hidden story extraction
         set_stage("extracting_stories", request_id=request_id)
         extractor = HiddenStoryExtractor()
-        hidden_stories = await extractor.extract(source_analyses, perspective_groups, claim, gemini_client)
+        hidden_stories = await extractor.extract(source_analyses, perspective_groups, claim, gemini_client, temporal_context=temporal_context)
         await asyncio.sleep(15)
         
         # Stage 5: Verdict generation
         set_stage("generating_verdict", request_id=request_id)
         engine = VerdictEngine()
-        verdict = await engine.generate(source_analyses, perspective_groups, hidden_stories, claim, gemini_client)
+        verdict = await engine.generate(source_analyses, perspective_groups, hidden_stories, claim, gemini_client, temporal_context=temporal_context)
         await asyncio.sleep(15)
         
         # Stage 6: Generate background and current_situation narratives
-        background, current_situation = await generate_background_narrative(claim, source_analyses, gemini_client)
+        background, current_situation = await generate_background_narrative(claim, source_analyses, gemini_client, temporal_context=temporal_context)
 
         logger.info(f"[GeoOrchestrator] Completed synthesis for: {claim[:50]}...")
         
@@ -350,7 +354,9 @@ class GeopoliticalPipeline:
             current_situation=current_situation,
             verdict=verdict.verdict,
             final_verdict=verdict.verdict,
-            confidence=verdict.confidence
+            confidence=verdict.confidence,
+            temporal_type=temporal_context.temporal_type if temporal_context else "",
+            temporal_qualifier=temporal_context.date_qualifier if temporal_context else ""
         )
         
         # ── CACHE STORE ───────────────────────────────────────────────────────
@@ -381,8 +387,12 @@ class GeopoliticalPipeline:
         
         return result
 
-async def generate_background_narrative(claim: str, source_analyses: list, gemini_client) -> tuple[str, str]:
-    prompt = f"Analyze these sources and provide a brief background and current situation for this claim: {claim}\n"
+async def generate_background_narrative(claim: str, source_analyses: list, gemini_client, temporal_context=None) -> tuple[str, str]:
+    claim_with_context = claim
+    if temporal_context and hasattr(temporal_context, 'date_qualifier') and temporal_context.date_qualifier:
+        claim_with_context = f"{claim} (Timeframe: {temporal_context.date_qualifier})"
+        
+    prompt = f"Analyze these sources and provide a brief background and current situation for this claim: {claim_with_context}\n"
     prompt += "Return JSON: {\"background\": \"...\", \"current_situation\": \"...\"}\n"
     
     import json

@@ -220,7 +220,7 @@ Rules:
 """
 
 
-def _build_mini_batch_prompt(claim: str, batch: list) -> str:
+def _build_mini_batch_prompt(claim: str, batch: list, temporal_context=None) -> str:
     articles_text = ""
     for i, article in enumerate(batch, 1):
         url = article.url_or_id or ""
@@ -243,11 +243,21 @@ def _build_mini_batch_prompt(claim: str, batch: list) -> str:
             f"{excerpt}\n---\n"
         )
 
+    temporal_instruction = ""
+    if temporal_context and hasattr(temporal_context, 'date_qualifier') and temporal_context.date_qualifier:
+        temporal_instruction = (
+            f"\n\n⏰ TEMPORAL BOUNDARY: This claim is being evaluated {temporal_context.date_qualifier}. "
+            f"Temporal type: {temporal_context.temporal_type.replace('_', ' ')}. "
+            f"Only classify a source as SUPPORTS if the source's own reporting timeframe is relevant to this temporal boundary. "
+            f"An article from 2019 about a past event does NOT support a claim about what is happening {temporal_context.date_qualifier}. "
+            f"If a source describes a historically completed event that does not apply to the current timeframe, classify it as NOT_RELEVANT."
+        )
+
     return f"""You are an intelligence analyst performing multi-source geopolitical analysis.
 You will be given {len(batch)} news articles and a claim to verify.
 For EACH article, produce a structured analysis.
 
-CLAIM BEING VERIFIED: "{claim}"
+CLAIM BEING VERIFIED: "{claim}"{temporal_instruction}
 
 ARTICLES:
 {articles_text}
@@ -477,7 +487,8 @@ class SourceAnalyzer:
             return results if results else None
         return None
 
-    async def analyze_all(self, articles: list, claim: str, max_concurrent: int = 1) -> list:
+    async def analyze_all(self, articles: list, claim: str, max_concurrent: int = 1, temporal_context=None) -> list:
+        self._temporal_context = temporal_context
         if not articles:
             logger.warning("[SourceAnalyzer] No articles to analyze.")
             return []
@@ -513,7 +524,7 @@ class SourceAnalyzer:
             batch = relevant[i:i + MINI_BATCH_SIZE]
             batch_num = (i // MINI_BATCH_SIZE) + 1
             total_batches = (len(relevant) + MINI_BATCH_SIZE - 1) // MINI_BATCH_SIZE
-            prompt = _build_mini_batch_prompt(claim, batch)
+            prompt = _build_mini_batch_prompt(claim, batch, temporal_context=self._temporal_context)
             
             result = None
 

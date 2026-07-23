@@ -139,7 +139,7 @@ class TruthMirrorHandler(BaseHTTPRequestHandler):
 
 def run_server(host: str = "0.0.0.0", port: int = 8080) -> None:
     server = ThreadingHTTPServer((host, port), TruthMirrorHandler)
-    print(f"Truth Mirror running on http://{host}:{port}")
+    print(f"Truth Mirror running on http://127.0.0.1:{port} (bound to {host})")
     server.serve_forever()
 
 

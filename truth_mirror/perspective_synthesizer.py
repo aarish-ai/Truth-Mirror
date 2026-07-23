@@ -36,7 +36,7 @@ class PerspectiveGroup:
     credibility_note: str
 
 class PerspectiveSynthesizer:
-    async def synthesize(self, source_analyses: List[SourceAnalysis], claim: str, gemini_client) -> List[PerspectiveGroup]:
+    async def synthesize(self, source_analyses: List[SourceAnalysis], claim: str, gemini_client, temporal_context=None) -> List[PerspectiveGroup]:
         if not source_analyses:
             return []
             
@@ -54,9 +54,13 @@ class PerspectiveSynthesizer:
             
         formatted_groups = "\n\n".join(formatted_groups_parts)
         
+        claim_with_context = claim
+        if temporal_context and hasattr(temporal_context, 'date_qualifier') and temporal_context.date_qualifier:
+            claim_with_context = f"{claim} (Timeframe: {temporal_context.date_qualifier})"
+            
         prompt = f"""You are a senior geopolitical intelligence analyst. Below is a collection of news source analyses grouped by media alignment. Your job is to characterize what each media bloc is collectively saying about the given claim.
 
-CLAIM: {claim}
+CLAIM: {claim_with_context}
 
 SOURCE ANALYSES BY BLOC:
 {formatted_groups}

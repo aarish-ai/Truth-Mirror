@@ -41,7 +41,8 @@ class VerdictEngine:
         perspective_groups: List[PerspectiveGroup],
         hidden_stories: List[HiddenStory],
         claim: str,
-        gemini_client
+        gemini_client,
+        temporal_context=None
     ) -> IntelligenceVerdict:
     
         support_count = sum(1 for s in source_analyses if s.stance == "SUPPORTS")
@@ -61,10 +62,21 @@ class VerdictEngine:
         
         hidden_story_titles = "\n".join([f"- {h.title}" for h in hidden_stories])
         
+        temporal_section = ""
+        if temporal_context and hasattr(temporal_context, 'date_qualifier') and temporal_context.date_qualifier:
+            temporal_section = (
+                f"\n⏰ TEMPORAL VERIFICATION BOUNDARY:\n"
+                f"This claim MUST be evaluated strictly {temporal_context.date_qualifier}.\n"
+                f"Temporal classification: {temporal_context.temporal_type.replace('_', ' ')}.\n"
+                f"- If no sources confirm this claim is true {temporal_context.date_qualifier}, the verdict should reflect insufficient current evidence.\n"
+                f"- Historical articles about similar past events do NOT constitute evidence for the current timeframe.\n"
+                f"- Clearly state in your reasoning whether current, real-time evidence exists or if only historical references were found.\n"
+            )
+
         prompt = f"""You are a senior fact-checker and intelligence analyst issuing a final verdict on a claim.
 
 CLAIM: {claim}
-
+{temporal_section}
 EVIDENCE SUMMARY:
 Total sources analyzed: {len(source_analyses)}
 Supporting: {support_count} | Contradicting: {contradict_count} | Partially supporting: {partial_count} | Inconclusive: {inconclusive_count}
