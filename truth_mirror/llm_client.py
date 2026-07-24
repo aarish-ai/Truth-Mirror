@@ -30,13 +30,14 @@ class LLMClient:
         ollama_model: str = None, 
         gemini_model: str = None
     ):
-        base_url = (ollama_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")).rstrip('/')
+        base_url = (ollama_url or "http://localhost:11434").rstrip('/')
         if not base_url.endswith("/api"):
             base_url += "/api"
         self.ollama_url = base_url
-        self.ollama_model = ollama_model or os.getenv("OLLAMA_MODEL", "gemma2:2b")
-        self.gemini_model = gemini_model or os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
-        self.gemini_api_key = os.getenv("GEMINI_API_KEY")
+        self.ollama_model = ollama_model or "gemma2:2b"
+        self.gemini_model = gemini_model or "gemini-3.5-flash"
+        from truth_mirror.key_rotator import get_current_key
+        self.gemini_api_key = get_current_key()
         self._genai_client = None
         if self.gemini_api_key and _GENAI_AVAILABLE:
             self._genai_client = google_genai.Client(api_key=self.gemini_api_key)

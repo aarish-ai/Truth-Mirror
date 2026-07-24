@@ -36,7 +36,8 @@ class HiddenStoryExtractor:
         source_analyses: List[SourceAnalysis],
         perspective_groups: List[PerspectiveGroup],
         claim: str,
-        gemini_client
+        gemini_client,
+        temporal_context=None
     ) -> List[HiddenStory]:
         if not source_analyses:
             return []
@@ -59,11 +60,15 @@ class HiddenStoryExtractor:
             sources_parts.append(f"[{s.source_name}] Stance: {s.stance} | Key Claims: {', '.join(s.key_claims)}")
         formatted_all_sources = "\n".join(sources_parts)
         
+        claim_with_context = claim
+        if temporal_context and hasattr(temporal_context, 'date_qualifier') and temporal_context.date_qualifier:
+            claim_with_context = f"{claim} (Timeframe: {temporal_context.date_qualifier})"
+            
         prompt = f"""You are an experienced investigative journalist and geopolitical analyst with deep knowledge of how media narratives are constructed, what states and media organisations have incentives to hide, and what patterns of omission reveal about real events.
 
 You have been given a full analysis of {len(source_analyses)} news sources across {len(perspective_groups)} media blocs regarding the following claim:
 
-CLAIM: {claim}
+CLAIM: {claim_with_context}
 
 CONSENSUS FACTS (what most or all sources agree on):
 {consensus_str}

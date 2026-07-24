@@ -112,7 +112,8 @@ def decompose_claim(claim: str) -> DecompositionResult:
     if LLM_AVAILABLE:
         try:
             load_dotenv()
-            api_key = os.getenv("GEMINI_API_KEY")
+            from truth_mirror.key_rotator import get_current_key
+            api_key = get_current_key()
             if api_key:
                 client = genai.Client(api_key=api_key)
                 

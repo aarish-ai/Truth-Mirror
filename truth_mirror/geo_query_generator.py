@@ -40,13 +40,25 @@ class GeoQueryGenerator:
         
         from datetime import datetime
 
+        qualifier_already_present = False
+        if temporal_context is not None and hasattr(temporal_context, 'date_qualifier') and temporal_context.date_qualifier:
+            if temporal_context.date_qualifier.lower() in sub_claim.lower():
+                qualifier_already_present = True
+
         if temporal_context is not None and hasattr(temporal_context, 'needs_date'):
-            if temporal_context.needs_date and temporal_context.date_qualifier:
+            if temporal_context.needs_date and temporal_context.date_qualifier and not qualifier_already_present:
                 date_instruction = (
                     f"Today's date is {self.current_date_str}. "
                     f"This claim is about a {temporal_context.temporal_type.replace('_', ' ')}. "
                     f"Append '{temporal_context.date_qualifier}' to queries about current status. "
                     f"Do NOT restrict ALL queries to today — vary the temporal scope across queries.\n\n"
+                )
+            elif temporal_context.needs_date and qualifier_already_present:
+                date_instruction = (
+                    f"Today's date is {self.current_date_str}. "
+                    f"This claim is about a {temporal_context.temporal_type.replace('_', ' ')}. "
+                    f"The temporal qualifier '{temporal_context.date_qualifier}' is already present in the claim. "
+                    f"Do NOT append additional dates. Vary the temporal scope across queries.\n\n"
                 )
             else:
                 date_instruction = (

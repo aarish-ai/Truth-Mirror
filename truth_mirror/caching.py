@@ -68,7 +68,7 @@ class EvidenceCache:
 
     def get_result(self, claim_key: str) -> dict | None:
         """Get cached pipeline result if it exists and has not expired."""
-        from datetime import datetime
+        from datetime import datetime, timezone
         with self._connect() as conn:
             cursor = conn.execute(
                 """
@@ -76,7 +76,7 @@ class EvidenceCache:
                 WHERE key = ?
                 AND expires_at > ?
                 """,
-                (claim_key, datetime.utcnow().isoformat())
+                (claim_key, datetime.now(timezone.utc).isoformat())
             )
             row = cursor.fetchone()
             if row:
@@ -93,7 +93,7 @@ class EvidenceCache:
         temporal_type: str = "current_state"
     ) -> None:
         """Cache a pipeline result with TTL based on temporal type."""
-        from datetime import datetime, timedelta
+        from datetime import datetime, timedelta, timezone
 
         TTL_HOURS = {
             "current_state": 6,
@@ -102,7 +102,7 @@ class EvidenceCache:
             "specific_incident": 24,
         }
         hours = TTL_HOURS.get(temporal_type, 12)
-        expires_at = (datetime.utcnow() + timedelta(hours=hours)).isoformat()
+        expires_at = (datetime.now(timezone.utc) + timedelta(hours=hours)).isoformat()
 
         with self._connect() as conn:
             conn.execute(
@@ -116,11 +116,11 @@ class EvidenceCache:
 
     def cleanup_expired_results(self) -> int:
         """Delete expired result cache entries. Returns count deleted."""
-        from datetime import datetime
+        from datetime import datetime, timezone
         with self._connect() as conn:
             cursor = conn.execute(
                 "DELETE FROM result_cache WHERE expires_at < ?",
-                (datetime.utcnow().isoformat(),)
+                (datetime.now(timezone.utc).isoformat(),)
             )
             return cursor.rowcount
 

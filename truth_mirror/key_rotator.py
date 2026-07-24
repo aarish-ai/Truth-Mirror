@@ -33,7 +33,6 @@ def init_keys():
             if _gemini_keys:
                 _gemini_key_cycle = itertools.cycle(_gemini_keys)
                 _current_key = next(_gemini_key_cycle)
-                os.environ["GEMINI_API_KEY"] = _current_key
 
 def rotate_gemini_key():
     global _gemini_keys, _gemini_key_cycle, _current_key
@@ -41,7 +40,6 @@ def rotate_gemini_key():
         init_keys() 
         if _gemini_key_cycle and len(_gemini_keys) > 1:
             _current_key = next(_gemini_key_cycle)
-            os.environ["GEMINI_API_KEY"] = _current_key
             logger.info(f"[KeyRotator] Switched to new Gemini API Key: {_current_key[:10]}...")
             return True
         return False

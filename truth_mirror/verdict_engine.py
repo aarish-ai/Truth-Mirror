@@ -41,7 +41,8 @@ class VerdictEngine:
         perspective_groups: List[PerspectiveGroup],
         hidden_stories: List[HiddenStory],
         claim: str,
-        gemini_client
+        gemini_client,
+        temporal_context=None
     ) -> IntelligenceVerdict:
     
         support_count = sum(1 for s in source_analyses if s.stance == "SUPPORTS")
@@ -61,10 +62,21 @@ class VerdictEngine:
         
         hidden_story_titles = "\n".join([f"- {h.title}" for h in hidden_stories])
         
+        temporal_section = ""
+        if temporal_context and hasattr(temporal_context, 'date_qualifier') and temporal_context.date_qualifier:
+            temporal_section = (
+                f"\n⏰ TEMPORAL VERIFICATION BOUNDARY:\n"
+                f"This claim MUST be evaluated strictly {temporal_context.date_qualifier}.\n"
+                f"Temporal classification: {temporal_context.temporal_type.replace('_', ' ')}.\n"
+                f"- If no sources confirm this claim is true {temporal_context.date_qualifier}, the verdict should reflect insufficient current evidence.\n"
+                f"- Historical articles about similar past events do NOT constitute evidence for the current timeframe.\n"
+                f"- Clearly state in your reasoning whether current, real-time evidence exists or if only historical references were found.\n"
+            )
+
         prompt = f"""You are a senior fact-checker and intelligence analyst issuing a final verdict on a claim.
 
 CLAIM: {claim}
-
+{temporal_section}
 EVIDENCE SUMMARY:
 Total sources analyzed: {len(source_analyses)}
 Supporting: {support_count} | Contradicting: {contradict_count} | Partially supporting: {partial_count} | Inconclusive: {inconclusive_count}
@@ -104,48 +116,49 @@ Verdict definitions:
 - State media on both sides corroborating = weaker signal than independent sources corroborating
 - Return ONLY a valid JSON object. Do NOT include any strings, explanations, or preamble text. The first character of your response must be '{' and the last must be '}'. Any non-object element will cause a system failure.
 """
-        def run_sync():
-            import os, time, urllib.request, re, random
+        async def run_async_inner():
+            import os, time, re, random
+            import aiohttp
             data = None
             gemini_client = None
             max_retries = 5
+            
+            def _call_gemini_sync_sdk():
+                from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
+                api_key = get_current_key()
+                if not (api_key and types): return None
+                from google import genai
+                client = genai.Client(api_key=api_key)
+                response = client.models.generate_content(
+                    model="gemini-3.5-flash",
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        temperature=0.2,
+                    )
+                )
+                return response.text
+                
             for attempt in range(max_retries):
                 try:
-                    import time
                     if attempt > 0:
-                        time.sleep(2)
+                        await asyncio.sleep(2)
                         
-                    from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
-                    api_key = get_current_key()
-                    if api_key and types:
-                        from google import genai
-                        gemini_client = genai.Client(api_key=api_key)
-                        
-                    if gemini_client and types:
-                        try:
-                            response = gemini_client.models.generate_content(
-                                model="gemini-3.5-flash",
-                                contents=prompt,
-                                config=types.GenerateContentConfig(
-                                    response_mime_type="application/json",
-                                    temperature=0.2,
-                                )
-                            )
-                            raw_json = response.text
-                            if raw_json.startswith("```json"):
-                                raw_json = raw_json.strip("` \n").removeprefix("json")
-                            data = json.loads(raw_json)
-                            if data is not None:
-                                tracker.record("verdict_generation", "gemini-3.5-flash", "gemini", "success")
-                            break
-                        except Exception as e:
-                            logger.warning(f"Gemini verdict engine failed on attempt {attempt+1}: {e}")
-                            if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
-                                logger.warning("Rotating Gemini key due to 429 in verdict_engine...")
-                                tracker.record("verdict_generation", "gemini-3.5-flash", "gemini", "rate_limited")
-                                rotate_gemini_key()
-                except Exception:
-                    pass
+                    raw_json = await asyncio.to_thread(_call_gemini_sync_sdk)
+                    if raw_json is not None:
+                        if raw_json.startswith("```json"):
+                            raw_json = raw_json.strip("` \n").removeprefix("json")
+                        data = json.loads(raw_json)
+                        if data is not None:
+                            tracker.record("verdict_generation", "gemini-3.5-flash", "gemini", "success")
+                        break
+                except Exception as e:
+                    logger.warning(f"Gemini verdict engine failed on attempt {attempt+1}: {e}")
+                    if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                        logger.warning("Rotating Gemini key due to 429 in verdict_engine...")
+                        tracker.record("verdict_generation", "gemini-3.5-flash", "gemini", "rate_limited")
+                        from truth_mirror.key_rotator import rotate_gemini_key
+                        rotate_gemini_key()
             
             if data is None:
                 # TRY GROQ BEFORE OPENROUTER
@@ -158,7 +171,8 @@ Verdict definitions:
                         "response_format": {"type": "json_object"},
                         "max_tokens": 4096
                     }
-                    groq_content, groq_status = call_groq_with_key_rotation(
+                    groq_content, groq_status = await asyncio.to_thread(
+                        call_groq_with_key_rotation,
                         payload=groq_payload,
                         timeout=60,
                         log_prefix="[VerdictEngine]"
@@ -172,38 +186,46 @@ Verdict definitions:
                             data = None
                         if data is not None:
                             tracker.record("verdict_generation", GROQ_ANALYSIS_PRIMARY, "groq", "fallback_used")
-                    else:
-                        data = None
                 except Exception as e:
                     logger.warning(f"[VerdictEngine] Groq fallback failed: {e}")
                     data = None
 
             if data is None:
-                import os, urllib.request, re, time, random
                 api_key = os.environ.get("OPENROUTER_API_KEY")
                 if api_key and api_key != "your_openrouter_api_key_here":
-                    req_data = json.dumps({
+                    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+                    payload = {
                         "model": "qwen/qwen3-next-80b-a3b-instruct:free",
                         "messages": [{"role": "user", "content": prompt + "\n\nRespond ONLY with the exact JSON object. No other text."}]
-                    }).encode('utf-8')
-                    req = urllib.request.Request("https://openrouter.ai/api/v1/chat/completions", data=req_data, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"})
+                    }
                     
                     for attempt in range(4):
                         try:
-                            with urllib.request.urlopen(req, timeout=30) as response:
-                                resp_data = json.loads(response.read().decode('utf-8'))
-                                raw_json = resp_data["choices"][0]["message"]["content"]
-                                match = re.search(r'\{.*\}', raw_json, re.DOTALL)
-                                if match:
-                                    raw_json = match.group(0)
-                                data = json.loads(raw_json)
-                                if data is not None:
-                                    tracker.record("verdict_generation", "qwen/qwen3-next-80b-a3b-instruct:free", "openrouter", "fallback_used")
-                                break
+                            async with aiohttp.ClientSession() as session:
+                                async with session.post(
+                                    "https://openrouter.ai/api/v1/chat/completions",
+                                    headers=headers,
+                                    json=payload,
+                                    timeout=aiohttp.ClientTimeout(total=30)
+                                ) as response:
+                                    if response.status != 200:
+                                        wait_time = (2 ** attempt) + random.uniform(0, 1)
+                                        await asyncio.sleep(wait_time)
+                                        continue
+                                        
+                                    resp_data = await response.json()
+                                    raw_json = resp_data["choices"][0]["message"]["content"]
+                                    match = re.search(r'\{.*\}', raw_json, re.DOTALL)
+                                    if match:
+                                        raw_json = match.group(0)
+                                    data = json.loads(raw_json)
+                                    if data is not None:
+                                        tracker.record("verdict_generation", "qwen/qwen3-next-80b-a3b-instruct:free", "openrouter", "fallback_used")
+                                    break
                         except Exception as e:
                             wait_time = (2 ** attempt) + random.uniform(0, 1)
                             logger.warning(f"OpenRouter verdict generation failed on attempt {attempt+1}. Waiting {wait_time:.2f}s before retry. Error: {e}")
-                            time.sleep(wait_time)
+                            await asyncio.sleep(wait_time)
                             
             if data is None:
                 tracker.record("verdict_generation", "ALL_FAILED", "none", "failed")
@@ -211,7 +233,7 @@ Verdict definitions:
             return data
 
         try:
-            data = await asyncio.to_thread(run_sync)
+            data = await run_async_inner()
             if data and not isinstance(data, dict):
                 logger.warning(f"Verdict data is not a dict: {type(data)}")
                 data = None

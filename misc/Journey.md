@@ -170,4 +170,35 @@ We needed to protect the app for closed beta, host it consistently, and collect 
 
 ---
 
+## 📱 Step 13 — Mobile UX & Core Enhancements
+
+We encountered issues with the dense UI breaking on smaller screens and mobile devices killing background processing when the screen locked. Then we did:
+- Overhauled the core styling to use a glassmorphism responsive card layout for smaller viewports, collapsing the large horizontal data tables cleanly.
+- Implemented the Screen Wake Lock API to prevent mobile browsers from sleeping and killing the 2-4 minute pipeline requests.
+- Converted all CSS to robust variable-driven styling (`index.css`), removing hardcoded values and significantly upgrading the premium dark-mode aesthetic.
+
+---
+
+## ⏱️ Step 14 — Fixing "Time-Blind" Temporal Hallucinations
+
+We discovered a critical logic flaw where the pipeline was entirely "Time-Blind". Claims about current events were being incorrectly marked as "PARTIALLY_SUPPORTED" because the LLMs pulled in matching articles from years ago and evaluated them as current. Furthermore, explicit date queries caused "double-date" duplication issues (e.g. `as of July 2026 as of July 2026`). Then we did:
+- Implemented a `qualifier_already_present` logic guard inside `geo_query_generator.py` and `geo_orchestrator.py` to prevent duplicate date concatenation.
+- Propagated a formal `temporal_context` object down through every pipeline stage (`SourceAnalyzer`, `PerspectiveSynthesizer`, `HiddenStoryExtractor`, `VerdictEngine`).
+- Surgically injected strict temporal boundaries into all LLM prompts, explicitly instructing models to reject historical articles if the claim evaluated a present-day state.
+- Updated `GeopoliticalResult` to expose `temporal_type` and `temporal_qualifier` to the client for full transparency.
+
+---
+
+## ⚡ Step 15 — Production Readiness & Performance Optimization
+
+We conducted an in-depth technical audit to eliminate extreme latencies and stabilize the engine for concurrent user loads during beta launch. Then we did:
+- Removed hardcoded 2–15s delays (`asyncio.sleep`) in `geo_orchestrator.py` and `source_analyzer.py`, replacing them with an adaptive token-bucket rate limiter.
+- Refactored `run_tracker.py` to use `TrackerRegistry` and thread-local context (`request_id`), eliminating global state cross-wiring race conditions under concurrent `ThreadingHTTPServer` loads.
+- Replaced blocking synchronous `urllib` calls inside `asyncio.to_thread` with native async `aiohttp` flows for `VerdictEngine` and API fallbacks, preventing thread pool exhaustion.
+- Fixed the keyword extraction pre-filter to explicitly preserve critical 2-3 letter geopolitical acronyms (e.g., US, UK, UN) that were being dropped.
+- Implemented Jaccard semantic similarity in `compute_consensus_disputes` to accurately cluster synonymous claims before stance evaluation.
+- Fixed deprecated timezone logic (`datetime.utcnow()`) across caching layers to ensure Python 3.12+ compatibility and prevent subtle TTL expiration bugs.
+
+---
+
 *Truth Mirror — from broken Wikipedia summaries to a resilient, API-first geopolitical intelligence engine.*
