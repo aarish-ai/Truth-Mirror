@@ -332,7 +332,7 @@ class GeopoliticalPipeline:
             await rate_limiter.wait_if_needed("gemini")
 
             # Stage 6: Generate background and current_situation narratives
-            background, current_situation = await generate_background_narrative(claim, source_analyses, gemini_client, temporal_context=temporal_context)
+            background, current_situation = await self.generate_background_narrative(claim, source_analyses, gemini_client, temporal_context=temporal_context)
 
             logger.info(f"[GeoOrchestrator] Completed synthesis for: {claim[:50]}...")
 
@@ -387,6 +387,7 @@ class GeopoliticalPipeline:
             tracker.clear_current()
             tracker.remove(request_id)
 
+    @staticmethod
     async def generate_background_narrative(claim: str, source_analyses: list, gemini_client, temporal_context=None) -> tuple[str, str]:
         claim_with_context = claim
         if temporal_context and hasattr(temporal_context, 'date_qualifier') and temporal_context.date_qualifier:
