@@ -189,4 +189,16 @@ We discovered a critical logic flaw where the pipeline was entirely "Time-Blind"
 
 ---
 
+## ⚡ Step 15 — Production Readiness & Performance Optimization
+
+We conducted an in-depth technical audit to eliminate extreme latencies and stabilize the engine for concurrent user loads during beta launch. Then we did:
+- Removed hardcoded 2–15s delays (`asyncio.sleep`) in `geo_orchestrator.py` and `source_analyzer.py`, replacing them with an adaptive token-bucket rate limiter.
+- Refactored `run_tracker.py` to use `TrackerRegistry` and thread-local context (`request_id`), eliminating global state cross-wiring race conditions under concurrent `ThreadingHTTPServer` loads.
+- Replaced blocking synchronous `urllib` calls inside `asyncio.to_thread` with native async `aiohttp` flows for `VerdictEngine` and API fallbacks, preventing thread pool exhaustion.
+- Fixed the keyword extraction pre-filter to explicitly preserve critical 2-3 letter geopolitical acronyms (e.g., US, UK, UN) that were being dropped.
+- Implemented Jaccard semantic similarity in `compute_consensus_disputes` to accurately cluster synonymous claims before stance evaluation.
+- Fixed deprecated timezone logic (`datetime.utcnow()`) across caching layers to ensure Python 3.12+ compatibility and prevent subtle TTL expiration bugs.
+
+---
+
 *Truth Mirror — from broken Wikipedia summaries to a resilient, API-first geopolitical intelligence engine.*
