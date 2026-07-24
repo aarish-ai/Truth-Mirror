@@ -14,7 +14,9 @@ REGISTRY = CredibilityRegistry.load(
     str(Path(__file__).with_name("credibility_registry.json"))
 )
 
-def _cosine_similarity(a: list[float], b: list[float]) -> float:
+def _cosine_similarity(a: list[float] | None, b: list[float] | None) -> float:
+    if a is None or b is None:
+        return 0.0
     dot_product = sum(x * y for x, y in zip(a, b))
     norm_a = math.sqrt(sum(x * x for x in a))
     norm_b = math.sqrt(sum(y * y for y in b))
@@ -27,7 +29,10 @@ def _semantic_similarity(a: str, b: str) -> float:
         return 0.0
     emb_a = get_gemini_embedding(a)
     emb_b = get_gemini_embedding(b)
+    if emb_a is None or emb_b is None:
+        return 0.0
     return max(0.0, _cosine_similarity(emb_a, emb_b))
+
 
 
 

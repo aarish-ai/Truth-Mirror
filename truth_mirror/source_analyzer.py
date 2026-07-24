@@ -205,27 +205,32 @@ def _call_openrouter_sync(prompt: str, timeout: int = 30) -> Optional[str]:
     return None
 
 
-async def _call_gemini_async(prompt: str, model: str, timeout: int = 45) -> Optional[str]:
+async def _call_gemini_async(prompt: str, model: str, timeout: int = 45, session: Optional[aiohttp.ClientSession] = None) -> Optional[str]:
     from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
     from truth_mirror.rate_limiter import rate_limiter
 
-    max_attempts = 5
-    for attempt in range(max_attempts):
-        api_key = get_current_key()
-        if not api_key:
-            logger.error("[SourceAnalyzer] No Gemini API key available.")
-            return None
+    own_session = False
+    if session is None:
+        session = aiohttp.ClientSession()
+        own_session = True
 
-        url = (
-            f"https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{model}:generateContent?key={api_key}"
-        )
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0.1, "responseMimeType": "application/json"},
-        }
-        try:
-            async with aiohttp.ClientSession() as session:
+    try:
+        max_attempts = 5
+        for attempt in range(max_attempts):
+            api_key = get_current_key()
+            if not api_key:
+                logger.error("[SourceAnalyzer] No Gemini API key available.")
+                return None
+
+            url = (
+                f"https://generativelanguage.googleapis.com/v1beta/models/"
+                f"{model}:generateContent?key={api_key}"
+            )
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0.1, "responseMimeType": "application/json"},
+            }
+            try:
                 async with session.post(
                     url,
                     json=payload,
@@ -248,38 +253,46 @@ async def _call_gemini_async(prompt: str, model: str, timeout: int = 45) -> Opti
                     raw = await resp.json()
                     rate_limiter.record_success("gemini")
                     return raw["candidates"][0]["content"]["parts"][0]["text"]
-        except asyncio.TimeoutError:
-            logger.warning(f"[SourceAnalyzer] Gemini {model} timed out on attempt {attempt + 1}")
-            continue
-        except Exception as e:
-            logger.warning(f"[SourceAnalyzer] Gemini call exception: {e}")
-            return None
+            except asyncio.TimeoutError:
+                logger.warning(f"[SourceAnalyzer] Gemini {model} timed out on attempt {attempt + 1}")
+                continue
+            except Exception as e:
+                logger.warning(f"[SourceAnalyzer] Gemini call exception: {e}")
+                return None
 
-    logger.error(f"[SourceAnalyzer] Exhausted all {max_attempts} Gemini attempts for {model}.")
-    return None
+        logger.error(f"[SourceAnalyzer] Exhausted all {max_attempts} Gemini attempts for {model}.")
+        return None
+    finally:
+        if own_session:
+            await session.close()
 
 
-async def _call_openrouter_async(prompt: str, timeout: int = 30) -> Optional[str]:
+async def _call_openrouter_async(prompt: str, timeout: int = 30, session: Optional[aiohttp.ClientSession] = None) -> Optional[str]:
     if not OPENROUTER_API_KEY:
         return None
     from truth_mirror.rate_limiter import rate_limiter
 
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://truthmirror.app",
-        "X-Title": "Truth Mirror",
-    }
-    payload = {
-        "model": "qwen/qwen3-next-80b-a3b-instruct:free",
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.1,
-        "response_format": {"type": "json_object"},
-    }
-    max_attempts = 3
-    for attempt in range(max_attempts):
-        try:
-            async with aiohttp.ClientSession() as session:
+    own_session = False
+    if session is None:
+        session = aiohttp.ClientSession()
+        own_session = True
+
+    try:
+        headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://truthmirror.app",
+            "X-Title": "Truth Mirror",
+        }
+        payload = {
+            "model": "qwen/qwen3-next-80b-a3b-instruct:free",
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.1,
+            "response_format": {"type": "json_object"},
+        }
+        max_attempts = 3
+        for attempt in range(max_attempts):
+            try:
                 async with session.post(
                     "https://openrouter.ai/api/v1/chat/completions",
                     headers=headers,
@@ -305,13 +318,16 @@ async def _call_openrouter_async(prompt: str, timeout: int = 30) -> Optional[str
                         rate_limiter.record_success("openrouter")
                         return choices[0]["message"]["content"]
                     return None
-        except asyncio.TimeoutError:
-            logger.warning(f"[SourceAnalyzer] OpenRouter timed out on attempt {attempt + 1}")
-            continue
-        except Exception as e:
-            logger.warning(f"[SourceAnalyzer] OpenRouter exception: {e}")
-            return None
-    return None
+            except asyncio.TimeoutError:
+                logger.warning(f"[SourceAnalyzer] OpenRouter timed out on attempt {attempt + 1}")
+                continue
+            except Exception as e:
+                logger.warning(f"[SourceAnalyzer] OpenRouter exception: {e}")
+                return None
+        return None
+    finally:
+        if own_session:
+            await session.close()
 
 
 def _build_single_prompt(article, claim: str) -> str:
@@ -320,14 +336,25 @@ def _build_single_prompt(article, claim: str) -> str:
     snippet = (article.excerpt or "")[:800]
     publisher_hint = getattr(article, 'publisher', '') if hasattr(article, 'publisher') else ''
     meta = get_source_metadata(url, publisher=publisher_hint)
+
+    def _sanitize(text: str) -> str:
+        if not text:
+            return ""
+        escaped = str(text).replace("```", "` ` `")
+        return f"<untrusted_content>{escaped}</untrusted_content>"
+
+    safe_claim = _sanitize(claim)
+    safe_title = _sanitize(title)
+    safe_snippet = _sanitize(snippet)
+
     return f"""You are an intelligence analyst. Analyze the following news article in relation to the given claim.
 
-CLAIM: {claim}
+CLAIM: {safe_claim}
 
 SOURCE: {meta['name']} ({meta['country']}, {meta['alignment']})
-ARTICLE TITLE: {title}
+ARTICLE TITLE: {safe_title}
 ARTICLE TEXT:
-{snippet}
+{safe_snippet}
 
 Respond ONLY in this exact JSON format, no other text:
 {{
@@ -351,11 +378,20 @@ Rules:
 
 
 def _build_mini_batch_prompt(claim: str, batch: list, temporal_context=None) -> str:
+    def _sanitize(text: str) -> str:
+        if not text:
+            return ""
+        escaped = str(text).replace("```", "` ` `")
+        return f"<untrusted_content>{escaped}</untrusted_content>"
+
+    safe_claim = _sanitize(claim)
     articles_text = ""
     for i, article in enumerate(batch, 1):
         url = article.url_or_id or ""
         title = article.source_title or ""
         excerpt = (article.excerpt or "")[:600]
+        safe_title = _sanitize(title)
+        safe_excerpt = _sanitize(excerpt)
         try:
             publisher_hint = getattr(article, 'publisher', '') if hasattr(article, 'publisher') else ''
             meta = get_source_metadata(url, publisher=publisher_hint)
@@ -369,8 +405,8 @@ def _build_mini_batch_prompt(claim: str, batch: list, temporal_context=None) -> 
         articles_text += (
             f"[{i}] {source_name} ({country}, {alignment})\n"
             f"URL: {url}\n"
-            f"Title: {title}\n"
-            f"{excerpt}\n---\n"
+            f"Title: {safe_title}\n"
+            f"{safe_excerpt}\n---\n"
         )
 
     temporal_instruction = ""
@@ -387,7 +423,7 @@ def _build_mini_batch_prompt(claim: str, batch: list, temporal_context=None) -> 
 You will be given {len(batch)} news articles and a claim to verify.
 For EACH article, produce a structured analysis.
 
-CLAIM BEING VERIFIED: "{claim}"{temporal_instruction}
+CLAIM BEING VERIFIED: {safe_claim}{temporal_instruction}
 
 ARTICLES:
 {articles_text}
@@ -516,16 +552,16 @@ class SourceAnalyzer:
     def __init__(self):
         pass
 
-    async def analyze(self, article, claim: str, session: aiohttp.ClientSession) -> Optional[SourceAnalysis]:
+    async def analyze(self, article, claim: str, session: Optional[aiohttp.ClientSession] = None) -> Optional[SourceAnalysis]:
         prompt = _build_single_prompt(article, claim)
-        raw = await _call_gemini_async(prompt, BULK_ANALYSIS_MODEL)
+        raw = await _call_gemini_async(prompt, BULK_ANALYSIS_MODEL, session=session)
         if raw:
             result = _parse_single_response(raw, article)
             if result:
                 logger.info(f"Successfully analyzed source: {article.url_or_id} -> stance={result.stance}")
                 return result
         # Try OpenRouter if Gemini fails
-        raw = await _call_openrouter_async(prompt)
+        raw = await _call_openrouter_async(prompt, session=session)
         if raw:
             result = _parse_single_response(raw, article)
             if result:
@@ -574,8 +610,8 @@ class SourceAnalyzer:
         results = _parse_batch_response(content, articles)
         return results if results else None
 
-    async def _call_gemini_batch_async(self, claim: str, batch: list, prompt: str) -> list | None:
-        raw = await _call_gemini_async(prompt, BULK_ANALYSIS_MODEL, timeout=45)
+    async def _call_gemini_batch_async(self, claim: str, batch: list, prompt: str, session: Optional[aiohttp.ClientSession] = None) -> list | None:
+        raw = await _call_gemini_async(prompt, BULK_ANALYSIS_MODEL, timeout=45, session=session)
         if not raw:
             return None
 
@@ -610,14 +646,14 @@ class SourceAnalyzer:
                        f"First 200 chars of raw: {raw[:200]}")
         return None
 
-    async def _call_openrouter_batch_async(self, claim: str, batch: list, prompt: str) -> list | None:
-        raw = await _call_openrouter_async(prompt, timeout=60)
+    async def _call_openrouter_batch_async(self, claim: str, batch: list, prompt: str, session: Optional[aiohttp.ClientSession] = None) -> list | None:
+        raw = await _call_openrouter_async(prompt, timeout=60, session=session)
         if raw:
             results = _parse_batch_response(raw, batch)
             return results if results else None
         return None
 
-    async def analyze_all(self, articles: list, claim: str, max_concurrent: int = 1, temporal_context=None) -> list:
+    async def analyze_all(self, articles: list, claim: str, max_concurrent: int = 1, temporal_context=None, session: Optional[aiohttp.ClientSession] = None) -> list:
         from truth_mirror.rate_limiter import rate_limiter
         self._temporal_context = temporal_context
         if not articles:
@@ -650,101 +686,110 @@ class SourceAnalyzer:
         logger.info(f"[SourceAnalyzer] Processing {len(relevant)} articles in "
             f"mini-batch(es) of up to {MINI_BATCH_SIZE} (Groq primary, Gemini fallback).")
 
-        all_results = []
-        for i in range(0, len(relevant), MINI_BATCH_SIZE):
-            batch = relevant[i:i + MINI_BATCH_SIZE]
-            batch_num = (i // MINI_BATCH_SIZE) + 1
-            total_batches = (len(relevant) + MINI_BATCH_SIZE - 1) // MINI_BATCH_SIZE
-            prompt = _build_mini_batch_prompt(claim, batch, temporal_context=self._temporal_context)
-            
-            result = None
+        own_session = False
+        if session is None:
+            session = aiohttp.ClientSession()
+            own_session = True
 
-            # ── GROQ PRIMARY (70b) ───────────────────────────────────────────
-            raw = await asyncio.to_thread(
-                self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_PRIMARY
-            )
-            if raw == "RATE_LIMITED" or raw is None:
-                status = "rate_limited" if raw == "RATE_LIMITED" else "failed"
-                tracker.record(f"source_analysis_batch_{batch_num}",
-                               GROQ_ANALYSIS_PRIMARY, "groq", status)
-                logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
-                               f"70b {status}. Trying specdec fallback.")
+        try:
+            all_results = []
+            for i in range(0, len(relevant), MINI_BATCH_SIZE):
+                batch = relevant[i:i + MINI_BATCH_SIZE]
+                batch_num = (i // MINI_BATCH_SIZE) + 1
+                total_batches = (len(relevant) + MINI_BATCH_SIZE - 1) // MINI_BATCH_SIZE
+                prompt = _build_mini_batch_prompt(claim, batch, temporal_context=self._temporal_context)
+                
+                result = None
 
-                # ── GROQ FALLBACK 1 (70b-specdec) ───────────────────────────
+                # ── GROQ PRIMARY (70b) ───────────────────────────────────────────
                 raw = await asyncio.to_thread(
-                    self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_FALLBACK_1
+                    self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_PRIMARY
                 )
                 if raw == "RATE_LIMITED" or raw is None:
                     status = "rate_limited" if raw == "RATE_LIMITED" else "failed"
                     tracker.record(f"source_analysis_batch_{batch_num}",
-                                   GROQ_ANALYSIS_FALLBACK_1, "groq", status)
+                                   GROQ_ANALYSIS_PRIMARY, "groq", status)
                     logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
-                                   f"specdec {status}. Trying qwen-2.5-32b fallback.")
+                                   f"70b {status}. Trying specdec fallback.")
 
-                    # ── GROQ FALLBACK 2 (qwen-2.5-32b) ──────────────────────────
+                    # ── GROQ FALLBACK 1 (70b-specdec) ───────────────────────────
                     raw = await asyncio.to_thread(
-                        self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_FALLBACK_2
+                        self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_FALLBACK_1
                     )
                     if raw == "RATE_LIMITED" or raw is None:
                         status = "rate_limited" if raw == "RATE_LIMITED" else "failed"
                         tracker.record(f"source_analysis_batch_{batch_num}",
-                                       GROQ_ANALYSIS_FALLBACK_2, "groq", status)
-                        logger.warning(
-                            f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
-                            f"qwen-32b {status}. Trying 8b last resort. "
-                            f"QUALITY WARNING: 8b quality is reduced."
-                        )
+                                       GROQ_ANALYSIS_FALLBACK_1, "groq", status)
+                        logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
+                                       f"specdec {status}. Trying qwen-2.5-32b fallback.")
 
-                        # ── GROQ FALLBACK 3 (8b) ────────────────────────────────
+                        # ── GROQ FALLBACK 2 (qwen-2.5-32b) ──────────────────────────
                         raw = await asyncio.to_thread(
-                            self._call_groq_batch, claim, batch, prompt,
-                            GROQ_ANALYSIS_FALLBACK_3
+                            self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_FALLBACK_2
                         )
                         if raw == "RATE_LIMITED" or raw is None:
                             status = "rate_limited" if raw == "RATE_LIMITED" else "failed"
                             tracker.record(f"source_analysis_batch_{batch_num}",
-                                           GROQ_ANALYSIS_FALLBACK_3, "groq", status)
+                                           GROQ_ANALYSIS_FALLBACK_2, "groq", status)
+                            logger.warning(
+                                f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
+                                f"qwen-32b {status}. Trying 8b last resort. "
+                                f"QUALITY WARNING: 8b quality is reduced."
+                            )
+
+                            # ── GROQ FALLBACK 3 (8b) ────────────────────────────────
+                            raw = await asyncio.to_thread(
+                                self._call_groq_batch, claim, batch, prompt,
+                                GROQ_ANALYSIS_FALLBACK_3
+                            )
+                            if raw == "RATE_LIMITED" or raw is None:
+                                status = "rate_limited" if raw == "RATE_LIMITED" else "failed"
+                                tracker.record(f"source_analysis_batch_{batch_num}",
+                                               GROQ_ANALYSIS_FALLBACK_3, "groq", status)
+                            elif raw is not None:
+                                tracker.record(f"source_analysis_batch_{batch_num}",
+                                               GROQ_ANALYSIS_FALLBACK_3, "groq", "fallback_used")
                         elif raw is not None:
                             tracker.record(f"source_analysis_batch_{batch_num}",
-                                           GROQ_ANALYSIS_FALLBACK_3, "groq", "fallback_used")
+                                           GROQ_ANALYSIS_FALLBACK_2, "groq", "fallback_used")
                     elif raw is not None:
                         tracker.record(f"source_analysis_batch_{batch_num}",
-                                       GROQ_ANALYSIS_FALLBACK_2, "groq", "fallback_used")
+                                       GROQ_ANALYSIS_FALLBACK_1, "groq", "fallback_used")
                 elif raw is not None:
                     tracker.record(f"source_analysis_batch_{batch_num}",
-                                   GROQ_ANALYSIS_FALLBACK_1, "groq", "fallback_used")
-            elif raw is not None:
-                tracker.record(f"source_analysis_batch_{batch_num}",
-                               GROQ_ANALYSIS_PRIMARY, "groq", "success")
-                rate_limiter.record_success("groq")
+                                   GROQ_ANALYSIS_PRIMARY, "groq", "success")
+                    rate_limiter.record_success("groq")
 
-            if raw and raw != "RATE_LIMITED":
-                result = raw
+                if raw and raw != "RATE_LIMITED":
+                    result = raw
 
-            if result is not None:
-                all_results.extend(result)
-                logger.info(f"[SourceAnalyzer] Batch {batch_num}/{total_batches} succeeded: "
-                            f"{len(result)} analyses.")
-                await rate_limiter.wait_if_needed("groq")
-            else:
-                # All Groq models rate limited or failed — try Gemini fallback
-                logger.warning(f"[SourceAnalyzer] All Groq models failed for batch "
-                               f"{batch_num}/{total_batches}. Trying Gemini 2.5 Flash.")
-                gemini_result = await self._call_gemini_batch_async(claim, batch, prompt)
-                if gemini_result:
-                    tracker.record(f"source_analysis_batch_{batch_num}", "gemini-2.5-flash", "gemini", "fallback_used")
-                    all_results.extend(gemini_result)
-                    rate_limiter.record_success("gemini")
-                    await rate_limiter.wait_if_needed("gemini")
+                if result is not None:
+                    all_results.extend(result)
+                    logger.info(f"[SourceAnalyzer] Batch {batch_num}/{total_batches} succeeded: "
+                                f"{len(result)} analyses.")
+                    await rate_limiter.wait_if_needed("groq")
                 else:
-                    tracker.record(f"source_analysis_batch_{batch_num}", "ALL_FAILED", "none", "failed")
-                    logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches} "
-                                   f"completely failed. Skipping.")
+                    # All Groq models rate limited or failed — try Gemini fallback
+                    logger.warning(f"[SourceAnalyzer] All Groq models failed for batch "
+                                   f"{batch_num}/{total_batches}. Trying Gemini 2.5 Flash.")
+                    gemini_result = await self._call_gemini_batch_async(claim, batch, prompt, session=session)
+                    if gemini_result:
+                        tracker.record(f"source_analysis_batch_{batch_num}", "gemini-2.5-flash", "gemini", "fallback_used")
+                        all_results.extend(gemini_result)
+                        rate_limiter.record_success("gemini")
+                        await rate_limiter.wait_if_needed("gemini")
+                    else:
+                        tracker.record(f"source_analysis_batch_{batch_num}", "ALL_FAILED", "none", "failed")
+                        logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches} "
+                                       f"completely failed. Skipping.")
 
-        logger.info(
-            f"[SourceAnalyzer] Completed: {len(all_results)} succeeded out of "
-            f"{len(relevant)} relevant sources ({len(dropped)} pre-filtered)."
-        )
-        return all_results
+            logger.info(
+                f"[SourceAnalyzer] Completed: {len(all_results)} succeeded out of "
+                f"{len(relevant)} relevant sources ({len(dropped)} pre-filtered)."
+            )
+            return all_results
+        finally:
+            if own_session:
+                await session.close()
 
     # _analyze_all_individual_fallback removed as part of fallback simplification.

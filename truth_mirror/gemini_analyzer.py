@@ -4,6 +4,7 @@ Gemini API integration for intelligent evidence synthesis and verdict generation
 import os
 import json
 import logging
+import threading
 from typing import Optional, List, Dict, Any
 
 try:
@@ -22,10 +23,12 @@ class GeminiAnalyzer:
     """Synthesizes evidence using the Gemini API to produce a reasoned verdict."""
     
     _call_count = 0
+    _lock = threading.Lock()
     
     @classmethod
     def reset_call_count(cls):
-        cls._call_count = 0
+        with cls._lock:
+            cls._call_count = 0
 
     def __init__(self):
         if not DEPENDENCIES_MET:
@@ -50,11 +53,11 @@ class GeminiAnalyzer:
         or None if disabled or API fails.
         """
         max_calls = int(os.getenv("MAX_GEMINI_CALLS_PER_QUERY", "1"))
-        if GeminiAnalyzer._call_count >= max_calls:
-            logger.warning(f"Gemini call budget ({max_calls}) exhausted. Skipping synthesis.")
-            return None
-            
-        GeminiAnalyzer._call_count += 1
+        with GeminiAnalyzer._lock:
+            if GeminiAnalyzer._call_count >= max_calls:
+                logger.warning(f"Gemini call budget ({max_calls}) exhausted. Skipping synthesis.")
+                return None
+            GeminiAnalyzer._call_count += 1
         
         if not self.enabled:
             return None

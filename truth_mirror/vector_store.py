@@ -25,8 +25,11 @@ class VectorStore:
         if metadata is None:
             metadata = {}
             
+        embedding = get_gemini_embedding(text)
+        if embedding is None:
+            return
+
         if self.backend == "chroma":
-            embedding = get_gemini_embedding(text)
             self.collection.add(
                 documents=[text],
                 embeddings=[embedding],
@@ -36,14 +39,16 @@ class VectorStore:
         elif self.backend == "faiss":
             if self.exists(doc_id):
                 return
-            embedding = get_gemini_embedding(text)
             self.index.add(np.array([embedding]).astype("float32"))
             self.docs.append({"text": text, "metadata": metadata})
             self.ids.append(doc_id)
 
     def search(self, query: str, top_k: int = 5):
+        embedding = get_gemini_embedding(query)
+        if embedding is None:
+            return {"ids": [[]], "distances": [[]], "metadatas": [[]], "documents": [[]]} if self.backend == "chroma" else []
+
         if self.backend == "chroma":
-            embedding = get_gemini_embedding(query)
             results = self.collection.query(
                 query_embeddings=[embedding],
                 n_results=top_k
@@ -52,7 +57,6 @@ class VectorStore:
         elif self.backend == "faiss":
             if self.index.ntotal == 0:
                 return []
-            embedding = get_gemini_embedding(query)
             distances, indices = self.index.search(np.array([embedding]).astype("float32"), top_k)
             
             results = []

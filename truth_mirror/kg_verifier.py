@@ -56,12 +56,16 @@ def build_sparql_query(entity_name: str, property_id: str) -> str:
     Builds a robust SPARQL query that searches for the entity by name
     and retrieves the requested property.
     """
+    if not re.match(r"^P\d+$", property_id):
+        raise ValueError(f"Invalid property_id: {property_id}")
+
+    escaped_entity_name = entity_name.replace('\\', '\\\\').replace('"', '\\"')
     return f"""
 SELECT ?objectLabel WHERE {{
   SERVICE wikibase:mwapi {{
       bd:serviceParam wikibase:endpoint "www.wikidata.org";
                       wikibase:api "EntitySearch";
-                      mwapi:search "{entity_name}";
+                      mwapi:search "{escaped_entity_name}";
                       mwapi:language "en".
       ?subject wikibase:apiOutputItem mwapi:item.
   }}

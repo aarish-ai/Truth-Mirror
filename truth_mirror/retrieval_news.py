@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import urllib.parse
 import urllib.request
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from datetime import datetime, timezone
 
 from truth_mirror.models import EvidenceItem

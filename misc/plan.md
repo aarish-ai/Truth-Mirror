@@ -61,3 +61,4 @@ A thorough review of the entire codebase from architectural, concurrency, algori
 1. **Deployment**: Deploy the Docker container to a VPS (e.g., DigitalOcean).
 2. **Launch**: Share the URL and the Basic Auth password with the whitelist.
 3. **Monitor**: Watch `misc/testing.md` and server logs closely for the first 24 hours to catch any edge-case crashes.
+4. **Issue Resolution**: Refer to `issues.txt` for the comprehensive list of 75 bugs and improvements to fix before final public release.

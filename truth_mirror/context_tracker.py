@@ -10,7 +10,9 @@ from truth_mirror.models import ClaimContext, Entity
 import math
 from truth_mirror.embeddings import get_gemini_embedding, get_gemini_embeddings
 
-def _cosine_similarity(a: List[float], b: List[float]) -> float:
+def _cosine_similarity(a: List[float] | None, b: List[float] | None) -> float:
+    if a is None or b is None:
+        return 0.0
     dot_product = sum(x * y for x, y in zip(a, b))
     norm_a = math.sqrt(sum(x * x for x in a))
     norm_b = math.sqrt(sum(y * y for y in b))
@@ -86,13 +88,16 @@ class ContextTracker:
         if related_claims:
             try:
                 claim_emb = get_gemini_embedding(claim)
-                past_embs = get_gemini_embeddings(related_claims)
-                
-                similar_claims = []
-                for i, past_emb in enumerate(past_embs):
-                    sim = _cosine_similarity(claim_emb, past_emb)
-                    if sim > 0.75:
-                        similar_claims.append(related_claims[i])
+                if claim_emb is not None:
+                    past_embs = get_gemini_embeddings(related_claims)
+                    
+                    similar_claims = []
+                    for i, past_emb in enumerate(past_embs):
+                        if past_emb is None:
+                            continue
+                        sim = _cosine_similarity(claim_emb, past_emb)
+                        if sim > 0.75:
+                            similar_claims.append(related_claims[i])
                         
                 if similar_claims:
                     for rec in past_records_for_entities:

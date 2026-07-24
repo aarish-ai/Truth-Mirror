@@ -31,10 +31,8 @@ class TruthMirrorHandler(BaseHTTPRequestHandler):
     pipeline = TruthMirrorPipeline()
 
     def _check_auth(self) -> bool:
-        if not AUTH_PASSWORD:
-            return True
         auth_header = self.headers.get("Authorization")
-        if auth_header and auth_header.startswith("Basic "):
+        if AUTH_PASSWORD and auth_header and auth_header.startswith("Basic "):
             try:
                 decoded = base64.b64decode(auth_header[6:]).decode("utf-8")
                 username, password = decoded.split(":", 1)
@@ -122,6 +120,24 @@ class TruthMirrorHandler(BaseHTTPRequestHandler):
                         },
                         "is_geopolitical": True,
                     }, status=503)
+                    return
+                except Exception as e:
+                    self._write_json({
+                        "error": "Internal server error during analysis",
+                        "details": str(e),
+                        "verdict": "ERROR",
+                        "verdict_data": {
+                            "verdict": "ERROR",
+                            "confidence": 0.0,
+                            "confidence_label": "N/A",
+                            "one_line_verdict": "An internal error occurred during claim processing.",
+                            "full_reasoning": f"Unhandled exception during claim analysis: {e}",
+                            "what_is_true": "N/A — system error.",
+                            "what_is_false": "N/A — system error.",
+                            "what_is_unclear": "N/A — system error.",
+                        },
+                        "is_geopolitical": True,
+                    }, status=500)
                     return
 
             if isinstance(result, GeopoliticalResult):

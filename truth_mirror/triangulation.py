@@ -64,9 +64,9 @@ class HostileSourceTriangulator:
         if domain in self.ideology_map:
             return self.ideology_map[domain]
             
-        # Substring match (naive)
+        # Domain matching (exact equality or suffix match with dot prefix)
         for known_domain, stance in self.ideology_map.items():
-            if known_domain in domain:
+            if domain == known_domain or domain.endswith("." + known_domain):
                 return stance
                 
         return "unknown"

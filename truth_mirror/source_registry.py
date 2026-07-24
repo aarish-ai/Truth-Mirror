@@ -84,19 +84,23 @@ def get_source_metadata(url: str, publisher: str = "") -> dict:
             
     if domain in SOURCE_REGISTRY:
         return SOURCE_REGISTRY[domain]
+    for known_domain, meta in SOURCE_REGISTRY.items():
+        if domain == known_domain or domain.endswith("." + known_domain):
+            return meta
+
     # Infer from TLD or domain keywords
     inferred = {"name": domain, "category": "unknown", "country": "Unknown", "alignment": "unknown", "tier": 3}
     if any(x in domain for x in [".gov", ".mil"]):
         inferred["category"] = "official"
         inferred["alignment"] = "official"
         inferred["tier"] = 1
-    elif ".ir" in domain:
+    elif domain.endswith(".ir"):
         inferred["alignment"] = "iran"
-    elif ".il" in domain:
+    elif domain.endswith(".il"):
         inferred["alignment"] = "israel"
-    elif ".ru" in domain:
+    elif domain.endswith(".ru"):
         inferred["alignment"] = "eastern"
-    elif ".cn" in domain:
+    elif domain.endswith(".cn"):
         inferred["alignment"] = "eastern"
 
     # Try publisher name fallback
@@ -104,8 +108,10 @@ def get_source_metadata(url: str, publisher: str = "") -> dict:
         pub_lower = publisher.strip().lower()
         if pub_lower in PUBLISHER_NAME_MAP:
             return PUBLISHER_NAME_MAP[pub_lower]
+        pub_tokens = set(pub_lower.split())
         for known_name, meta in PUBLISHER_NAME_MAP.items():
-            if known_name in pub_lower or pub_lower in known_name:
+            known_tokens = set(known_name.split())
+            if pub_tokens == known_tokens:
                 return meta
 
     return inferred

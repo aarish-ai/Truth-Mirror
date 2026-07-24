@@ -8,6 +8,10 @@ from typing import Dict, Any, List, Optional
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def _is_test_mode() -> bool:
+    return os.getenv("TM_TEST_MODE", "").lower() == "true"
+
+
 class GoogleFactCheckConnector:
     """Connects to Google Fact Check Tools API."""
     def __init__(self, api_key: Optional[str] = None):
@@ -21,7 +25,7 @@ class GoogleFactCheckConnector:
             
         params = {"query": query, "key": self.api_key}
         try:
-            response = requests.get(self.base_url, params=params)
+            response = requests.get(self.base_url, params=params, timeout=15)
             response.raise_for_status()
             data = response.json()
             return data.get("claims", [])
@@ -30,6 +34,8 @@ class GoogleFactCheckConnector:
             return self._mock_fallback(query)
 
     def _mock_fallback(self, query: str) -> List[Dict[str, Any]]:
+        if not _is_test_mode():
+            return []
         return [
             {
                 "text": f"Mock claim related to: {query}",
@@ -64,7 +70,7 @@ class SnopesFactCheckScraper:
         try:
             # Snopes search results
             search_url = f"{self.base_url}?q={requests.utils.quote(query)}"
-            response = requests.get(search_url, headers=self.headers)
+            response = requests.get(search_url, headers=self.headers, timeout=15)
             response.raise_for_status()
             
             soup = BeautifulSoup(response.content, "html.parser")
@@ -92,7 +98,9 @@ class SnopesFactCheckScraper:
             return self._mock_fallback(query)
             
     def _mock_fallback(self, query: str) -> List[Dict[str, str]]:
-         return [{"title": f"Snopes analysis: Is '{query}' true?", "url": "https://www.snopes.com/mock", "source": "Snopes"}]
+        if not _is_test_mode():
+            return []
+        return [{"title": f"Snopes analysis: Is '{query}' true?", "url": "https://www.snopes.com/mock", "source": "Snopes"}]
 
 class WorldBankConnector:
     """Connects to World Bank Open Data API."""
@@ -111,7 +119,7 @@ class WorldBankConnector:
             "per_page": 100
         }
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=15)
             response.raise_for_status()
             data = response.json()
             if len(data) > 1:
@@ -139,7 +147,7 @@ class FREDConnector:
             "file_type": "json"
         }
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=15)
             response.raise_for_status()
             data = response.json()
             return data.get("observations", [])
@@ -148,6 +156,8 @@ class FREDConnector:
             return self._mock_fallback(series_id)
 
     def _mock_fallback(self, series_id: str) -> List[Dict[str, str]]:
+        if not _is_test_mode():
+            return []
         return [
             {"date": "2023-01-01", "value": "100.0"},
             {"date": "2023-02-01", "value": "101.5"}
@@ -165,7 +175,7 @@ class WikidataSPARQLConnector:
             "Accept": "application/sparql-results+json"
         }
         try:
-            response = requests.get(self.endpoint_url, params={"query": sparql_query}, headers=headers)
+            response = requests.get(self.endpoint_url, params={"query": sparql_query}, headers=headers, timeout=15)
             response.raise_for_status()
             data = response.json()
             return data.get("results", {}).get("bindings", [])
@@ -191,7 +201,7 @@ class GovInfoConnector:
             "pageSize": 5
         }
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=15)
             response.raise_for_status()
             return response.json().get("results", [])
         except requests.exceptions.RequestException as e:
@@ -199,5 +209,7 @@ class GovInfoConnector:
             return self._mock_fallback(query)
 
     def _mock_fallback(self, query: str) -> List[Dict[str, Any]]:
+        if not _is_test_mode():
+            return []
         return [{"title": f"GovInfo Mock Result for {query}", "packageId": "MOCK-123"}]
 
