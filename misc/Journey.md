@@ -213,4 +213,17 @@ We executed an autonomous agent team to systematically resolve 14 critical secur
 
 ---
 
+## 🔬 Step 17 — NLP Extraction & API Reliability Upgrades
+
+We encountered string-matching bugs, time-validation false positives, URL deduplication issues, and silent exceptions when APIs dropped connections. Then we did:
+- Replaced fragile `any()` substring matching in news retrievers with exact word boundary `regex` matching.
+- Dropped the aggressive 4-digit number standalone regex in the `TemporalValidator`, stopping false-positive rejections for numbers like "2050 dollars".
+- Replaced custom Title Case regex with robust spaCy NER models to ensure all proper nouns correctly filter into the Knowledge Graph verifier.
+- Refactored grammatical negation from `"not {claim}"` to `"Is it false that {claim}?"` across the `verifiers.py` prompt space.
+- Introduced MD5 hashing for fallback content deduplication when source articles drop their URLs.
+- Fixed the `WaybackMachineConnector` to correctly save `archive_url` metadata independently without overwriting the original source URL.
+- Patched silent exception swallowing across `geo_orchestrator` parallel fetches to log API timeouts instead of burying failures.
+
+---
+
 *Truth Mirror — from broken Wikipedia summaries to a resilient, API-first geopolitical intelligence engine.*
