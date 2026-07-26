@@ -14,14 +14,13 @@ logger = logging.getLogger(__name__)
 nlp = None
 if DEPENDENCIES_MET:
     try:
-        # Task requested en_core_web_trf
-        nlp = spacy.load("en_core_web_trf")
+        # Load en_core_web_sm first for speed
+        nlp = spacy.load("en_core_web_sm")
     except OSError:
-        logger.warning("en_core_web_trf not found. Please run: python -m spacy download en_core_web_trf")
-        # Try fallback if possible, though user explicitly asked for trf
+        logger.warning("en_core_web_sm not found. Please run: python -m spacy download en_core_web_sm")
         try:
-            nlp = spacy.load("en_core_web_sm")
-            logger.info("Using en_core_web_sm as fallback.")
+            nlp = spacy.load("en_core_web_trf")
+            logger.info("Using en_core_web_trf as fallback.")
         except OSError:
             logger.warning("No spaCy model found.")
 

@@ -4,6 +4,8 @@ import json
 import logging
 import requests
 from typing import Dict, Any
+from dotenv import load_dotenv
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -48,11 +50,8 @@ Respond strictly with a JSON object having the following keys:
 Do not include any other text, markdown formatting, or explanations. Only output the raw JSON object.
 """
         
-        from dotenv import load_dotenv
         import urllib.request
         from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, call_groq_with_key_rotation
-        
-        load_dotenv()
         
         payload = {
             "model": GROQ_SIMPLE_MODEL,
@@ -68,7 +67,8 @@ Do not include any other text, markdown formatting, or explanations. Only output
         )
         if status == "success" and content:
             try:
-                result = json.loads(content)
+                from truth_mirror.utils import strip_markdown_json
+                result = json.loads(strip_markdown_json(content))
                 is_geo = bool(result.get("is_geopolitical", False))
                 reason = str(result.get("reason", "No reason provided"))
                 parties = result.get("involved_parties", [])
@@ -115,7 +115,8 @@ Do not include any other text, markdown formatting, or explanations. Only output
             with urllib.request.urlopen(req, timeout=30) as response:
                 resp_data = json.loads(response.read().decode("utf-8"))
                 content = resp_data["choices"][0]["message"]["content"]
-                result = json.loads(content)
+                from truth_mirror.utils import strip_markdown_json
+                result = json.loads(strip_markdown_json(content))
             
             is_geo = bool(result.get("is_geopolitical", False))
             reason = str(result.get("reason", "No reason provided"))

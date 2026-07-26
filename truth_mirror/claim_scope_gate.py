@@ -7,6 +7,10 @@ from truth_mirror.geo_classifier import GEO_KEYWORDS
 from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, GROQ_SIMPLE_FALLBACK, get_model_label, call_groq_with_key_rotation
 from truth_mirror.run_tracker import tracker
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -71,11 +75,8 @@ Rules:
 - Only set in_temporal_scope to false if the claim is clearly and specifically about a historical period before 2015.
 """
 
-    import os
-    from dotenv import load_dotenv
     import time
     
-    load_dotenv()
     OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
     def _call_groq(prompt_str: str) -> dict | None:
         payload = {
@@ -156,10 +157,15 @@ Rules:
                     req = urllib.request.Request(gemini_url, data=req_data, headers={"Content-Type": "application/json"})
                     with urllib.request.urlopen(req, timeout=20) as response:
                         resp_data = json.loads(response.read().decode("utf-8"))
-                        content = resp_data["candidates"][0]["content"]["parts"][0]["text"]
-                        parsed = json.loads(content)
-                        tracker.record("scope_gate", "gemini-2.5-flash", "gemini", "success")
-                        break
+                        if resp_data.get("candidates") and resp_data["candidates"][0].get("content", {}).get("parts"):
+                            content = resp_data["candidates"][0]["content"]["parts"][0]["text"]
+                            from truth_mirror.utils import strip_markdown_json
+                            parsed = json.loads(strip_markdown_json(content))
+                            tracker.record("scope_gate", "gemini-2.5-flash", "gemini", "success")
+                            break
+                        else:
+                            logger.warning(f"Gemini response missing content: {resp_data}")
+                            break
                 except urllib.error.HTTPError as e:
                     if e.code == 429:
                         wait_time = (2 ** attempt) + 1
@@ -203,7 +209,8 @@ Rules:
                 with urllib.request.urlopen(req, timeout=30) as response:
                     resp_data = json.loads(response.read().decode("utf-8"))
                     content = resp_data["choices"][0]["message"]["content"]
-                    parsed = json.loads(content)
+                    from truth_mirror.utils import strip_markdown_json
+                    parsed = json.loads(strip_markdown_json(content))
                     tracker.record("scope_gate", "qwen/qwen3-next-80b-a3b-instruct:free", "openrouter", "success")
                     break
             except urllib.error.HTTPError as e:

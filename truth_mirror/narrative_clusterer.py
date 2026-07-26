@@ -97,7 +97,8 @@ You must respond ONLY with a valid JSON object using the exact schema below. Do 
                 )
             )
             
-            result = json.loads(response.text)
+            from truth_mirror.utils import strip_markdown_json
+            result = json.loads(strip_markdown_json(response.text))
             
             return {
                 "clusters": result.get("clusters", []),

@@ -44,6 +44,7 @@ class EvidenceItem:
     stance: Stance = "insufficient"
     perspective_label: str = "unknown"
     is_hidden_story: bool = False
+    archive_url: str = ""
 
 
 @dataclass(slots=True)

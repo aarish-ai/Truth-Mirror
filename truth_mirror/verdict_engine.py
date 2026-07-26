@@ -146,8 +146,8 @@ Verdict definitions:
                         
                     raw_json = await asyncio.to_thread(_call_gemini_sync_sdk)
                     if raw_json is not None:
-                        if raw_json.startswith("```json"):
-                            raw_json = raw_json.strip("` \n").removeprefix("json")
+                        from truth_mirror.utils import strip_markdown_json
+                        raw_json = strip_markdown_json(raw_json)
                         data = json.loads(raw_json)
                         if data is not None:
                             tracker.record("verdict_generation", "gemini-3.5-flash", "gemini", "success")

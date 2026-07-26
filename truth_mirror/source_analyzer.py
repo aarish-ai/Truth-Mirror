@@ -487,8 +487,12 @@ def _parse_batch_response(raw_text: str, batch: list) -> list:
                     excerpt = ""
                     src_type = "journalism"
                 
+                raw_source_name = raw_item.get("source_name", "")
+                if re.match(r'^\[(?:Source\s*)?\d+\]', raw_source_name, re.IGNORECASE) or not raw_source_name:
+                    raw_source_name = getattr(original, 'publisher', raw_source_name) if original else raw_source_name
+                    
                 # Use registry alignment where known; fall back to LLM's label
-                publisher_hint = raw_item.get("source_name", "")
+                publisher_hint = raw_source_name
                 registry_meta = get_source_metadata(url, publisher=publisher_hint)
                 registry_alignment = registry_meta.get("alignment", "")
                 llm_alignment = raw_item.get("alignment", "unknown")
@@ -498,7 +502,7 @@ def _parse_batch_response(raw_text: str, batch: list) -> list:
 
                 results.append(SourceAnalysis(
                     url=url, title=title,
-                    source_name=raw_item.get("source_name", ""),
+                    source_name=raw_source_name,
                     source_category=src_type, source_country="",
                     alignment=alignment,
                     reliability_tier=2, snippet=excerpt,

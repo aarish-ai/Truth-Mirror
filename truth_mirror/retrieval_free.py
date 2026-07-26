@@ -98,7 +98,9 @@ class FreeSourceRetrieval(EvidenceRetriever):
         def fetch(connector):
             try:
                 return connector.search(query)
-            except Exception:
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"[FreeSourceRetrieval] Connector {connector.__class__.__name__} failed: {e}")
                 return []
 
         if connectors:

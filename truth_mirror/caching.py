@@ -45,6 +45,7 @@ class EvidenceCache:
                 )
                 """
             )
+        self.cleanup_expired_results()
 
     def get(self, key: str) -> list[dict[str, Any]] | None:
         """Get cached data for a key."""

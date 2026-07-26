@@ -12,6 +12,7 @@ try:
     from google import genai
     from google.genai import types as genai_types
     from dotenv import load_dotenv
+    load_dotenv()
     LLM_AVAILABLE = True
 except ImportError:
     LLM_AVAILABLE = False
@@ -111,7 +112,6 @@ def decompose_claim(claim: str) -> DecompositionResult:
 
     if LLM_AVAILABLE:
         try:
-            load_dotenv()
             from truth_mirror.key_rotator import get_current_key
             api_key = get_current_key()
             if api_key:
@@ -145,7 +145,8 @@ Respond ONLY with a valid JSON object matching this schema. Ensure dependencies 
                     )
                 )
                 
-                result = json.loads(response.text)
+                from truth_mirror.utils import strip_markdown_json
+                result = json.loads(strip_markdown_json(response.text))
                 
                 deps = []
                 for d in result.get("dependencies", []):

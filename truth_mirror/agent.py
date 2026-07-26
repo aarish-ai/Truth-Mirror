@@ -78,6 +78,10 @@ Always finish with "Final Answer:" when you have resolved the question. Do not s
                 
             prompt += response + "\n"
             
+            if len(prompt) > 12000:
+                prompt_start = self._build_system_prompt() + f"\nQuestion: {question}\n...[history truncated]...\n"
+                prompt = prompt_start + prompt[-8000:]
+            
             if "Final Answer:" in response:
                 final_answer = response.split("Final Answer:", 1)[1].strip()
                 return final_answer

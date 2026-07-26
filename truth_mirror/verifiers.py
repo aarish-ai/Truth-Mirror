@@ -26,7 +26,8 @@ class BaseVerifier:
         evidence = self.retriever.retrieve(enriched_subclaim, claim_type=claim_type)
 
         # Hidden Story retrieval pass targeting dissenting/minority sources
-        negated_claim = f"not {enriched_subclaim}"
+        clean_subclaim = enriched_subclaim.lower().rstrip('.')
+        negated_claim = f"Is it false that {clean_subclaim}?"
         hidden_evidence = self.retriever.retrieve(negated_claim, claim_type=claim_type)
         for item in hidden_evidence:
             item.is_hidden_story = True

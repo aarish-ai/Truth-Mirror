@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timezone
 from typing import List
 import arxiv
+import dateutil.parser
 
 from truth_mirror.models import EvidenceItem
 from truth_mirror.retrieval import RetrievalConfig
@@ -147,6 +148,10 @@ class PubMedConnector:
             authors = [a.get("name") for a in item.get("authors", [])]
             author_names = ", ".join(authors[:3]) if authors else "unknown"
             pubdate = item.get("pubdate", "")
+            try:
+                pubdate = dateutil.parser.parse(pubdate).date().isoformat()
+            except Exception:
+                pass
             source = item.get("source", "PubMed")
             
             items.append(EvidenceItem(

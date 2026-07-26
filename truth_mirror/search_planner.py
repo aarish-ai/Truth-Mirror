@@ -50,14 +50,16 @@ class SearchPlanner:
             print(f"Parallel execution error: {e}")
             
         # Deduplicate by url_or_id keeping the first
+        import hashlib
         deduplicated_list = []
         seen_urls = set()
         
         for item in all_results:
             uid = item.url_or_id
             if not uid:
-                deduplicated_list.append(item)
-            elif uid not in seen_urls:
+                uid = hashlib.md5(((item.source_title or "") + (item.excerpt or "")[:200]).encode('utf-8', 'ignore')).hexdigest()
+            
+            if uid not in seen_urls:
                 seen_urls.add(uid)
                 deduplicated_list.append(item)
                 

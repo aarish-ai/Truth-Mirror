@@ -129,8 +129,8 @@ class GeopoliticalPipeline:
                     results = future.result()
                     # Up to 8 items per query
                     all_results.extend(results[:max_results_per_query])
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning(f"[GeoOrchestrator] Error fetching query results: {e}")
                     
         return all_results
 
@@ -219,18 +219,20 @@ class GeopoliticalPipeline:
                     dq_suffix = ""
                 else:
                     dq_suffix = f" {dq}"
+                clean_claim = claim.rstrip('.')
                 perspective_queries = [
-                    f"{claim}{dq_suffix} Western media Reuters AP",
-                    f"{claim}{dq_suffix} Russian Chinese media TASS CGTN",
-                    f"{claim}{dq_suffix} Middle East Al Jazeera",
-                    f"{claim}{dq_suffix} official government statement"
+                    f"{clean_claim}{dq_suffix} Western media Reuters AP",
+                    f"{clean_claim}{dq_suffix} Russian Chinese media TASS CGTN",
+                    f"{clean_claim}{dq_suffix} Middle East Al Jazeera",
+                    f"{clean_claim}{dq_suffix} official government statement"
                 ]
             else:
+                clean_claim = claim.rstrip('.')
                 perspective_queries = [
-                    f"{claim} Western media Reuters AP",
-                    f"{claim} Russian Chinese media TASS CGTN",
-                    f"{claim} Middle East Al Jazeera",
-                    f"{claim} official government statement"
+                    f"{clean_claim} Western media Reuters AP",
+                    f"{clean_claim} Russian Chinese media TASS CGTN",
+                    f"{clean_claim} Middle East Al Jazeera",
+                    f"{clean_claim} official government statement"
                 ]
             all_queries.extend(perspective_queries)
 
@@ -510,8 +512,8 @@ class GeopoliticalPipeline:
             data = await run_async_inner()
             if data:
                 return data.get("background", ""), data.get("current_situation", "")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"[GeoOrchestrator] Background narrative generation failed: {e}")
         return "Background unavailable.", "Current situation unavailable."
 
 def _jaccard_similarity(a: str, b: str) -> float:

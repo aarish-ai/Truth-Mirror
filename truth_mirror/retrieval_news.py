@@ -7,6 +7,7 @@ import urllib.parse
 import urllib.request
 import defusedxml.ElementTree as ET
 from datetime import datetime, timezone
+import dateutil.parser
 
 from truth_mirror.models import EvidenceItem
 from truth_mirror.caching import EvidenceCache
@@ -126,6 +127,10 @@ class RSSAggregator:
                 description = (node.findtext("description") or "").strip()
                 link = (node.findtext("link") or "").strip()
                 pub_date = (node.findtext("pubDate") or datetime.now(timezone.utc).date().isoformat()).strip()
+                try:
+                    pub_date = dateutil.parser.parse(pub_date).date().isoformat()
+                except Exception:
+                    pass
 
                 if not title or not link:
                     continue
@@ -188,8 +193,11 @@ class GoogleNewsRSSConnector(BaseConnector):
         for node in root.findall("./channel/item")[:self.max_results]:
             title = (node.findtext("title") or "").strip()
             link = (node.findtext("link") or "").strip()
-            description = (node.findtext("description") or "").strip()
             pub_date = (node.findtext("pubDate") or datetime.now(timezone.utc).date().isoformat()).strip()
+            try:
+                pub_date = dateutil.parser.parse(pub_date).date().isoformat()
+            except Exception:
+                pass
             
             if not title or not link:
                 continue

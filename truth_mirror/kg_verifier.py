@@ -101,43 +101,40 @@ class KGVerifier:
             return []
 
     def _select_template(self, claim: str) -> Tuple[Optional[str], Optional[str]]:
+        from truth_mirror.nlp_pipeline import extract_nlp_features
         claim_lower = claim.lower()
-        entity_regex = r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b'
+        
+        features = extract_nlp_features(claim)
+        ner = features.get("ner", [])
+        entities = [ent[0] for ent in ner]
+        first_entity = entities[0] if entities else None
 
         if re.search(r'\b(president|prime minister|pm|head of)\b', claim_lower):
-            match = re.search(r'\b(?:of|in)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b', claim)
+            match = re.search(r'\b(?:of|in)\s+(.+)', claim)
             if match:
-                return "head_of_government", match.group(1)
+                part = match.group(1)
+                for e in entities:
+                    if e in part:
+                        return "head_of_government", e
+            return "head_of_government", first_entity
 
         if re.search(r'\b(born|birth|birthdate)\b', claim_lower):
-            match = re.search(entity_regex, claim)
-            if match:
-                return "birth_date", match.group(1)
+            return "birth_date", first_entity
 
         if re.search(r'\b(died|death|passed away)\b', claim_lower):
-            match = re.search(entity_regex, claim)
-            if match:
-                return "death_date", match.group(1)
+            return "death_date", first_entity
 
         if re.search(r'\b(population|people|residents)\b', claim_lower):
-            match = re.search(entity_regex, claim)
-            if match:
-                return "population", match.group(1)
+            return "population", first_entity
 
         if re.search(r'\b(capital|capital city)\b', claim_lower):
-            match = re.search(entity_regex, claim)
-            if match:
-                return "capital", match.group(1)
+            return "capital", first_entity
 
         if re.search(r'\bwon\b', claim_lower) and re.search(r'\b(election|vote)\b', claim_lower):
-            match = re.search(entity_regex, claim)
-            if match:
-                return "election_winner", match.group(1)
+            return "election_winner", first_entity
 
         if re.search(r'\b(nobel|award|prize)\b', claim_lower):
-            match = re.search(entity_regex, claim)
-            if match:
-                return "award_received", match.group(1)
+            return "award_received", first_entity
 
         return None, None
 
