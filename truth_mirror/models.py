@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Literal
 
@@ -163,7 +163,6 @@ class GeopoliticalResult:
     temporal_qualifier: str = ""
 
     def to_json(self) -> dict:
-        from dataclasses import asdict
         d = asdict(self)
         d["final_verdict"] = self.verdict
         return d

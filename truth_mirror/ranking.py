@@ -38,7 +38,7 @@ def _semantic_similarity(a: str, b: str) -> float:
 
 def _recency_score(date_text: str) -> float:
     try:
-        dt = datetime.fromisoformat(date_text)
+        dt = datetime.fromisoformat(date_text.replace('Z', '+00:00'))
     except ValueError:
         # Non-ISO sources are uncertain; treat as mildly stale.
         return 0.45

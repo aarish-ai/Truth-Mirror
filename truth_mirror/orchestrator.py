@@ -2,7 +2,15 @@
 
 from __future__ import annotations
 
+import json
+import os
+import logging
 from dataclasses import asdict
+
+try:
+    from truth_mirror.retrieval_news import GoogleNewsRSSConnector
+except ImportError as e:
+    logging.getLogger(__name__).warning("GoogleNewsRSSConnector not available: %s", e)
 
 from truth_mirror.abstention import compute_uncertainty
 from truth_mirror.decomposition import decompose_claim
@@ -21,18 +29,12 @@ from truth_mirror.gemini_analyzer import GeminiAnalyzer
 from truth_mirror.kg_verifier import KGVerifier
 from truth_mirror.narrative_clusterer import NarrativeClusterer
 from truth_mirror.local_decomposer import LocalDecomposer
-import json
-import os
 from truth_mirror.eval_logger import EvalLogger
 
 
 class TruthMirrorPipeline:
     def __init__(self) -> None:
         self.retriever = FreeSourceRetrieval()
-        try:
-            from truth_mirror.retrieval_news import GoogleNewsRSSConnector
-        except ImportError:
-            pass
         self.stance_analyzer = StanceAnalyzer()
         self.entity_resolver = EntityResolver(use_dbpedia=True)
         self.context_tracker = ContextTracker()

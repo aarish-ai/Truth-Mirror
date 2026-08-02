@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import Counter
 
+from truth_mirror import constants
 from truth_mirror.models import EvidenceItem
 
 
@@ -20,22 +21,30 @@ def compute_uncertainty(evidence: list[EvidenceItem], base_confidence: float) ->
     support_ratio = stances.get("supports", 0) / total
     insufficient_ratio = stances.get("insufficient", 0) / total
     neutral_ratio = stances.get("neutral", 0) / total
-    avg_quality = sum((i.relevance_score + i.credibility_score) / 2 for i in evidence) / total
-    independence = len({i.independence_key for i in evidence if i.independence_key}) / total
+    
+    total_quality = 0.0
+    independence_keys = set()
+    for i in evidence:
+        total_quality += (i.relevance_score + i.credibility_score) / 2
+        if i.independence_key:
+            independence_keys.add(i.independence_key)
+            
+    avg_quality = total_quality / total
+    independence = len(independence_keys) / total
 
-    if independence < 0.3:
+    if independence < constants.ABSTENTION_MIN_INDEPENDENCE:
         warnings.append("low-source-independence")
         provenance.append("Sources appear highly correlated or lack independent verification.")
     else:
         provenance.append("Good source independence.")
 
-    if avg_quality < 0.3:
+    if avg_quality < constants.ABSTENTION_MIN_QUALITY:
         warnings.append("low-evidence-quality")
         provenance.append("Overall evidence quality is low based on relevance and credibility.")
     else:
         provenance.append("Evidence quality is generally acceptable.")
 
-    if insufficient_ratio > 0.7:
+    if insufficient_ratio > constants.ABSTENTION_MAX_INSUFFICIENT_RATIO:
         warnings.append("mostly-insufficient-evidence")
         provenance.append(f"High proportion ({insufficient_ratio:.0%}) of evidence is insufficient to verify the claim.")
         
@@ -45,11 +54,11 @@ def compute_uncertainty(evidence: list[EvidenceItem], base_confidence: float) ->
 
     # Margin of error based on uncertainty factors
     uncertainty_margin = (
-        0.2 * insufficient_ratio
-        + 0.1 * neutral_ratio
-        + 0.3 * (1 if support_ratio > 0 and contradict_ratio > 0 else 0)
-        + 0.2 * (1 - avg_quality)
-        + 0.1 * (1 - independence)
+        constants.UNCERTAINTY_WEIGHT_INSUFFICIENT * insufficient_ratio
+        + constants.UNCERTAINTY_WEIGHT_NEUTRAL * neutral_ratio
+        + constants.UNCERTAINTY_WEIGHT_CONFLICT * (1 if support_ratio > 0 and contradict_ratio > 0 else 0)
+        + constants.UNCERTAINTY_WEIGHT_QUALITY * (1 - avg_quality)
+        + constants.UNCERTAINTY_WEIGHT_INDEPENDENCE * (1 - independence)
     )
 
     lower_bound = max(0.0, base_confidence - uncertainty_margin)

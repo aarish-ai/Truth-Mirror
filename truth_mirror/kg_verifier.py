@@ -5,8 +5,8 @@ Provides fact-checking via 25+ templates and an LLM-based query selector.
 
 import logging
 import urllib.parse
-import urllib.request
 import json
+import requests
 from typing import Optional, Dict, Any, List, Tuple
 import re
 
@@ -85,11 +85,10 @@ class KGVerifier:
             'Accept': 'application/sparql-results+json'
         }
         url = self.endpoint_url + '?query=' + urllib.parse.quote(sparql_query)
-        req = urllib.request.Request(url, headers=headers)
-        
         try:
-            with urllib.request.urlopen(req, timeout=15) as response:
-                data = json.loads(response.read().decode('utf-8'))
+            response = requests.get(url, headers=headers, timeout=15)
+            response.raise_for_status()
+            data = response.json()
                 
             results = []
             for binding in data.get('results', {}).get('bindings', []):

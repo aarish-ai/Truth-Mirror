@@ -4,6 +4,7 @@ import os
 import faiss
 import chromadb
 import numpy as np
+import hashlib
 from truth_mirror.embeddings import get_gemini_embedding
 
 class VectorStore:
@@ -15,9 +16,8 @@ class VectorStore:
             self.client = chromadb.PersistentClient(path=persist_dir)
             self.collection = self.client.get_or_create_collection(name=collection_name)
         elif self.backend == "faiss":
-            self.index = faiss.IndexFlatL2(self.dimension)
-            self.docs = []
-            self.ids = []
+            self.index = faiss.IndexIDMap(faiss.IndexFlatL2(self.dimension))
+            self.docs = {}
         else:
             raise ValueError(f"Unknown backend: {backend}")
 
@@ -39,9 +39,9 @@ class VectorStore:
         elif self.backend == "faiss":
             if self.exists(doc_id):
                 return
-            self.index.add(np.array([embedding]).astype("float32"))
-            self.docs.append({"text": text, "metadata": metadata})
-            self.ids.append(doc_id)
+            int_id = int(hashlib.md5(doc_id.encode()).hexdigest()[:15], 16)
+            self.index.add_with_ids(np.array([embedding]).astype("float32"), np.array([int_id]).astype("int64"))
+            self.docs[int_id] = {"id": doc_id, "text": text, "metadata": metadata}
 
     def search(self, query: str, top_k: int = 5):
         embedding = get_gemini_embedding(query)
@@ -61,9 +61,9 @@ class VectorStore:
             
             results = []
             for j, i in enumerate(indices[0]):
-                if i != -1 and i < len(self.docs):
+                if i != -1 and i in self.docs:
                     res = {
-                        "id": self.ids[i],
+                        "id": self.docs[i]["id"],
                         "text": self.docs[i]["text"],
                         "metadata": self.docs[i]["metadata"],
                         "distance": float(distances[0][j])
@@ -76,4 +76,5 @@ class VectorStore:
             res = self.collection.get(ids=[doc_id])
             return len(res["ids"]) > 0
         elif self.backend == "faiss":
-            return doc_id in self.ids
+            int_id = int(hashlib.md5(doc_id.encode()).hexdigest()[:15], 16)
+            return int_id in self.docs

@@ -138,7 +138,7 @@ def test_requests_timeout_in_archival_and_quotes():
 # ---------------------------------------------------------------------------
 # C10: Catch Unhandled Exceptions in HTTP Handler Tests
 # ---------------------------------------------------------------------------
-def test_app_do_post_catches_general_exception():
+def test_app_do_post_catches_general_exception(monkeypatch):
     """Verify TruthMirrorHandler.do_POST handles general pipeline exception gracefully with HTTP 500."""
     handler = TruthMirrorHandler.__new__(TruthMirrorHandler)
     handler.headers = {"Content-Length": "35"}
@@ -148,7 +148,7 @@ def test_app_do_post_catches_general_exception():
     handler.rfile.read.return_value = req_body
     handler.path = "/api/verify"
 
-    handler._check_auth = MagicMock(return_value=True)
+    monkeypatch.setattr("app._check_session", MagicMock(return_value=True))
 
     written_payloads = []
     def mock_write_json(payload, status=200):

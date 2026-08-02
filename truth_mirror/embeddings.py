@@ -1,6 +1,5 @@
 import json
-import urllib.request
-import urllib.error
+import requests
 import logging
 from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
 
@@ -31,28 +30,28 @@ def get_gemini_embedding(text: str) -> Optional[List[float]]:
                 ]
             }
         }
-        req_data = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(
-            url,
-            data=req_data,
-            headers={"Content-Type": "application/json"}
-        )
         try:
-            with urllib.request.urlopen(req, timeout=20) as response:
-                resp_data = json.loads(response.read().decode("utf-8"))
-                embedding_values = resp_data.get("embedding", {}).get("values")
-                if embedding_values:
-                    return [float(val) for val in embedding_values]
-                else:
-                    logger.warning(f"[Embeddings] Response did not contain embedding: {resp_data}")
-                    return None
-        except urllib.error.HTTPError as e:
-            if e.code in (429, 403):
-                logger.warning(f"[Embeddings] HTTPError {e.code} on attempt {attempt+1}. Rotating key and retrying.")
+            response = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=20)
+            if response.status_code in (429, 403):
+                logger.warning(f"[Embeddings] HTTP {response.status_code} on attempt {attempt+1}. Rotating key and retrying.")
+                rotate_gemini_key()
+                continue
+                
+            response.raise_for_status()
+            resp_data = response.json()
+            embedding_values = resp_data.get("embedding", {}).get("values")
+            if embedding_values:
+                return [float(val) for val in embedding_values]
+            else:
+                logger.warning(f"[Embeddings] Response did not contain embedding: {resp_data}")
+                return None
+        except requests.exceptions.RequestException as e:
+            if getattr(e.response, 'status_code', None) in (429, 403):
+                logger.warning(f"[Embeddings] Rate limited on attempt {attempt+1}. Rotating key and retrying.")
                 rotate_gemini_key()
                 continue
             else:
-                logger.error(f"[Embeddings] HTTPError {e.code}: {e.read().decode('utf-8', errors='ignore')}")
+                logger.error(f"[Embeddings] HTTPError: {e}")
                 return None
         except Exception as e:
             logger.error(f"[Embeddings] Exception in get_gemini_embedding: {e}")

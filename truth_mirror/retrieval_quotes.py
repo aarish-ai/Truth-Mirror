@@ -29,21 +29,9 @@ class WikiquoteConnector:
             return [{"source": "Wikiquote", "title": res["title"], "snippet": res["snippet"]} for res in results]
         except Exception as e:
             logger.error(f"Error querying Wikiquote: {e}")
-            if _is_test_mode():
-                return [{"source": "Wikiquote", "error": str(e), "fallback": "semantic"}]
             return []
 
 class MillerCenterConnector:
     def search_presidential_speeches(self, president: str, query: str) -> List[Dict[str, str]]:
-        if not _is_test_mode():
-            return []
-        # Mock implementation for Miller Center Presidential Speeches
-        # Provides an exact match / semantic fallback
-        return [
-            {
-                "source": "Miller Center", 
-                "president": president,
-                "snippet": f"Exact match or semantic fallback for '{query}' in {president}'s speech.",
-                "url": "https://millercenter.org/the-presidency/presidential-speeches"
-            }
-        ]
+        logger.warning("API key missing for MillerCenterConnector — skipping connector")
+        return []

@@ -66,6 +66,7 @@ Always finish with "Final Answer:" when you have resolved the question. Do not s
         Runs the ReAct loop until a Final Answer is reached or max_iterations is hit.
         """
         prompt = self._build_system_prompt() + f"\nQuestion: {question}\n"
+        stuck_count = 0
         
         for i in range(self.max_iterations):
             logger.info(f"ReAct Iteration {i+1}/{self.max_iterations}")
@@ -83,6 +84,7 @@ Always finish with "Final Answer:" when you have resolved the question. Do not s
                 prompt = prompt_start + prompt[-8000:]
             
             if "Final Answer:" in response:
+                stuck_count = 0
                 final_answer = response.split("Final Answer:", 1)[1].strip()
                 return final_answer
             
@@ -91,6 +93,7 @@ Always finish with "Final Answer:" when you have resolved the question. Do not s
             action_input_match = re.search(r"Action Input:\s*(.*?)(?:\n|$)", response)
             
             if action_match and action_input_match:
+                stuck_count = 0
                 action = action_match.group(1).strip()
                 action_input = action_input_match.group(1).strip()
                 
@@ -106,5 +109,8 @@ Always finish with "Final Answer:" when you have resolved the question. Do not s
             else:
                 # If the agent didn't output an action or final answer, prompt it to continue
                 prompt += "Observation: You did not provide a valid Action and Action Input, or a Final Answer. Please follow the format.\n"
+                stuck_count += 1
+                if stuck_count >= 3:
+                    return "Analysis could not be completed — the reasoning agent was unable to reach a conclusion."
                 
         return "Max iterations reached without finding a Final Answer."

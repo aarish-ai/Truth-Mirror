@@ -5,6 +5,8 @@ import logging
 import requests
 from typing import Dict, Any
 from dotenv import load_dotenv
+from truth_mirror.llm_fallback import LLMFallbackChain
+from truth_mirror.groq_router import GROQ_SIMPLE_MODEL
 load_dotenv()
 
 logger = logging.getLogger(__name__)
@@ -50,74 +52,20 @@ Respond strictly with a JSON object having the following keys:
 Do not include any other text, markdown formatting, or explanations. Only output the raw JSON object.
 """
         
-        import urllib.request
-        from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, call_groq_with_key_rotation
-        
-        payload = {
-            "model": GROQ_SIMPLE_MODEL,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.1,
-            "response_format": {"type": "json_object"},
-            "max_tokens": 512
-        }
-        content, status = call_groq_with_key_rotation(
-            payload=payload,
-            timeout=30,
-            log_prefix="[GeoClassifier]"
+        chain = LLMFallbackChain(
+            sequence=["groq", "openrouter"],
+            models={
+                "groq": GROQ_SIMPLE_MODEL,
+                "openrouter": "qwen/qwen3-next-80b-a3b-instruct:free"
+            },
+            tracker_module="geo_classifier",
+            temperature=0.1,
+            max_tokens=512
         )
-        if status == "success" and content:
-            try:
-                from truth_mirror.utils import strip_markdown_json
-                result = json.loads(strip_markdown_json(content))
-                is_geo = bool(result.get("is_geopolitical", False))
-                reason = str(result.get("reason", "No reason provided"))
-                parties = result.get("involved_parties", [])
-                if not isinstance(parties, list):
-                    parties = [str(parties)]
-                subtype = str(result.get("claim_subtype", "unknown"))
-                
-                return {
-                    "is_geopolitical": is_geo,
-                    "reason": reason,
-                    "involved_parties": parties,
-                    "claim_subtype": subtype
-                }
-            except Exception as e:
-                logger.warning(f"[GeoClassifier] Groq Parse failed: {e}")
-
-        OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
         
-        if not OPENROUTER_API_KEY:
-            logger.warning("OPENROUTER_API_KEY not set. Using regex fallback.")
-            return self._regex_fallback(claim)
-            
-        openrouter_payload = {
-            "model": "qwen/qwen3-next-80b-a3b-instruct:free",
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.1,
-            "response_format": {"type": "json_object"}
-        }
+        result = chain.execute(prompt)
         
-        headers = {
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://truthmirror.app",
-            "X-Title": "Truth Mirror"
-        }
-        
-        try:
-            req_data = json.dumps(openrouter_payload).encode("utf-8")
-            req = urllib.request.Request(
-                "https://openrouter.ai/api/v1/chat/completions", 
-                data=req_data, 
-                headers=headers
-            )
-            with urllib.request.urlopen(req, timeout=30) as response:
-                resp_data = json.loads(response.read().decode("utf-8"))
-                content = resp_data["choices"][0]["message"]["content"]
-                from truth_mirror.utils import strip_markdown_json
-                result = json.loads(strip_markdown_json(content))
-            
+        if result:
             is_geo = bool(result.get("is_geopolitical", False))
             reason = str(result.get("reason", "No reason provided"))
             parties = result.get("involved_parties", [])
@@ -131,9 +79,8 @@ Do not include any other text, markdown formatting, or explanations. Only output
                 "involved_parties": parties,
                 "claim_subtype": subtype
             }
-            
-        except Exception as e:
-            logger.warning(f"OpenRouter geo-classification failed ({e}). Using regex fallback.")
+        else:
+            logger.warning("All geo-classification fallbacks failed. Using regex fallback.")
             return self._regex_fallback(claim)
 
     def _regex_fallback(self, claim: str) -> Dict[str, Any]:

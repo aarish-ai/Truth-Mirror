@@ -11,7 +11,7 @@ from truth_mirror.ranking import _semantic_similarity, _cosine_similarity
 from truth_mirror.vector_store import VectorStore
 from truth_mirror.context_tracker import ContextTracker
 from truth_mirror.retrieval_fact import GoogleFactCheckConnector, FREDConnector, GovInfoConnector, SnopesFactCheckScraper
-from truth_mirror.retrieval_archival import UNDocumentConnector, HansardConnector, EuroparlConnector, ProjectGutenbergConnector
+
 from truth_mirror.retrieval_quotes import WikiquoteConnector, MillerCenterConnector
 from truth_mirror.triangulation import HostileSourceTriangulator
 from truth_mirror.source_registry import get_source_metadata
@@ -114,23 +114,10 @@ class TestC8SilentProductionMockData:
         govinfo = GovInfoConnector(api_key=None)
         assert govinfo.search_packages("test query") == []
 
-        # Archival mock connectors
-        assert UNDocumentConnector().search("query") == []
-        assert HansardConnector().search("query") == []
-        assert EuroparlConnector().search("query") == []
-        assert ProjectGutenbergConnector().search("query") == []
+
 
         # Quote mock connectors
         assert MillerCenterConnector().search_presidential_speeches("Lincoln", "query") == []
-
-    def test_test_mode_returns_mock_data(self, monkeypatch):
-        monkeypatch.setenv("TM_TEST_MODE", "true")
-
-        gfc = GoogleFactCheckConnector(api_key=None)
-        assert len(gfc.search_claims("test query")) > 0
-
-        assert len(UNDocumentConnector().search("query")) > 0
-        assert len(MillerCenterConnector().search_presidential_speeches("Lincoln", "query")) > 0
 
 
 class TestC12NaiveDomainMatching:

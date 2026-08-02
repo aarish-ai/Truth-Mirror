@@ -43,18 +43,18 @@ def detect_claim_type(claim: str) -> str:
 
     # ── Biographical: people's life/death/age/role status ────────────────────
     if re.search(
-        r"\b(born|died|death|alive|dead|age|biography|nationality|married|divorced"
-        r"|spouse|parent|child|founded|created|invented|president of|prime minister of"
-        r"|ceo of|leader of|served as|was a|is a)\b",
+        r"\b(born|died|deaths?|alive|dead|age|biography|nationality|married|divorced"
+        r"|spouse|parent|child|founded|created|invented|presidents?|prime ministers?"
+        r"|ceos?|leaders?|served as|was a|is a)\b",
         text,
     ):
         return "biographical"
 
     # ── Political: elections, governments, parties, leaders ──────────────────
     if re.search(
-        r"\b(election|elected|vote|senator|congress|parliament|president|prime minister"
-        r"|governor|mayor|minister|administration|party|campaign|inauguration|impeach"
-        r"|referendum|ballot|democrat|republican|geopolitical|sanction|treaty|diplomat)\b",
+        r"\b(elections?|elected|votes?|senators?|congress|parliaments?|presidents?|prime ministers?"
+        r"|governors?|mayors?|ministers?|administrations?|part(?:y|ies)|campaigns?|inaugurations?|impeach"
+        r"|referendums?|ballots?|democrats?|republicans?|geopolitical|sanctions?|treat(?:y|ies)|diplomats?)\b",
         text,
     ):
         return "political"
@@ -89,11 +89,11 @@ def detect_claim_type(claim: str) -> str:
         return "statistic / numeric claim"
 
     # ── Policy / legal claim ─────────────────────────────────────────────────
-    if any(k in text for k in ("law", "bill", "court", "policy", "regulation")):
+    if re.search(r"\b(laws?|bills?|courts?|polic(?:y|ies)|regulations?)\b", text):
         return "policy / legal claim"
 
     # ── Scientific / medical claim ────────────────────────────────────────────
-    if any(k in text for k in ("study", "clinical", "vaccine", "disease", "medical")):
+    if re.search(r"\b(stud(?:y|ies)|clinical|vaccines?|diseases?|medical)\b", text):
         return "scientific / medical claim"
 
     # ── Opinion dressed as fact ──────────────────────────────────────────────

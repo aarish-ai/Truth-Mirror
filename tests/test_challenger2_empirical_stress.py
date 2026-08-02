@@ -108,10 +108,10 @@ def test_c5_xxe_defusedxml_protection_and_error_handling():
 
     for xml_payload in [billion_laughs_xml, xxe_external_file_xml]:
         mock_response = MagicMock()
-        mock_response.read.return_value = xml_payload.encode('utf-8')
-        mock_response.__enter__.return_value = mock_response
+        mock_response.content = xml_payload.encode('utf-8')
+        mock_response.raise_for_status = MagicMock()
 
-        with patch('urllib.request.urlopen', return_value=mock_response):
+        with patch('requests.get', return_value=mock_response):
             # Test GoogleNewsRSSConnector
             connector = retrieval_news.GoogleNewsRSSConnector()
             items = connector.retrieve("test query")
@@ -129,44 +129,37 @@ def test_c5_xxe_defusedxml_protection_and_error_handling():
 # C7 - Auth Bypass Empirical Stress Tests
 # ============================================================================
 
-def test_c7_auth_enforcement_under_concurrent_load():
-    """Verify TruthMirrorHandler._check_auth under high concurrent load and edge inputs."""
+def test_c7_auth_enforcement_under_concurrent_load(monkeypatch):
+    """Verify app._check_session under high concurrent load and edge inputs."""
     handler_class = app.TruthMirrorHandler
 
     def make_handler(auth_header_val):
         h = MagicMock(spec=handler_class)
         h.headers = {"Authorization": auth_header_val} if auth_header_val is not None else {}
-        h._check_auth = handler_class._check_auth.__get__(h, handler_class)
+        h.wfile = MagicMock()
         return h
 
-    # Scenario 1: AUTH_PASSWORD set to "Secret123"
-    with patch.dict(os.environ, {"AUTH_PASSWORD": "Secret123"}):
-        app.AUTH_PASSWORD = "Secret123"
-        valid_b64 = base64.b64encode(b"admin:Secret123").decode()
-        invalid_b64 = base64.b64encode(b"admin:Wrong123").decode()
+    monkeypatch.setattr("app.AUTH_USERNAMES", {"admin"})
+    monkeypatch.setattr("app.AUTH_PASSWORD", "Secret123")
+    
+    token = app._create_session("admin")
+    invalid_token = "invalid_token_123"
 
-        def verify_auth(header, expected):
-            handler = make_handler(header)
-            return handler._check_auth() == expected
+    def verify_auth(header, expected):
+        handler = make_handler(header)
+        return app._check_session(handler) == expected
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
-            futures = []
-            for _ in range(50):
-                futures.append(executor.submit(verify_auth, f"Basic {valid_b64}", True))
-                futures.append(executor.submit(verify_auth, f"Basic {invalid_b64}", False))
-                futures.append(executor.submit(verify_auth, None, False))
-                futures.append(executor.submit(verify_auth, "Basic bad_b64!!!", False))
-                futures.append(executor.submit(verify_auth, "Bearer token123", False))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+        futures = []
+        for _ in range(50):
+            futures.append(executor.submit(verify_auth, f"Bearer {token}", True))
+            futures.append(executor.submit(verify_auth, f"Bearer {invalid_token}", False))
+            futures.append(executor.submit(verify_auth, None, False))
+            futures.append(executor.submit(verify_auth, "Basic bad_b64!!!", False))
+            futures.append(executor.submit(verify_auth, "Token token123", False))
 
-            results = [f.result() for f in futures]
-            assert all(results), "Auth check produced incorrect boolean result under concurrent load!"
-
-    # Scenario 2: AUTH_PASSWORD is empty or None
-    for empty_val in ["", None]:
-        with patch.dict(os.environ, {"AUTH_PASSWORD": empty_val or ""}):
-            app.AUTH_PASSWORD = empty_val
-            handler = make_handler(f"Basic {valid_b64}")
-            assert handler._check_auth() is False, "AUTH_PASSWORD empty must reject requests with 401!"
+        results = [f.result() for f in futures]
+        assert all(results), "Auth check produced incorrect boolean result under concurrent load!"
 
 
 # ============================================================================
@@ -272,7 +265,7 @@ def test_c3_aiohttp_session_reuse_and_concurrency_stress():
 # C10 - HTTP Handler Exception Handling & Error Response Tests
 # ============================================================================
 
-def test_c10_http_handler_unhandled_exception_resilience():
+def test_c10_http_handler_unhandled_exception_resilience(monkeypatch):
     """Verify HTTP handler catches pipeline errors and returns 500 without crashing thread."""
     handler_class = app.TruthMirrorHandler
 
@@ -297,7 +290,7 @@ def test_c10_http_handler_unhandled_exception_resilience():
                 handler.rfile = rfile
                 handler.wfile = wfile
                 handler.pipeline = app.TruthMirrorPipeline()
-                handler._check_auth = lambda: True
+                monkeypatch.setattr("app._check_session", lambda h: True)
                 handler.send_response = MagicMock()
                 handler.send_header = MagicMock()
                 handler.end_headers = MagicMock()

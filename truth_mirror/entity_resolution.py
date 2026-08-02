@@ -1,7 +1,8 @@
-import urllib.request
+import requests
 import urllib.parse
 import json
 import logging
+import re
 from typing import List
 
 from truth_mirror.models import Entity
@@ -30,68 +31,75 @@ class EntityResolver:
     def _resolve_dbpedia(self, text: str) -> List[Entity]:
         url = "https://api.dbpedia-spotlight.org/en/annotate"
         data = urllib.parse.urlencode({'text': text, 'conf': '0.35'}).encode('utf-8')
-        req = urllib.request.Request(url, data=data, headers={'Accept': 'application/json'})
         try:
-            with urllib.request.urlopen(req, timeout=5) as response:
-                result = json.loads(response.read().decode())
-                resources = result.get('Resources', [])
-                entities = []
-                for res in resources:
-                    uri = res.get('@URI', '')
-                    name = res.get('@surfaceForm', '')
-                    types = res.get('@types', '')
-                    types_list = types.split(',') if types else []
-                    score = float(res.get('@similarityScore', 0.0))
-                    if uri and name:
-                        entities.append(Entity(
-                            name=name,
-                            uri=uri,
-                            types=types_list,
-                            score=score
-                        ))
-                return entities
+            response = requests.post(url, data=data, headers={'Accept': 'application/json'}, timeout=5)
+            response.raise_for_status()
+            result = response.json()
+            resources = result.get('Resources', [])
+            entities = []
+            for res in resources:
+                uri = res.get('@URI', '')
+                name = res.get('@surfaceForm', '')
+                types = res.get('@types', '')
+                types_list = types.split(',') if types else []
+                score = float(res.get('@similarityScore', 0.0))
+                if uri and name:
+                    entities.append(Entity(
+                        name=name,
+                        uri=uri,
+                        types=types_list,
+                        score=score
+                    ))
+            return entities
         except Exception as e:
             logger.warning(f"DBpedia Spotlight resolution failed: {e}")
             return []
 
+    def _extract_entities_naive(self, text: str) -> List[str]:
+        matches = re.findall(r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b', text)
+        return [m for m in matches if len(m) > 3]
+
     def _resolve_wikidata(self, text: str) -> List[Entity]:
-        """Fallback to Wikidata entity search (only searches for full text as query, which is limited)."""
-        # Wikidata WB Search Entities API
+        """Fallback to Wikidata entity search with naive NER."""
+        entities_to_search = self._extract_entities_naive(text)
+        if not entities_to_search:
+            entities_to_search = [text]
+            
+        all_entities = []
         url = "https://www.wikidata.org/w/api.php"
-        params = {
-            "action": "wbsearchentities",
-            "search": text, # Might not work well for long sentences
-            "language": "en",
-            "format": "json",
-            "limit": 3
-        }
         
-        query_string = urllib.parse.urlencode(params)
-        req_url = f"{url}?{query_string}"
-        
-        # We construct a request with a User-Agent, as Wikidata requires it
-        req = urllib.request.Request(req_url, headers={
-            'User-Agent': 'TruthMirror/1.0 (MVP Entity Resolver)',
-            'Accept': 'application/json'
-        })
-        
-        try:
-            with urllib.request.urlopen(req, timeout=5) as response:
-                result = json.loads(response.read().decode())
+        for search_term in set(entities_to_search):
+            params = {
+                "action": "wbsearchentities",
+                "search": search_term,
+                "language": "en",
+                "format": "json",
+                "limit": 3
+            }
+            
+            query_string = urllib.parse.urlencode(params)
+            req_url = f"{url}?{query_string}"
+            
+            try:
+                response = requests.get(req_url, headers={
+                    'User-Agent': 'TruthMirror/1.0 (MVP Entity Resolver)',
+                    'Accept': 'application/json'
+                }, timeout=5)
+                response.raise_for_status()
+                result = response.json()
                 search_results = result.get('search', [])
-                entities = []
                 for res in search_results:
                     uri = res.get('concepturi', '')
                     name = res.get('label', '')
                     description = res.get('description', '')
                     if uri and name:
-                        entities.append(Entity(
+                        all_entities.append(Entity(
                             name=name,
                             uri=uri,
                             description=description,
-                            score=0.5 # Default score for wikidata fallback
+                            score=0.5
                         ))
-                return entities
-        except Exception as e:
-            logger.warning(f"Wikidata resolution failed: {e}")
-            return []
+            except Exception as e:
+                logger.warning(f"Wikidata resolution failed for '{search_term}': {e}")
+                
+        return all_entities

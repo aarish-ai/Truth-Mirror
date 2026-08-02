@@ -14,3 +14,4 @@ sentence-transformers>=2.7.0
 spacy>=3.7.0
 json-repair>=0.25.0
 defusedxml>=0.7.0
+cachetools>=5.0.0

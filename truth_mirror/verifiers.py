@@ -34,8 +34,7 @@ class BaseVerifier:
             if item.url_or_id and item.url_or_id.startswith("http"):
                 wb = self.wayback.get_archived_url(item.url_or_id)
                 if wb and "url" in wb:
-                    item.url_or_id = wb["url"]
-                    item.source_title = f"[Archived] {item.source_title}"
+                    item.archive_url = wb["url"]
 
         evidence.extend(hidden_evidence)
 

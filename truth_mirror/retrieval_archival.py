@@ -24,27 +24,6 @@ class WaybackMachineConnector:
             logger.error(f"Error querying Wayback Machine: {e}")
             return {}
 
-class UNDocumentConnector:
-    def search(self, query: str) -> List[Dict[str, str]]:
-        if not _is_test_mode():
-            return []
-        # Mock implementation for UN Digital Library or Official Document System
-        return [{"source": "UN Document", "title": f"UN Resolution mentioning {query}", "url": "https://documents.un.org/"}]
-
-class HansardConnector:
-    def search(self, query: str) -> List[Dict[str, str]]:
-        if not _is_test_mode():
-            return []
-        # Mock implementation for UK Parliament Hansard
-        return [{"source": "Hansard", "title": f"Parliamentary debate on {query}", "url": "https://hansard.parliament.uk/"}]
-
-class EuroparlConnector:
-    def search(self, query: str) -> List[Dict[str, str]]:
-        if not _is_test_mode():
-            return []
-        # Mock implementation for European Parliament documents
-        return [{"source": "Europarl", "title": f"EU Parliament proceeding on {query}", "url": "https://www.europarl.europa.eu/"}]
-
 class OpenLibraryConnector:
     def __init__(self):
         self.base_url = "https://openlibrary.org/search.json"
@@ -59,9 +38,3 @@ class OpenLibraryConnector:
             logger.error(f"Error querying Open Library: {e}")
             return []
 
-class ProjectGutenbergConnector:
-    def search(self, query: str) -> List[Dict[str, str]]:
-        if not _is_test_mode():
-            return []
-        # Mock implementation for Project Gutenberg
-        return [{"source": "Project Gutenberg", "title": f"Public domain book about {query}", "url": "https://www.gutenberg.org/"}]

@@ -39,11 +39,7 @@ from truth_mirror.retrieval_fact import (
 )
 from truth_mirror.retrieval_archival import (
     WaybackMachineConnector,
-    OpenLibraryConnector,
-    UNDocumentConnector,
-    HansardConnector,
-    EuroparlConnector,
-    ProjectGutenbergConnector,
+    OpenLibraryConnector
 )
 from truth_mirror.retrieval_quotes import WikiquoteConnector, MillerCenterConnector
 from truth_mirror.source_analyzer import SourceAnalyzer, _call_gemini_async, _build_single_prompt
@@ -269,24 +265,27 @@ def test_c6_embedding_none_resilience(tmp_path):
 # C7 Stress: Basic Auth Edge Cases
 # ============================================================================
 
-def test_c7_auth_adversarial_headers(monkeypatch):
-    """Test auth check with malformed headers, invalid base64, missing password."""
+def test_c7_auth_malformed_headers(monkeypatch):
+    """Verify malformed Authorization headers are safely rejected."""
+    import app
     monkeypatch.setattr("app.AUTH_PASSWORD", "secret123")
+    monkeypatch.setattr("app.AUTH_USERNAMES", {"admin"})
 
     handler = MagicMock(spec=TruthMirrorHandler)
+    handler.wfile = MagicMock()
     
     bad_headers = [
         {},
-        {"Authorization": "Bearer token123"},
-        {"Authorization": "Basic invalid_base64!!!"},
-        {"Authorization": f"Basic {base64.b64encode(b'nocolonpassword').decode('utf-8')}"},
-        {"Authorization": f"Basic {base64.b64encode(b'user:wrongpass').decode('utf-8')}"},
+        {"Authorization": "Bearer badtoken"},
+        {"Authorization": "Basic admin:secret123"},
+        {"Authorization": "Bearer "},
+        {"Authorization": "Token something"},
     ]
 
     for headers in bad_headers:
         handler.headers = headers
         handler.reset_mock()
-        res = TruthMirrorHandler._check_auth(handler)
+        res = app._check_session(handler)
         assert res is False, f"Auth should fail for headers {headers}"
         handler.send_response.assert_called_with(401)
 
@@ -330,14 +329,14 @@ def test_c9_prompt_injection_containment():
 # C10 Stress: HTTP Handler General Exception Catching
 # ============================================================================
 
-def test_c10_http_handler_unhandled_exception_resilience():
+def test_c10_http_handler_unhandled_exception_resilience(monkeypatch):
     """Verify pipeline exception results in 500 JSON error response."""
     handler = TruthMirrorHandler.__new__(TruthMirrorHandler)
     handler.headers = {"Content-Length": "20"}
     handler.rfile = MagicMock()
     handler.rfile.read.return_value = b'{"claim": "test"}'
     handler.path = "/api/verify"
-    handler._check_auth = MagicMock(return_value=True)
+    monkeypatch.setattr("app._check_session", MagicMock(return_value=True))
 
     written = []
     handler._write_json = lambda payload, status=200: written.append((payload, status))

@@ -1,11 +1,11 @@
 import re
 import json
-import urllib.request
 import logging
 from dataclasses import dataclass
 from truth_mirror.geo_classifier import GEO_KEYWORDS
-from truth_mirror.groq_router import GROQ_SIMPLE_MODEL, GROQ_SIMPLE_FALLBACK, get_model_label, call_groq_with_key_rotation
 from truth_mirror.run_tracker import tracker
+from truth_mirror.llm_fallback import LLMFallbackChain
+from truth_mirror.groq_router import GROQ_SIMPLE_MODEL
 
 import os
 from dotenv import load_dotenv
@@ -27,7 +27,7 @@ class ClaimScopeResult:
     rejection_reason: str
 
 def extract_years_mentioned(text: str) -> list[int]:
-    matches = re.findall(r'\b(19[0-9]{2}|20[0-9]{2}|2100)\b', text)
+    matches = re.findall(r'\b([12][0-9]{3})\b', text)
     years = sorted([int(m) for m in matches])
     return years
 
@@ -75,158 +75,20 @@ Rules:
 - Only set in_temporal_scope to false if the claim is clearly and specifically about a historical period before 2015.
 """
 
-    import time
+    logger.info(f"[ClaimScopeGate] Attempting LLM extraction.")
     
-    OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-    def _call_groq(prompt_str: str) -> dict | None:
-        payload = {
-            "model": GROQ_SIMPLE_MODEL,
-            "messages": [{"role": "user", "content": prompt_str}],
-            "temperature": 0.1,
-            "response_format": {"type": "json_object"},
-            "max_tokens": 512
-        }
-
-        content, status = call_groq_with_key_rotation(
-            payload=payload,
-            timeout=25,
-            log_prefix="[ClaimScopeGate]"
-        )
-
-        if status != "success" or content is None:
-            record_status = "rate_limited" if status == "rate_limited" else "failed"
-            tracker.record("scope_gate", GROQ_SIMPLE_MODEL, "groq", record_status)
-
-            # Try GROQ_SIMPLE_FALLBACK before giving up on Groq
-            logger.info(f"[ClaimScopeGate] Primary 8b failed. Trying fallback 8b "
-                        f"({GROQ_SIMPLE_FALLBACK}).")
-            fallback_payload = payload.copy()
-            fallback_payload["model"] = GROQ_SIMPLE_FALLBACK
-
-            content, status = call_groq_with_key_rotation(
-                payload=fallback_payload,
-                timeout=25,
-                log_prefix="[ClaimScopeGate-fallback]"
-            )
-
-            if status != "success" or content is None:
-                tracker.record("scope_gate", GROQ_SIMPLE_FALLBACK, "groq",
-                               "rate_limited" if status == "rate_limited" else "failed")
-                return None
-
-            try:
-                parsed = json.loads(content)
-                tracker.record("scope_gate", GROQ_SIMPLE_FALLBACK, "groq", "fallback_used")
-                return parsed
-            except Exception as e:
-                logger.warning(f"[ClaimScopeGate] Fallback 8b parse failed: {e}")
-                tracker.record("scope_gate", GROQ_SIMPLE_FALLBACK, "groq", "failed")
-                return None
-
-        try:
-            parsed = json.loads(content)
-            logger.info("[ClaimScopeGate] Groq call succeeded.")
-            tracker.record("scope_gate", GROQ_SIMPLE_MODEL, "groq", "success")
-            return parsed
-        except Exception as e:
-            logger.warning(f"[ClaimScopeGate] Failed to parse Groq response: {e}")
-            tracker.record("scope_gate", GROQ_SIMPLE_MODEL, "groq", "failed")
-            return None
-
-    parsed = None
-    logger.info(f"[ClaimScopeGate] Attempting Groq ({get_model_label(GROQ_SIMPLE_MODEL)}) for scope classification.")
-    parsed = _call_groq(prompt)
-
-    from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
-    api_key = get_current_key()
-    if parsed is None and api_key:
-        try:
-            gemini_payload = {
-                "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {
-                    "temperature": 0.1,
-                    "responseMimeType": "application/json"
-                }
-            }
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    api_key = get_current_key()
-                    gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-                    req_data = json.dumps(gemini_payload).encode("utf-8")
-                    req = urllib.request.Request(gemini_url, data=req_data, headers={"Content-Type": "application/json"})
-                    with urllib.request.urlopen(req, timeout=20) as response:
-                        resp_data = json.loads(response.read().decode("utf-8"))
-                        if resp_data.get("candidates") and resp_data["candidates"][0].get("content", {}).get("parts"):
-                            content = resp_data["candidates"][0]["content"]["parts"][0]["text"]
-                            from truth_mirror.utils import strip_markdown_json
-                            parsed = json.loads(strip_markdown_json(content))
-                            tracker.record("scope_gate", "gemini-2.5-flash", "gemini", "success")
-                            break
-                        else:
-                            logger.warning(f"Gemini response missing content: {resp_data}")
-                            break
-                except urllib.error.HTTPError as e:
-                    if e.code == 429:
-                        wait_time = (2 ** attempt) + 1
-                        logger.warning(f"[ClaimScopeGate] Gemini Rate limited on attempt {attempt+1}. Rotating key and waiting {wait_time}s.")
-                        rotate_gemini_key()
-                        time.sleep(wait_time)
-                        continue
-                    else:
-                        logger.warning(f"Gemini HTTP Error ({e.code}) in gate_claim.")
-                        break
-                except Exception as e:
-                    logger.warning(f"Gemini failed ({e}) in gate_claim.")
-                    break
-        except Exception as e:
-            logger.warning(f"Gemini setup failed: {e}")
-
-    if parsed is None and OPENROUTER_API_KEY:
-        openrouter_payload = {
-            "model": "qwen/qwen3-next-80b-a3b-instruct:free",
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.1,
-            "response_format": {"type": "json_object"}
-        }
-        
-        headers = {
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://truthmirror.app",
-            "X-Title": "Truth Mirror"
-        }
-        
-        max_retries = 5
-        for attempt in range(max_retries):
-            try:
-                req_data = json.dumps(openrouter_payload).encode("utf-8")
-                req = urllib.request.Request(
-                    "https://openrouter.ai/api/v1/chat/completions", 
-                    data=req_data, 
-                    headers=headers
-                )
-                with urllib.request.urlopen(req, timeout=30) as response:
-                    resp_data = json.loads(response.read().decode("utf-8"))
-                    content = resp_data["choices"][0]["message"]["content"]
-                    from truth_mirror.utils import strip_markdown_json
-                    parsed = json.loads(strip_markdown_json(content))
-                    tracker.record("scope_gate", "qwen/qwen3-next-80b-a3b-instruct:free", "openrouter", "success")
-                    break
-            except urllib.error.HTTPError as e:
-                if e.code == 429:
-                    wait_time = (2 ** attempt) + 1
-                    logger.warning(f"[ClaimScopeGate] OpenRouter Rate limited on attempt {attempt+1}. Waiting {wait_time}s.")
-                    time.sleep(wait_time)
-                    continue
-                else:
-                    logger.warning(f"OpenRouter HTTP Error ({e.code}) in fallback.")
-                    break
-            except Exception as e:
-                logger.warning(f"OpenRouter fallback failed ({e}).")
-                break
-    else:
-        logger.warning("OPENROUTER_API_KEY not set for fallback.")
+    chain = LLMFallbackChain(
+        sequence=["groq", "gemini", "openrouter"],
+        models={
+            "groq": GROQ_SIMPLE_MODEL,
+            "gemini": "gemini-2.5-flash",
+            "openrouter": "qwen/qwen3-next-80b-a3b-instruct:free"
+        },
+        tracker_module="scope_gate",
+        temperature=0.1,
+        max_tokens=512
+    )
+    parsed = chain.execute(prompt)
 
     if parsed:
         is_geopol = bool(parsed.get("is_geopolitical", False))

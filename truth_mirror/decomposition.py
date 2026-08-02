@@ -47,8 +47,10 @@ def _mock_dependency_parse(text: str) -> list[tuple[str, str, str]]:
     words = [w.strip(",.;()[]{}") for w in text.split() if w.strip(",.;()[]{}")]
     if len(words) >= 3:
         # Mock a subject-verb-object relationship
-        deps.append((words[1], "nsubj", words[0]))
-        deps.append((words[1], "dobj", words[2]))
+        verbs = {"is", "are", "was", "were", "has", "have", "had", "does", "did", "says", "said"}
+        if words[1].lower() in verbs or words[1].endswith("ed") or words[1].endswith("ing") or words[1].endswith("s"):
+            deps.append((words[1], "nsubj", words[0]))
+            deps.append((words[1], "dobj", words[2]))
     return deps
 
 

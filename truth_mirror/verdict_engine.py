@@ -192,7 +192,7 @@ Verdict definitions:
 
             if data is None:
                 api_key = os.environ.get("OPENROUTER_API_KEY")
-                if api_key and api_key != "your_openrouter_api_key_here":
+                if api_key and not api_key.startswith("your_"):
                     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
                     payload = {
                         "model": "qwen/qwen3-next-80b-a3b-instruct:free",

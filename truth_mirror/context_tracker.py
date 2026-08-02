@@ -85,19 +85,31 @@ class ContextTracker:
         claim_mutation_flag = False
         differing_verdicts = set()
         
+        try:
+            claim_emb = get_gemini_embedding(claim)
+        except Exception as e:
+            logger.warning(f"Error computing embedding for current claim: {e}")
+            claim_emb = None
+
         if related_claims:
             try:
-                claim_emb = get_gemini_embedding(claim)
                 if claim_emb is not None:
-                    past_embs = get_gemini_embeddings(related_claims)
-                    
                     similar_claims = []
-                    for i, past_emb in enumerate(past_embs):
-                        if past_emb is None:
+                    for pr in past_records_for_entities:
+                        past_claim = pr["claim"]
+                        if past_claim == claim:
                             continue
-                        sim = _cosine_similarity(claim_emb, past_emb)
-                        if sim > 0.75:
-                            similar_claims.append(related_claims[i])
+                        
+                        past_emb = pr.get("embedding")
+                        if past_emb is None:
+                            past_emb = get_gemini_embedding(past_claim)
+                            pr["embedding"] = past_emb
+                            self._save_history()
+                            
+                        if past_emb is not None:
+                            sim = _cosine_similarity(claim_emb, past_emb)
+                            if sim > 0.75 and past_claim not in similar_claims:
+                                similar_claims.append(past_claim)
                         
                 if similar_claims:
                     for rec in past_records_for_entities:
@@ -124,7 +136,8 @@ class ContextTracker:
             "claim": claim,
             "entities": list(entity_uris),
             "timestamp": current_time,
-            "verdict": None
+            "verdict": None,
+            "embedding": claim_emb if 'claim_emb' in locals() else None
         })
         
         if len(self.history) > 1000:

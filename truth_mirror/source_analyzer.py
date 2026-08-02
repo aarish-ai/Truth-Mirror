@@ -4,8 +4,7 @@ import logging
 import asyncio
 import aiohttp
 import re
-import urllib.request
-import urllib.error
+import requests
 import random
 import threading
 from dataclasses import dataclass
@@ -67,6 +66,7 @@ class SourceAnalysis:
     what_emphasized: str
     what_omitted: str
     hidden_implication: str
+    archive_url: str = ""
 
 
 # Known geopolitical acronyms and short-form entities that must NOT be
@@ -126,25 +126,31 @@ def _call_gemini_sync(prompt: str, model: str, timeout: int = 45) -> Optional[st
             "generationConfig": {"temperature": 0.1, "responseMimeType": "application/json"},
         }
         try:
-            req_data = json.dumps(payload).encode("utf-8")
-            req = urllib.request.Request(
-                url, data=req_data, headers={"Content-Type": "application/json"}
-            )
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                raw = json.loads(resp.read().decode("utf-8"))
-                return raw["candidates"][0]["content"]["parts"][0]["text"]
-        except urllib.error.HTTPError as e:
-            if e.code in (429, 403):
+            response = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=timeout)
+            if response.status_code in (429, 403):
                 wait = (2 ** attempt) + random.uniform(0.5, 1.5)
                 logger.warning(
-                    f"[SourceAnalyzer] Gemini {model} HTTP {e.code} on attempt "
+                    f"[SourceAnalyzer] Gemini {model} HTTP {response.status_code} on attempt "
+                    f"{attempt + 1}. Rotating key, waiting {wait:.1f}s."
+                )
+                rotate_gemini_key()
+                time.sleep(wait)
+                continue
+            response.raise_for_status()
+            raw = response.json()
+            return raw["candidates"][0]["content"]["parts"][0]["text"]
+        except requests.exceptions.RequestException as e:
+            if getattr(e.response, 'status_code', None) in (429, 403):
+                wait = (2 ** attempt) + random.uniform(0.5, 1.5)
+                logger.warning(
+                    f"[SourceAnalyzer] Gemini {model} HTTP {e.response.status_code} on attempt "
                     f"{attempt + 1}. Rotating key, waiting {wait:.1f}s."
                 )
                 rotate_gemini_key()
                 time.sleep(wait)
                 continue
             else:
-                logger.warning(f"[SourceAnalyzer] Gemini HTTP {e.code}: {e.reason}")
+                logger.warning(f"[SourceAnalyzer] Gemini call exception: {e}")
                 return None
         except Exception as e:
             logger.warning(f"[SourceAnalyzer] Gemini call exception: {e}")
@@ -174,31 +180,30 @@ def _call_openrouter_sync(prompt: str, timeout: int = 30) -> Optional[str]:
     max_attempts = 3
     for attempt in range(max_attempts):
         try:
-            req_data = json.dumps(payload).encode("utf-8")
-            req = urllib.request.Request(
-                "https://openrouter.ai/api/v1/chat/completions",
-                data=req_data,
-                headers=headers,
-            )
             with _openrouter_semaphore:
-                with urllib.request.urlopen(req, timeout=timeout) as resp:
-                    data = json.loads(resp.read().decode("utf-8"))
-                    choices = data.get("choices") or []
-                    if choices and choices[0].get("message", {}).get("content"):
-                        return choices[0]["message"]["content"]
-                    return None
-        except urllib.error.HTTPError as e:
-            if e.code == 429:
-                wait = 15 * (attempt + 1)
-                logger.warning(
-                    f"[SourceAnalyzer] OpenRouter 429 on attempt {attempt + 1}. "
-                    f"Waiting {wait:.1f}s."
+                response = requests.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    json=payload,
+                    headers=headers,
+                    timeout=timeout
                 )
-                time.sleep(wait)
-                continue
-            else:
-                logger.warning(f"[SourceAnalyzer] OpenRouter HTTP {e.code}: {e.reason}")
+                if response.status_code == 429:
+                    wait = 15 * (attempt + 1)
+                    logger.warning(
+                        f"[SourceAnalyzer] OpenRouter 429 on attempt {attempt + 1}. "
+                        f"Waiting {wait:.1f}s."
+                    )
+                    time.sleep(wait)
+                    continue
+                response.raise_for_status()
+                data = response.json()
+                choices = data.get("choices") or []
+                if choices and choices[0].get("message", {}).get("content"):
+                    return choices[0]["message"]["content"]
                 return None
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"[SourceAnalyzer] OpenRouter RequestException: {e}")
+            return None
         except Exception as e:
             logger.warning(f"[SourceAnalyzer] OpenRouter exception: {e}")
             return None
@@ -474,8 +479,25 @@ def _parse_batch_response(raw_text: str, batch: list) -> list:
             if not isinstance(raw_item, dict):
                 continue
             try:
-                idx = int(raw_item.get("article_index", 0)) - 1
-                original = batch[idx] if 0 <= idx < len(batch) else None
+                def _jaccard(s1, s2):
+                    set1, set2 = set(s1.split()), set(s2.split())
+                    if not set1 and not set2: return 1.0
+                    return len(set1 & set2) / len(set1 | set2)
+                    
+                resp_title = raw_item.get("title", raw_item.get("source_name", "")).lower().strip()
+                best_match = None
+                best_score = 0.0
+                for a in batch:
+                    score = _jaccard(resp_title, (a.source_title or "").lower())
+                    if score > best_score:
+                        best_score = score
+                        best_match = a
+                
+                if best_match and best_score >= 0.3:
+                    original = best_match
+                else:
+                    idx = int(raw_item.get("article_index", 0)) - 1
+                    original = batch[idx] if 0 <= idx < len(batch) else None
                 if original is not None:
                     url = original.url_or_id or raw_item.get("url", "")
                     title = original.source_title or raw_item.get("source_name", "")
@@ -500,8 +522,10 @@ def _parse_batch_response(raw_text: str, batch: list) -> list:
                              if registry_alignment and registry_alignment != "unknown"
                              else llm_alignment)
 
+                archive_url = getattr(original, 'archive_url', '') if original else ''
                 results.append(SourceAnalysis(
                     url=url, title=title,
+                    archive_url=archive_url,
                     source_name=raw_source_name,
                     source_category=src_type, source_country="",
                     alignment=alignment,
@@ -532,6 +556,7 @@ def _parse_single_response(raw_text: str, article) -> Optional[SourceAnalysis]:
         meta = get_source_metadata(url, publisher=publisher_hint)
         return SourceAnalysis(
             url=url, title=title,
+            archive_url=getattr(article, 'archive_url', ''),
             source_name=meta.get("name", article.publisher or ""),
             source_category=article.source_type or "journalism",
             source_country=meta.get("country", ""),

@@ -39,24 +39,28 @@ def test_c5_defusedxml_imports():
 
 # 3. C7 Auth Bypass Fix Test
 from app import TruthMirrorHandler, AUTH_PASSWORD
+import app
 
 def test_c7_auth_bypass_rejection():
     handler = MagicMock(spec=TruthMirrorHandler)
     handler.headers = {}
+    handler.wfile = MagicMock()
     
-    # Execute _check_auth with mock headers (no Authorization header)
-    result = TruthMirrorHandler._check_auth(handler)
+    # Execute _check_session with mock headers (no Authorization header)
+    result = app._check_session(handler)
     assert result is False
     handler.send_response.assert_called_with(401)
-    handler.send_header.assert_any_call("WWW-Authenticate", 'Basic realm="Truth Mirror"')
 
 def test_c7_auth_valid_credentials(monkeypatch):
     monkeypatch.setattr("app.AUTH_PASSWORD", "secret123")
+    monkeypatch.setattr("app.AUTH_USERNAMES", {"admin"})
     handler = MagicMock(spec=TruthMirrorHandler)
-    valid_cred = base64.b64encode(b"admin:secret123").decode("utf-8")
-    handler.headers = {"Authorization": f"Basic {valid_cred}"}
+    handler.wfile = MagicMock()
     
-    result = TruthMirrorHandler._check_auth(handler)
+    token = app._create_session("admin")
+    handler.headers = {"Authorization": f"Bearer {token}"}
+    
+    result = app._check_session(handler)
     assert result is True
 
 

@@ -69,12 +69,13 @@ ALIGNMENT_GROUP_LABELS = {
     "neutral":     "Reference Sources",
 }
 
+from urllib.parse import urlparse
+
 def get_source_metadata(url: str, publisher: str = "") -> dict:
     """
     Given a URL, return source metadata from the registry.
     Falls back to inferred metadata if domain is not in the registry.
     """
-    from urllib.parse import urlparse
     domain = urlparse(url).netloc
     
     # Strip common feed subdomains

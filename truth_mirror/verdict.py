@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import Counter
 
 from truth_mirror.abstention import compute_uncertainty
+from truth_mirror import constants
 from truth_mirror.models import EvidenceItem, SubClaimResult, VerificationResult
 
 
@@ -14,19 +15,19 @@ def _status_from_counts(stance_counts: Counter[str], avg_quality: float) -> tupl
     neutral = stance_counts.get("neutral", 0)
     insufficient = stance_counts.get("insufficient", 0)
     total = supports + contradicts + neutral + insufficient
-    if total == 0 or insufficient >= max(1, total - 1) or avg_quality < 0.45:
-        return "unclear", 0.25
+    if total == 0 or insufficient >= max(1, total - 1) or avg_quality < constants.VERDICT_MIN_QUALITY:
+        return "unclear", constants.VERDICT_UNCLEAR_BASE_CONFIDENCE
     if supports > 0 and contradicts == 0:
-        return "supported", min(0.9, 0.5 + avg_quality * 0.4)
+        return "supported", min(constants.VERDICT_SUPPORTED_CAP, 0.5 + avg_quality * 0.4)
     if contradicts > 0 and supports == 0:
-        return "contradicted", min(0.9, 0.5 + avg_quality * 0.4)
+        return "contradicted", min(constants.VERDICT_CONTRADICTED_CAP, 0.5 + avg_quality * 0.4)
     if supports > 0 and contradicts > 0:
-        return "partially_supported", 0.55
+        return "partially_supported", constants.VERDICT_PARTIALLY_SUPPORTED_CONFIDENCE
     if neutral > 0 and supports == 0 and contradicts == 0:
-        return "unclear", 0.35
+        return "unclear", constants.VERDICT_UNCLEAR_NO_SUPPORT_CONFIDENCE
     if neutral > 0:
-        return "unsupported", 0.45
-    return "unclear", 0.3
+        return "unsupported", constants.VERDICT_UNSUPPORTED_CONFIDENCE
+    return "unclear", constants.VERDICT_UNCLEAR_FALLBACK_CONFIDENCE
 
 
 def aggregate_verdict(
@@ -45,8 +46,8 @@ def aggregate_verdict(
             claim_type=claim_type,
             sub_claims=[],
             final_verdict="Unclear",
-            confidence=0.2,
-            confidence_interval=(0.0, 0.4),
+            confidence=constants.VERDICT_EMPTY_CONFIDENCE,
+            confidence_interval=constants.VERDICT_EMPTY_CONFIDENCE_INTERVAL,
             evidence_summary="No sub-claims to verify.",
             key_sources=[],
             reasoning="No checkable sub-claims detected. Need a concrete factual claim.",
@@ -72,9 +73,9 @@ def aggregate_verdict(
 
     if geo_divergence_detected:
         verdict = "Disputed (geo-narrative divergence)"
-        mean_conf = min(mean_conf, 0.7)
-        mean_lower = min(mean_lower, 0.7)
-        mean_upper = min(mean_upper, 0.7)
+        mean_conf = min(mean_conf, constants.VERDICT_DISPUTED_CAP)
+        mean_lower = min(mean_lower, constants.VERDICT_DISPUTED_CAP)
+        mean_upper = min(mean_upper, constants.VERDICT_DISPUTED_CAP)
 
     reasoning = (
         f"Evaluated {len(sub_claim_results)} sub-claim(s). "
@@ -183,7 +184,7 @@ def build_subclaim_result(text: str, evidence: list[EvidenceItem]) -> SubClaimRe
     status, confidence = _status_from_counts(stances, avg_quality)
     interval, provenance, _ = compute_uncertainty(evidence, confidence)
     
-    if interval[1] - interval[0] > 0.6:
+    if interval[1] - interval[0] > constants.VERDICT_MAX_INTERVAL_WIDTH:
         status = "unclear"
         
     return SubClaimResult(

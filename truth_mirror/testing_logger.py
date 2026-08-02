@@ -7,6 +7,7 @@ from truth_mirror.models import GeopoliticalResult
 
 class TestingLogger:
     def __init__(self):
+        os.makedirs("misc", exist_ok=True)
         self.log_file = "misc/testing.md"
         self.count_file = "misc/testing_run_count.txt"
         self._lock = threading.Lock()

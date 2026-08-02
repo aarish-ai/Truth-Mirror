@@ -1,5 +1,8 @@
+import logging
 import concurrent.futures
 from typing import List, Tuple
+
+logger = logging.getLogger(__name__)
 
 from truth_mirror.models import EvidenceItem
 
@@ -27,7 +30,7 @@ class SearchPlanner:
                 queries = [sub_claim]
             queries = queries[:3]
         except Exception as e:
-            print(f"Query generation failed: {e}")
+            logger.warning(f"Query generation failed: {e}")
             queries = [sub_claim]
             
         all_results = []
@@ -38,7 +41,7 @@ class SearchPlanner:
                 results = self.retriever.retrieve(query, claim_type=claim_type)
                 return results[:max_results_per_query]
             except Exception as e:
-                print(f"Error fetching for query '{query}': {e}")
+                logger.warning(f"Error fetching for query '{query}': {e}")
                 return []
 
         try:
@@ -47,7 +50,7 @@ class SearchPlanner:
                 for q in queries:
                     all_results.extend(futures[q].result())
         except Exception as e:
-            print(f"Parallel execution error: {e}")
+            logger.error(f"Parallel execution error: {e}")
             
         # Deduplicate by url_or_id keeping the first
         import hashlib

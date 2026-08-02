@@ -185,7 +185,7 @@ Output:"""
                 
                 item = item.strip()
                 # Condition: Relaxed length validation
-                if len(item) >= len(claim) * 2 and len(subclaims) <= 1:
+                if len(claim) > 15 and len(item) >= len(claim) * 2 and len(subclaims) <= 1:
                     raise ValueError("Single element is significantly longer than the original claim")
                     
                 valid_subclaims.append(item)

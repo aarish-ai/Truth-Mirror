@@ -20,8 +20,8 @@ class GoogleFactCheckConnector:
 
     def search_claims(self, query: str) -> List[Dict[str, Any]]:
         if not self.api_key:
-            logger.warning("No Google API key provided. Using mock fallback for Google Fact Check.")
-            return self._mock_fallback(query)
+            logger.warning("API key missing for GoogleFactCheckConnector — skipping connector")
+            return []
             
         params = {"query": query, "key": self.api_key}
         try:
@@ -30,29 +30,8 @@ class GoogleFactCheckConnector:
             data = response.json()
             return data.get("claims", [])
         except requests.exceptions.RequestException as e:
-            logger.error(f"Error querying Google Fact Check API: {e}. Using mock fallback.")
-            return self._mock_fallback(query)
-
-    def _mock_fallback(self, query: str) -> List[Dict[str, Any]]:
-        if not _is_test_mode():
+            logger.error(f"Error querying Google Fact Check API: {e}.")
             return []
-        return [
-            {
-                "text": f"Mock claim related to: {query}",
-                "claimant": "Mock Claimant",
-                "claimDate": "2023-01-01T00:00:00Z",
-                "claimReview": [
-                    {
-                        "publisher": {"name": "Mock Fact Checker", "site": "mockfactcheck.com"},
-                        "url": "https://mockfactcheck.com/review",
-                        "title": f"Mock Review of {query}",
-                        "reviewDate": "2023-01-02T00:00:00Z",
-                        "textualRating": "Mostly False",
-                        "languageCode": "en"
-                    }
-                ]
-            }
-        ]
 
 class SnopesFactCheckScraper:
     """Polite scraper for Snopes fact checks."""
@@ -64,9 +43,6 @@ class SnopesFactCheckScraper:
         }
 
     def search(self, query: str) -> List[Dict[str, str]]:
-        # Respectful scraping: brief pause
-        time.sleep(1.0)
-        
         try:
             # Snopes search results
             search_url = f"{self.base_url}?q={requests.utils.quote(query)}"
@@ -78,29 +54,37 @@ class SnopesFactCheckScraper:
             
             # Generic extraction of titles and links
             for article in soup.find_all("article")[:5]: # Limit to top 5
-                title_tag = article.find("h2") or article.find("h3")
-                link_tag = article.find("a")
-                
-                if title_tag and link_tag:
-                    results.append({
-                        "title": title_tag.get_text(strip=True),
-                        "url": link_tag.get("href", ""),
-                        "source": "Snopes"
-                    })
+                try:
+                    title_tag = article.find(["h2", "h3"])
+                    link_tag = article.find("a")
+                    
+                    if title_tag and link_tag:
+                        title = title_tag.get_text(strip=True)
+                        url = link_tag.get("href", "").strip()
+                        
+                        if not url:
+                            continue
+                            
+                        if url.startswith("/"):
+                            url = "https://www.snopes.com" + url
+                            
+                        if title and url:
+                            results.append({
+                                "title": title,
+                                "url": url,
+                                "source": "Snopes"
+                            })
+                except Exception as e:
+                    logger.debug(f"Skipping malformed Snopes article: {e}")
                     
             if not results:
-                logger.info("No direct HTML results found on Snopes. Returning mock response.")
-                return self._mock_fallback(query)
+                logger.info("No direct HTML results found on Snopes.")
+                return []
                 
             return results
         except Exception as e:
             logger.error(f"Error scraping Snopes: {e}")
-            return self._mock_fallback(query)
-            
-    def _mock_fallback(self, query: str) -> List[Dict[str, str]]:
-        if not _is_test_mode():
             return []
-        return [{"title": f"Snopes analysis: Is '{query}' true?", "url": "https://www.snopes.com/mock", "source": "Snopes"}]
 
 class WorldBankConnector:
     """Connects to World Bank Open Data API."""
@@ -137,8 +121,8 @@ class FREDConnector:
 
     def get_series_observations(self, series_id: str) -> List[Dict[str, str]]:
         if not self.api_key:
-            logger.warning("No FRED API key provided. Using mock fallback for FRED.")
-            return self._mock_fallback(series_id)
+            logger.warning("API key missing for FREDConnector — skipping connector")
+            return []
 
         url = f"{self.base_url}/series/observations"
         params = {
@@ -152,16 +136,8 @@ class FREDConnector:
             data = response.json()
             return data.get("observations", [])
         except requests.exceptions.RequestException as e:
-            logger.error(f"Error querying FRED API: {e}. Using mock fallback.")
-            return self._mock_fallback(series_id)
-
-    def _mock_fallback(self, series_id: str) -> List[Dict[str, str]]:
-        if not _is_test_mode():
+            logger.error(f"Error querying FRED API: {e}.")
             return []
-        return [
-            {"date": "2023-01-01", "value": "100.0"},
-            {"date": "2023-02-01", "value": "101.5"}
-        ]
 
 class WikidataSPARQLConnector:
     """Connects to Wikidata SPARQL endpoint."""
@@ -191,8 +167,8 @@ class GovInfoConnector:
 
     def search_packages(self, query: str) -> List[Dict[str, Any]]:
         if not self.api_key:
-            logger.warning("No GovInfo API key provided. Using mock fallback.")
-            return self._mock_fallback(query)
+            logger.warning("API key missing for GovInfoConnector — skipping connector")
+            return []
             
         url = f"{self.base_url}/search"
         params = {
@@ -206,10 +182,5 @@ class GovInfoConnector:
             return response.json().get("results", [])
         except requests.exceptions.RequestException as e:
             logger.error(f"Error querying GovInfo: {e}")
-            return self._mock_fallback(query)
-
-    def _mock_fallback(self, query: str) -> List[Dict[str, Any]]:
-        if not _is_test_mode():
             return []
-        return [{"title": f"GovInfo Mock Result for {query}", "packageId": "MOCK-123"}]
 

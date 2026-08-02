@@ -4,17 +4,25 @@ from __future__ import annotations
 
 import json
 import urllib.parse
-import urllib.request
 import defusedxml.ElementTree as ET
+import requests
 from datetime import datetime, timezone
 import dateutil.parser
 
 from truth_mirror.models import EvidenceItem
 from truth_mirror.caching import EvidenceCache
+import os
 import logging
 
 logger = logging.getLogger(__name__)
 
+RSS_FEEDS_PATH = os.path.join(os.path.dirname(__file__), "rss_feeds.json")
+try:
+    with open(RSS_FEEDS_PATH, "r", encoding="utf-8") as _f:
+        RSS_FEEDS = json.load(_f)
+except Exception as e:
+    logger.warning(f"Could not load RSS feeds from {RSS_FEEDS_PATH}: {e}")
+    RSS_FEEDS = []
 
 class GDELTConnector:
     """Connects to the GDELT DOC 2.0 API to find global news coverage."""
@@ -43,9 +51,9 @@ class GDELTConnector:
 
         try:
             logger.info(f"[GDELTConnector] Querying: {query}")
-            req = urllib.request.Request(api_url, headers={"User-Agent": "TruthMirror/1.0"})
-            with urllib.request.urlopen(req, timeout=self.timeout_seconds) as response:
-                payload = json.loads(response.read().decode("utf-8"))
+            response = requests.get(api_url, headers={"User-Agent": "TruthMirror/1.0"}, timeout=self.timeout_seconds)
+            response.raise_for_status()
+            payload = response.json()
         except Exception as e:
             logger.warning(f"[GDELTConnector] Failed for query '{query}': {e}")
             return []
@@ -95,11 +103,7 @@ class RSSAggregator:
         self.cache = cache
         self.max_results = max_results
         self.timeout_seconds = 10
-        # Example feeds, could be expanded
-        self.feeds = [
-            ("BBC News", "http://feeds.bbci.co.uk/news/rss.xml"),
-            ("NPR", "https://feeds.npr.org/1001/rss.xml"),
-        ]
+        self.feeds = RSS_FEEDS
 
     def retrieve(self, query: str) -> list[EvidenceItem]:
         cache_key = f"rss:{query.strip().lower()}"
@@ -114,9 +118,9 @@ class RSSAggregator:
         for publisher, url in self.feeds:
             try:
                 logger.info(f"[RSSAggregator] Querying {publisher}: {query}")
-                req = urllib.request.Request(url, headers={"User-Agent": "TruthMirror/1.0"})
-                with urllib.request.urlopen(req, timeout=self.timeout_seconds) as response:
-                    xml_bytes = response.read()
+                response = requests.get(url, headers={"User-Agent": "TruthMirror/1.0"}, timeout=self.timeout_seconds)
+                response.raise_for_status()
+                xml_bytes = response.content
                 root = ET.fromstring(xml_bytes)
             except Exception as e:
                 logger.warning(f"[RSSAggregator] Failed for query '{query}' from {publisher}: {e}")
@@ -138,7 +142,8 @@ class RSSAggregator:
                 text_to_search = f"{title} {description}".lower()
                 
                 # Check if any query term matches the article
-                if not query_terms or any(term in text_to_search for term in query_terms):
+                import re
+                if not query_terms or any(re.search(rf'\b{re.escape(term)}\b', text_to_search, re.IGNORECASE) for term in query_terms):
                     items.append(
                         EvidenceItem(
                             source_title=title,
@@ -181,9 +186,9 @@ class GoogleNewsRSSConnector(BaseConnector):
         api_url = f"https://news.google.com/rss/search?q={urllib.parse.quote(query)}"
         try:
             logger.info(f"[GoogleNewsRSSConnector] Querying: {query}")
-            req = urllib.request.Request(api_url, headers={"User-Agent": "TruthMirror/1.0"})
-            with urllib.request.urlopen(req, timeout=self.timeout_seconds) as response:
-                xml_bytes = response.read()
+            response = requests.get(api_url, headers={"User-Agent": "TruthMirror/1.0"}, timeout=self.timeout_seconds)
+            response.raise_for_status()
+            xml_bytes = response.content
             root = ET.fromstring(xml_bytes)
         except Exception as e:
             logger.warning(f"[GoogleNewsRSSConnector] Failed for query '{query}': {e}")
