@@ -19,9 +19,10 @@ class TemporalContext:
 class TemporalClassifier:
 
     def __init__(self):
-        from datetime import datetime
-        self.current_month_year = datetime.now().strftime("%B %Y")
-        self.current_year = str(datetime.now().year)
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        self.current_month_year = now.strftime("%B %Y")
+        self.current_year = str(now.year)
 
     def classify(self, claim: str) -> TemporalContext:
         """

@@ -1,4 +1,4 @@
-﻿import os
+import os
 import json
 import logging
 from typing import Any
@@ -208,8 +208,8 @@ class GeoSynthesizer:
                 )
                 
                 raw_json = response.text
-                if raw_json.startswith("```json"):
-                    raw_json = raw_json.strip("` \n").removeprefix("json")
+                from truth_mirror.utils import strip_markdown_json
+                raw_json = strip_markdown_json(raw_json)
                 data = json.loads(raw_json)
                 break # Success
             except Exception as e:
@@ -271,11 +271,8 @@ class GeoSynthesizer:
                 )
                 
                 raw_json = response2.choices[0].message.content
-                # Robust extraction if there's markdown wrapping or extra text
-                import re
-                match = re.search(r'\{.*\}', raw_json, re.DOTALL)
-                if match:
-                    raw_json = match.group(0)
+                from truth_mirror.utils import strip_markdown_json
+                raw_json = strip_markdown_json(raw_json)
                 data = json.loads(raw_json)
                 
             except Exception as e:

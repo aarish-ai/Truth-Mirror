@@ -49,7 +49,8 @@ class LLMClient:
             "prompt": prompt,
             "stream": False
         }
-        response = requests.post(url, json=payload, timeout=30)
+        timeout = int(os.environ.get("OLLAMA_TIMEOUT", 120))
+        response = requests.post(url, json=payload, timeout=timeout)
         response.raise_for_status()
         return response.json().get("response", "")
 
@@ -87,7 +88,8 @@ class LLMClient:
             "messages": messages,
             "stream": False
         }
-        response = requests.post(url, json=payload, timeout=30)
+        timeout = int(os.environ.get("OLLAMA_TIMEOUT", 120))
+        response = requests.post(url, json=payload, timeout=timeout)
         response.raise_for_status()
         return response.json().get("message", {}).get("content", "")
 

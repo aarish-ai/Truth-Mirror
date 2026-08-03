@@ -1,5 +1,8 @@
+import logging
 import concurrent.futures
 from typing import List, Tuple
+
+logger = logging.getLogger(__name__)
 
 from truth_mirror.models import EvidenceItem
 
@@ -27,7 +30,7 @@ class SearchPlanner:
                 queries = [sub_claim]
             queries = queries[:3]
         except Exception as e:
-            print(f"Query generation failed: {e}")
+            logger.warning(f"Query generation failed: {e}")
             queries = [sub_claim]
             
         all_results = []
@@ -38,26 +41,28 @@ class SearchPlanner:
                 results = self.retriever.retrieve(query, claim_type=claim_type)
                 return results[:max_results_per_query]
             except Exception as e:
-                print(f"Error fetching for query '{query}': {e}")
+                logger.warning(f"Error fetching for query '{query}': {e}")
                 return []
 
         try:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-                futures = {executor.submit(fetch, q): q for q in queries}
-                for future in concurrent.futures.as_completed(futures):
-                    all_results.extend(future.result())
+            with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(queries) or 1, 3)) as executor:
+                futures = {q: executor.submit(fetch, q) for q in queries}
+                for q in queries:
+                    all_results.extend(futures[q].result())
         except Exception as e:
-            print(f"Parallel execution error: {e}")
+            logger.error(f"Parallel execution error: {e}")
             
         # Deduplicate by url_or_id keeping the first
+        import hashlib
         deduplicated_list = []
         seen_urls = set()
         
         for item in all_results:
             uid = item.url_or_id
             if not uid:
-                deduplicated_list.append(item)
-            elif uid not in seen_urls:
+                uid = hashlib.md5(((item.source_title or "") + (item.excerpt or "")[:200]).encode('utf-8', 'ignore')).hexdigest()
+            
+            if uid not in seen_urls:
                 seen_urls.add(uid)
                 deduplicated_list.append(item)
                 

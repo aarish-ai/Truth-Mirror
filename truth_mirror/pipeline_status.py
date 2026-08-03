@@ -15,6 +15,7 @@ def set_stage(stage_name: str, request_id: str = "__global__") -> None:
     Update the pipeline stage for a specific request.
     Falls back to a global key if no request_id is provided (backward compat).
     """
+    cleanup_stale()
     with _status_lock:
         _statuses[request_id] = {
             "stage": stage_name,
@@ -27,6 +28,7 @@ def get_status(request_id: str = "__global__") -> dict:
     Retrieve the pipeline stage for a specific request.
     Returns {"stage": "idle"} if the request_id is unknown.
     """
+    cleanup_stale()
     with _status_lock:
         entry = _statuses.get(request_id)
         if entry:

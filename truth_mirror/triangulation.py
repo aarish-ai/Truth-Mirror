@@ -64,9 +64,9 @@ class HostileSourceTriangulator:
         if domain in self.ideology_map:
             return self.ideology_map[domain]
             
-        # Substring match (naive)
+        # Domain matching (exact equality or suffix match with dot prefix)
         for known_domain, stance in self.ideology_map.items():
-            if known_domain in domain:
+            if domain == known_domain or domain.endswith("." + known_domain):
                 return stance
                 
         return "unknown"
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     sources_contradicting_1 = []
     
     is_hc, score, reason = triangulator.triangulate(claim1, sources_supporting_1, sources_contradicting_1)
-    print(f"Claim: {claim1}\\nResult: High Confidence={is_hc}, Score={score}, Reasoning={reason}\\n")
+    logger.info(f"Claim: {claim1}\nResult: High Confidence={is_hc}, Score={score}, Reasoning={reason}\n")
     
     # Test case 2: Echo chamber support
     claim2 = "Policy X is the best."
@@ -163,4 +163,4 @@ if __name__ == '__main__':
     sources_contradicting_2 = []
     
     is_hc, score, reason = triangulator.triangulate(claim2, sources_supporting_2, sources_contradicting_2)
-    print(f"Claim: {claim2}\\nResult: High Confidence={is_hc}, Score={score}, Reasoning={reason}\\n")
+    logger.info(f"Claim: {claim2}\nResult: High Confidence={is_hc}, Score={score}, Reasoning={reason}\n")

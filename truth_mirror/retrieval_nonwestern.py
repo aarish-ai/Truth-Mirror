@@ -1,8 +1,11 @@
+"""
+Non-western source retrieval connectors for Truth Mirror.
+"""
 import logging
 from typing import List
 import urllib.parse
-import urllib.request
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
+import requests
 from datetime import datetime, timezone
 from truth_mirror.models import EvidenceItem
 
@@ -22,9 +25,9 @@ class NonWesternRSSConnector:
         
         try:
             logger.info(f"[{self.source_name}Connector] Querying: {api_url}")
-            req = urllib.request.Request(api_url, headers={"User-Agent": "TruthMirror/1.0"})
-            with urllib.request.urlopen(req, timeout=self.timeout_seconds) as response:
-                xml_bytes = response.read()
+            response = requests.get(api_url, headers={"User-Agent": "TruthMirror/1.0"}, timeout=self.timeout_seconds)
+            response.raise_for_status()
+            xml_bytes = response.content
             root = ET.fromstring(xml_bytes)
         except Exception as e:
             logger.warning(f"[{self.source_name}Connector] Failed for query '{query}': {e}")
@@ -38,6 +41,10 @@ class NonWesternRSSConnector:
             pub_date = (node.findtext("pubDate") or datetime.now(timezone.utc).date().isoformat()).strip()
             
             if not title or not link:
+                continue
+                
+            source_text = node.findtext("source") or ""
+            if source_text and self.source_name.lower() not in source_text.lower() and self.domain not in source_text.lower():
                 continue
                 
             items.append(

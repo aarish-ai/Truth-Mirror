@@ -4,819 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Truth Mirror - Global Verification System v2.4</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg-color: #050508;
-      --bg-secondary: #0a0a0f;
-      --panel-bg: rgba(12, 15, 22, 0.7);
-      --panel-border: rgba(255, 255, 255, 0.08);
-      --panel-border-hover: rgba(255, 255, 255, 0.15);
-      --text-main: #e8eaed;
-      --text-muted: #8b8fa3;
-      --text-dim: #5a5e72;
-      --accent: #6366f1;
-      --accent-secondary: #818cf8;
-      --success: #22c55e;
-      --success-dim: rgba(34, 197, 94, 0.12);
-      --warning: #eab308;
-      --warning-dim: rgba(234, 179, 8, 0.12);
-      --danger: #ef4444;
-      --danger-dim: rgba(239, 68, 68, 0.12);
-      --glass-blur: blur(20px);
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
-      --radius-xl: 20px;
-      --transition-fast: 0.2s ease;
-      --transition-normal: 0.3s ease;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: 'Outfit', sans-serif;
-      font-size: 1rem;
-      background-color: var(--bg-color);
-      background-image: 
-        radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 100%, rgba(34, 197, 94, 0.03) 0%, transparent 50%);
-      color: var(--text-main);
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-      scroll-behavior: smooth;
-    }
-
-    .top-bar {
-      padding: 1rem 2rem;
-      background: rgba(5, 5, 8, 0.85);
-      backdrop-filter: var(--glass-blur);
-      border-bottom: 1px solid var(--panel-border);
-      display: flex;
-      gap: 1.5rem;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    .search-box {
-      flex: 1;
-      display: flex;
-      gap: 1rem;
-    }
-
-    input[type="text"]::placeholder {
-      color: var(--text-dim);
-      opacity: 1;
-    }
-
-    input[type="text"] {
-      flex: 1;
-      padding: 1rem 1.5rem;
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: var(--glass-blur);
-      color: var(--text-main);
-      font-size: 1.1rem;
-      font-family: 'Outfit', sans-serif;
-      outline: none;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-      transition: all var(--transition-normal);
-    }
-
-    input[type="text"]:focus {
-      border-color: var(--accent);
-      background: rgba(255, 255, 255, 0.06);
-      box-shadow: 0 0 15px rgba(99, 102, 241, 0.3), inset 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .btn {
-      padding: 1rem 2rem;
-      border-radius: var(--radius-md);
-      border: none;
-      font-size: 1.05rem;
-      font-weight: 600;
-      font-family: 'Outfit', sans-serif;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-
-    .btn-primary {
-      background: rgba(99, 102, 241, 0.15);
-      backdrop-filter: var(--glass-blur);
-      border: 1px solid rgba(99, 102, 241, 0.5);
-      color: white;
-      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      background: rgba(99, 102, 241, 0.25);
-      border-color: rgba(99, 102, 241, 0.8);
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
-    }
-
-    .dashboard {
-      padding: 2.5rem;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 2rem;
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    .panel {
-      background: var(--panel-bg);
-      backdrop-filter: var(--glass-blur);
-      border: 1px solid var(--panel-border);
-      border-radius: var(--radius-xl);
-      padding: 2rem;
-      display: flex;
-      flex-direction: column;
-      animation: fadeIn 0.5s ease;
-      transition: border-color var(--transition-normal);
-    }
-
-    .panel:hover {
-      border-color: var(--panel-border-hover);
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .panel-title {
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      margin: 0 0 1.5rem 0;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .panel-title::before {
-      content: "";
-      display: inline-block;
-      width: 3px;
-      height: 1em;
-      background: var(--accent);
-      border-radius: 2px;
-    }
-
-    /* Verdict Section */
-    .verdict-banner {
-      background: var(--panel-bg);
-      backdrop-filter: var(--glass-blur);
-      border: 1px solid var(--panel-border);
-      border-radius: var(--radius-xl);
-      padding: 2.5rem 2.5rem;
-      text-align: left;
-      margin-bottom: 0;
-      transition: all 0.4s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .verdict-banner::after {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.02) 50%, transparent 60%);
-      pointer-events: none;
-    }
-
-    .verdict-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-
-    .verdict-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-    }
-
-    .verdict-claim {
-      font-size: 1.05rem;
-      font-style: italic;
-      color: var(--text-muted);
-      margin-bottom: 0.75rem;
-    }
-
-    .verdict-value {
-      font-size: 2.2rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 0.75rem;
-      text-transform: uppercase;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .verdict-one-line {
-      font-size: 1.05rem;
-      color: var(--text-muted);
-      line-height: 1.7;
-      max-width: 700px;
-    }
-
-    .confidence-badge {
-      display: inline-block;
-      padding: 0.4rem 1rem;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 0.8rem;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    /* Breakdown Grid */
-    .breakdown-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.25rem;
-    }
-
-    .breakdown-card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--panel-border);
-      border-radius: var(--radius-lg);
-      padding: 1.5rem;
-      border-top: none;
-      border-left: 3px solid transparent;
-    }
-
-    .breakdown-card h4 {
-      margin: 0 0 1rem 0;
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .breakdown-card p {
-      margin: 0;
-      color: var(--text-muted);
-      line-height: 1.7;
-      font-size: 1rem;
-    }
-
-    /* Bloc Cards */
-    .bloc-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 1.25rem;
-    }
-
-    .bloc-card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--panel-border);
-      border-radius: var(--radius-lg);
-      padding: 1.5rem;
-      transition: all var(--transition-normal);
-    }
-
-    .bloc-card:hover {
-      transform: translateY(-3px);
-      border-color: var(--panel-border-hover);
-      background: rgba(255, 255, 255, 0.04);
-    }
-
-    .bloc-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-
-    .bloc-title {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin: 0;
-      color: var(--text-main);
-    }
-
-    .bloc-stance {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    /* Accordion */
-    .accordion-item {
-      border: 1px solid var(--panel-border);
-      border-radius: var(--radius-lg);
-      margin-bottom: 0.75rem;
-      overflow: hidden;
-      background: rgba(255, 255, 255, 0.02);
-      transition: border-color var(--transition-normal);
-    }
-
-    .accordion-item:hover {
-      border-color: var(--panel-border-hover);
-    }
-
-    .accordion-header {
-      padding: 1.25rem 1.5rem;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 500;
-      font-size: 1rem;
-      transition: background var(--transition-fast);
-    }
-
-    .accordion-header:hover {
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .accordion-content {
-      padding: 0 1.5rem;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease, padding 0.3s ease;
-      color: var(--text-muted);
-      line-height: 1.7;
-      font-size: 1rem;
-    }
-
-    .accordion-item.active .accordion-content {
-      padding: 0 1.5rem 1.5rem 1.5rem;
-      max-height: 2000px;
-    }
-
-    .accordion-item.active .accordion-header span:last-child {
-      transform: rotate(180deg);
-    }
-
-    /* WHY IT MATTERS highlight box */
-    .why-it-matters {
-      background: rgba(99, 102, 241, 0.06);
-      border-left: 3px solid var(--accent);
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      padding: 1rem 1.25rem;
-      margin: 1rem 0;
-    }
-
-    .why-it-matters-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-main);
-      margin-bottom: 0.4rem;
-    }
-
-    .why-it-matters p {
-      margin: 0;
-      font-size: 0.95rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-    }
-
-    /* Sources Table */
-    .table-container {
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      text-align: left;
-    }
-
-    th {
-      font-weight: 600;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      font-size: 0.75rem;
-      letter-spacing: 0.1em;
-      padding: 1rem;
-      border-bottom: 1px solid var(--panel-border);
-    }
-
-    td {
-      padding: 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      font-size: 0.95rem;
-    }
-
-    tbody tr {
-      transition: background var(--transition-fast);
-    }
-
-    tbody tr:hover {
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .loader {
-      display: none;
-      width: 24px;
-      height: 24px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s ease-in-out infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .empty-state {
-      text-align: center;
-      padding: 6rem 2rem;
-      color: var(--text-muted);
-    }
-
-    #lowEvidenceWarning {
-      background: var(--warning-dim);
-      border: 1px solid rgba(234, 179, 8, 0.2);
-      border-left: 3px solid var(--warning);
-      border-radius: var(--radius-sm);
-      padding: 1rem 1.25rem;
-      margin-bottom: 1.5rem;
-      font-size: 0.95rem;
-      color: var(--text-main);
-      line-height: 1.6;
-    }
-
-    .error-panel-icon {
-        width: 48px;
-        height: 48px;
-        min-width: 48px;
-        border-radius: 50%;
-        background: rgba(239, 68, 68, 0.15);
-        border: 2px solid var(--danger);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.4rem;
-        color: var(--danger);
-        font-weight: 700;
-        margin-top: 0.2rem;
-    }
-
-    #errorPanel {
-      display: none;
-      align-items: flex-start;
-      gap: 1.25rem;
-      margin: 2rem 2.5rem;
-      padding: 1.5rem 1.75rem;
-      background: var(--danger-dim);
-      border: 1px solid rgba(239, 68, 68, 0.2);
-      border-left: 3px solid var(--danger);
-      border-radius: var(--radius-lg);
-      backdrop-filter: var(--glass-blur);
-      animation: fadeIn 0.3s ease;
-    }
-
-    .error-panel-body {
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
-    }
-
-    .error-panel-title {
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: var(--danger);
-    }
-
-    .error-panel-msg {
-        font-size: 0.95rem;
-        color: var(--text-main);
-        line-height: 1.6;
-    }
-
-    .error-panel-detail {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        font-family: monospace;
-        margin-top: 0.25rem;
-    }
-
-    .error-panel-retry {
-        margin-top: 1rem;
-        padding: 0.6rem 1.5rem;
-        font-size: 0.9rem;
-        align-self: flex-start;
-    }
-
-    .terms-banner {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: var(--radius-lg);
-      padding: 1rem 1.5rem;
-      margin: 1rem 2.5rem 0 2.5rem;
-      display: flex;
-      align-items: flex-start;
-      gap: 1rem;
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-      animation: fadeIn 0.5s ease;
-    }
-
-    .terms-banner-icon {
-      font-size: 1.3rem;
-      flex-shrink: 0;
-      margin-top: 0.1rem;
-    }
-
-    .terms-banner-close {
-      background: none;
-      border: 1px solid rgba(255,255,255,0.1);
-      color: var(--text-muted);
-      cursor: pointer;
-      padding: 0.25rem 0.6rem;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      flex-shrink: 0;
-      margin-left: auto;
-      transition: all 0.2s ease;
-    }
-
-    .terms-banner-close:hover {
-      background: rgba(255,255,255,0.1);
-      color: var(--text-main);
-    }
-
-
-    .pipeline-tracker {
-      background: var(--panel-bg);
-      backdrop-filter: var(--glass-blur);
-      border: 1px solid var(--panel-border);
-      border-radius: var(--radius-lg);
-      padding: 1.25rem 2rem;
-      margin: 1rem 2.5rem 0 2.5rem;
-      animation: fadeIn 0.5s ease;
-    }
-
-    .pipeline-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      display: block;
-      margin-bottom: 1rem;
-    }
-
-    .pipeline-steps {
-      display: flex;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .pipeline-step {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.9rem;
-      color: var(--text-dim);
-      transition: color var(--transition-normal);
-    }
-
-    .pipeline-step.active {
-      color: var(--text-main);
-    }
-
-    .pipeline-step.completed {
-      color: var(--success);
-    }
-
-    .pipeline-step.completed .step-indicator {
-      color: var(--success);
-    }
-
-    .pipeline-step.active .step-indicator {
-      color: var(--accent);
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    .step-indicator {
-      font-size: 1rem;
-      width: 1.2rem;
-      text-align: center;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-
-    .skeleton-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-    }
-
-    .skeleton-card {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: var(--radius-lg);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .skeleton-card::after {
-      content: "";
-      position: absolute;
-      top: 0; left: -100%; right: 0; bottom: 0;
-      width: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
-      animation: shimmer 2s ease-in-out infinite;
-    }
-
-    .skeleton-lg { height: 160px; }
-    .skeleton-md { height: 140px; }
-
-    @keyframes shimmer {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(200%); }
-    }
-
-    .main-content::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .main-content::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .main-content::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-    }
-
-    .main-content::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-    @media (max-width: 768px) {
-      .top-bar {
-        flex-wrap: wrap;
-        padding: 1rem;
-      }
-      .brand { order: 0; }
-      #loadingStatus { order: 1; margin-left: auto; }
-      .search-box { width: 100%; order: 2; }
-      #contactLink { order: 3; width: 100%; justify-content: center; }
-
-      .dashboard { padding: 1rem; gap: 1.25rem; }
-      .panel { padding: 1.25rem; }
-      .verdict-banner { padding: 1.5rem; }
-      .verdict-value { font-size: 1.6rem; }
-      .verdict-one-line { font-size: 0.95rem; }
-
-      .skeleton-grid { grid-template-columns: 1fr; }
-
-      #relevantSourcesTable thead,
-      #backgroundSourcesTable thead {
-        display: none;
-      }
-      #relevantSourcesTable tbody tr,
-      #backgroundSourcesTable tbody tr {
-        display: flex;
-        flex-direction: column;
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid var(--panel-border);
-        border-radius: var(--radius-md);
-        padding: 1rem;
-        margin-bottom: 0.75rem;
-      }
-      #relevantSourcesTable tbody tr:hover,
-      #backgroundSourcesTable tbody tr:hover {
-        background: rgba(255, 255, 255, 0.04);
-      }
-      #relevantSourcesTable td,
-      #backgroundSourcesTable td {
-        padding: 0.3rem 0;
-        border-bottom: none;
-        font-size: 0.9rem;
-      }
-      #relevantSourcesTable td:nth-child(2)::before,
-      #backgroundSourcesTable td:nth-child(2)::before {
-        content: "Alignment: "; font-weight: 600; color: var(--text-dim); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em;
-      }
-      #relevantSourcesTable td:nth-child(3)::before,
-      #backgroundSourcesTable td:nth-child(3)::before {
-        content: "Stance: "; font-weight: 600; color: var(--text-dim); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em;
-      }
-      #relevantSourcesTable td:nth-child(4)::before,
-      #backgroundSourcesTable td:nth-child(4)::before {
-        content: "Confidence: "; font-weight: 600; color: var(--text-dim); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em;
-      }
-      #relevantSourcesTable td:nth-child(5),
-      #backgroundSourcesTable td:nth-child(5) {
-        max-width: 100%; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--panel-border);
-      }
-
-      .breakdown-grid { grid-template-columns: 1fr; }
-      .bloc-grid { grid-template-columns: 1fr; }
-      .hidden-story-sources { flex-direction: column !important; gap: 1rem !important; }
-
-      .pipeline-tracker { margin: 0.5rem 1rem 0 1rem; padding: 1rem; }
-      .pipeline-steps { gap: 0.75rem; }
-      .pipeline-step { font-size: 0.8rem; }
-      #errorPanel { margin: 1rem !important; padding: 1rem !important; }
-      .terms-banner { margin: 0.5rem 1rem 0 1rem; padding: 0.75rem 1rem; }
-    }
-
-    @media (max-width: 480px) {
-      input[type="text"] { font-size: 1rem; padding: 0.75rem 1rem; }
-      .btn { padding: 0.75rem 1.25rem; font-size: 0.9rem; }
-      #contactLink { display: none !important; }
-
-      .dashboard { padding: 0.75rem; }
-      .panel { padding: 1rem; border-radius: var(--radius-md); }
-
-      #relevantSourcesTable td:nth-child(2),
-      #backgroundSourcesTable td:nth-child(2),
-      #relevantSourcesTable td:nth-child(4),
-      #backgroundSourcesTable td:nth-child(4) { display: none; }
-
-      #relevantSourcesTable tr.expanded td:nth-child(2),
-      #backgroundSourcesTable tr.expanded td:nth-child(2),
-      #relevantSourcesTable tr.expanded td:nth-child(4),
-      #backgroundSourcesTable tr.expanded td:nth-child(4) { display: block; }
-
-      .source-card-toggle {
-        display: block; width: 100%; background: none; border: none; border-top: 1px solid var(--panel-border);
-        color: var(--text-dim); font-size: 0.75rem; font-family: 'Outfit', sans-serif; letter-spacing: 0.05em;
-        padding: 0.5rem 0 0 0; margin-top: 0.5rem; cursor: pointer; text-align: center; transition: color 0.2s ease;
-      }
-      .source-card-toggle:hover { color: var(--text-muted); }
-      .source-card-toggle-cell { width: 100%; }
-    }
-
-    @media (min-width: 481px) {
-      .source-card-toggle { display: none !important; }
-    }
-
-    .source-card-toggle-cell { padding: 0; width: 0; border: none; }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <main class="main-content">
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <h2 class="login-title">Truth <span class="login-title-accent">Mirror</span></h2>
+      <p class="login-subtitle">Welcome Back, User</p>
+      
+      <div class="login-form">
+        <input type="text" id="loginUsername" placeholder="Username" class="login-input" autocomplete="off" />
+        <input type="password" id="loginPassword" placeholder="Password" class="login-input" />
+        <button id="loginBtn" class="login-btn">Login</button>
+        <div id="loginError" class="login-error" style="display: none;">Invalid username or password</div>
+      </div>
+    </div>
+  </div>
+
+  <main class="main-content" id="mainApp" style="display: none;">
     <div class="top-bar">
       <div class="brand">
-        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700; background: linear-gradient(90deg, #3b82f6, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Truth Mirror v2.4</h2>
+        <svg class="brand-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        <h2>TRUTH<span class="brand-highlight">MIRROR</span></h2>
       </div>
       <div class="search-box">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         <input type="text" id="claimInput" placeholder="Enter a geopolitical claim to analyze..." />
         <button class="btn btn-primary" id="verifyBtn">
           <span class="btn-text">Analyze</span>
           <div class="loader" id="verifyLoader"></div>
         </button>
       </div>
-      <div id="loadingStatus" style="font-size: 0.9rem; color: var(--text-muted); min-width: 150px; text-align: right;"></div>
-      <a href="https://wa.me/{{WHATSAPP_NUMBER}}" target="_blank"
-         id="contactLink"
-         style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem;
-                border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);
-                background: rgba(255,255,255,0.05); color: var(--text-muted);
-                font-size: 0.85rem; text-decoration: none; white-space: nowrap;
-                transition: all 0.3s ease;"
-         onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.color='var(--text-main)'; this.style.borderColor='var(--accent)';"
-         onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--text-muted)'; this.style.borderColor='rgba(255,255,255,0.1)';">
-        WhatsApp Feedback
-      </a>
+      <div class="status-indicator">
+        <span class="status-dot"></span> Engine Active
+      </div>
+      <div id="loadingStatus" style="font-size: 0.9rem; color: var(--text-muted); display:none;"></div>
     </div>
 
 
@@ -865,13 +88,16 @@
     <div id="dashboard" class="dashboard" style="display: none;">
       
       <!-- Panel 1: Verdict -->
-      <div class="verdict-banner" id="verdictBanner">
+      <div class="verdict-banner panel-card" id="verdictBanner">
         <div class="verdict-header">
-          <span class="verdict-label">CLAIM ANALYZED</span>
-          <div class="confidence-badge" id="confidenceBadge">Medium Confidence</div>
+          <span class="panel-subtitle">CLAIM ANALYZED</span>
+          <div class="confidence-badge" id="confidenceBadge">MEDIUM CONFIDENCE</div>
         </div>
         <div class="verdict-claim" id="verdictClaim"></div>
-        <div class="verdict-value" id="verdictValue">EVALUATING</div>
+        <div class="verdict-value" id="verdictValue">
+          <svg class="verdict-icon" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <span id="verdictText">PARTIALLY SUPPORTED</span>
+        </div>
         <div class="verdict-one-line" id="verdictOneLine">Processing full intelligence report...</div>
       </div>
 
@@ -888,708 +114,113 @@
         <div class="skeleton-card skeleton-lg" style="margin-top: 1.5rem;"></div>
       </div>
 
-      <div id="resultsContainer" style="display: none; grid-template-columns: 1fr; gap: 2rem;">
-        <!-- Panel 2: Breakdown -->
-        <div class="panel">
-          <h3 class="panel-title">Verdict Breakdown</h3>
-          <p style="color: var(--text-muted); line-height: 1.7; margin-bottom: 2rem; font-size: 1.05rem;" id="fullReasoning"></p>
+      <div id="resultsContainer" style="display: none; grid-template-columns: 1fr; gap: 1.5rem;">
         
-        <div class="breakdown-grid">
-          <div class="breakdown-card" style="border-left-color: var(--success);">
-            <h4 style="color: var(--success);">◉ Verified Facts</h4>
-            <p id="whatIsTrue"></p>
-          </div>
-          <div class="breakdown-card" style="border-left-color: var(--danger);">
-            <h4 style="color: var(--danger);">◉ Disproven Elements</h4>
-            <p id="whatIsFalse"></p>
-          </div>
-          <div class="breakdown-card" style="border-left-color: var(--warning);">
-            <h4 style="color: var(--warning);">◉ Unclear / Disputed</h4>
-            <p id="whatIsUnclear"></p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Panel 3: Perspectives -->
-      <div class="panel">
-        <h3 class="panel-title">Media Bloc Perspectives</h3>
-        <div class="bloc-grid" id="blocGrid"></div>
-      </div>
-
-      <!-- Panel 4: Hidden Stories -->
-      <div class="panel">
-        <h3 class="panel-title">Hidden Stories & Omissions</h3>
-        <div id="hiddenStoriesContainer"></div>
-      </div>
-
-      <!-- Panel 5: Sources -->
-      <div class="panel">
-        <h3 class="panel-title">
-          Source Analysis (<span id="totalCount">0</span>)
-        </h3>
-
-        <!-- LOW-EVIDENCE WARNING -->
-        <div id="lowEvidenceWarning" style="display:none;"></div>
-
-        <!-- SECTION A: Relevant Sources table -->
-        <div id="relevantSourcesSection">
-          <table id="relevantSourcesTable">
-            <thead>
-              <tr>
-                <th>Source</th>
-                <th>Alignment</th>
-                <th>Stance</th>
-                <th>Confidence</th>
-                <th>Key Emphases</th>
-                <th class="source-card-toggle-cell"></th>
-              </tr>
-            </thead>
-            <tbody id="relevantSourcesBody"></tbody>
-          </table>
-          <!-- Empty state message -->
-          <p id="noRelevantMsg" style="display:none; color: var(--text-muted); margin-top: 1rem;">
-            No sources were found which confirm or deny this claim.
-          </p>
-        </div>
-
-        <!-- SECTION B: Background & Inconclusive -->
-        <div id="backgroundSourcesSection" style="margin-top: 1.5rem;">
-          <div class="accordion-item" id="backgroundAccordion">
-            <div class="accordion-header"
-                 onclick="toggleBackgroundSources()"
-                 id="backgroundAccordionHeader">
-              <span>Background & Inconclusive Sources
-                    (<span id="backgroundCount">0</span>)</span>
-              <span style="font-size: 1rem; color: var(--text-dim);"
-                    id="backgroundToggleLabel">∨</span>
+        <!-- Panel 2: Breakdown -->
+        <div class="panel panel-card">
+          <h3 class="panel-subtitle">VERDICT BREAKDOWN</h3>
+          <p class="panel-description" id="fullReasoning"></p>
+        
+          <div class="breakdown-grid">
+            <div class="breakdown-card card-success">
+              <h4>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                VERIFIED FACTS
+              </h4>
+              <p id="whatIsTrue"></p>
             </div>
-            <div id="backgroundSourcesContent"
-                 class="accordion-content">
-              <table id="backgroundSourcesTable" style="margin-top: 1rem;">
-                <thead>
-                  <tr>
-                    <th>Source</th>
-                    <th>Alignment</th>
-                    <th>Stance</th>
-                    <th>Confidence</th>
-                    <th>Key Emphases</th>
-                    <th class="source-card-toggle-cell"></th>
-                  </tr>
-                </thead>
-                <tbody id="backgroundSourcesBody"></tbody>
-              </table>
+            <div class="breakdown-card card-danger">
+              <h4>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                DISPROVEN ELEMENTS
+              </h4>
+              <p id="whatIsFalse"></p>
+            </div>
+            <div class="breakdown-card card-warning">
+              <h4>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                UNCLEAR / DISPUTED
+              </h4>
+              <p id="whatIsUnclear"></p>
             </div>
           </div>
         </div>
 
-      </div>
+        <!-- Panel 3: Perspectives -->
+        <div class="panel panel-card">
+          <h3 class="panel-subtitle">MEDIA BLOC PERSPECTIVES</h3>
+          <div class="bloc-grid" id="blocGrid"></div>
+        </div>
+
+        <!-- Panel 4: Hidden Stories -->
+        <div class="panel panel-card">
+          <h3 class="panel-subtitle">HIDDEN STORIES & OMISSIONS <span class="counter-badge" id="hiddenStoriesCount">0</span></h3>
+          <div id="hiddenStoriesContainer"></div>
+        </div>
+
+        <!-- Panel 5: Sources -->
+        <div class="panel panel-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 class="panel-subtitle" style="margin-bottom: 0;">SOURCE ANALYSIS</h3>
+            <span style="color: var(--text-dim); font-size: 0.8rem;"><span id="totalCount">0</span> sources analyzed</span>
+          </div>
+
+          <!-- LOW-EVIDENCE WARNING -->
+          <div id="lowEvidenceWarning" style="display:none;"></div>
+
+          <!-- SECTION A: Relevant Sources table -->
+          <div id="relevantSourcesSection" class="table-container">
+            <table id="relevantSourcesTable" class="premium-table">
+              <thead>
+                <tr>
+                  <th>SOURCE</th>
+                  <th>ALIGNMENT</th>
+                  <th>STANCE</th>
+                  <th>CONFIDENCE</th>
+                  <th>KEY EMPHASIS</th>
+                  <th class="source-card-toggle-cell"></th>
+                </tr>
+              </thead>
+              <tbody id="relevantSourcesBody"></tbody>
+            </table>
+            <!-- Empty state message -->
+            <p id="noRelevantMsg" style="display:none; color: var(--text-muted); margin-top: 1rem;">
+              No sources were found which confirm or deny this claim.
+            </p>
+          </div>
+
+          <!-- SECTION B: Background & Inconclusive -->
+          <div id="backgroundSourcesSection" style="margin-top: 1.5rem;">
+            <div class="accordion-item" id="backgroundAccordion">
+              <div class="accordion-header" onclick="toggleBackgroundSources()" id="backgroundAccordionHeader">
+                <span>Background & Inconclusive Sources (<span id="backgroundCount">0</span>)</span>
+                <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <div id="backgroundSourcesContent" class="accordion-content">
+                <div class="table-container">
+                  <table id="backgroundSourcesTable" class="premium-table" style="margin-top: 1rem;">
+                    <thead>
+                      <tr>
+                        <th>SOURCE</th>
+                        <th>ALIGNMENT</th>
+                        <th>STANCE</th>
+                        <th>CONFIDENCE</th>
+                        <th>KEY EMPHASIS</th>
+                        <th class="source-card-toggle-cell"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="backgroundSourcesBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   </main>
 
-  <script>
-    // ── Screen Wake Lock ────────────────────────────────────
-    let wakeLock = null;
-
-    async function requestWakeLock() {
-      if ('wakeLock' in navigator) {
-        try {
-          wakeLock = await navigator.wakeLock.request('screen');
-          console.log('[Wake Lock] Acquired — screen will stay on.');
-
-          wakeLock.addEventListener('release', () => {
-            console.log('[Wake Lock] Released.');
-            wakeLock = null;
-          });
-        } catch (err) {
-          console.warn('[Wake Lock] Failed to acquire:', err.message);
-          wakeLock = null;
-        }
-      }
-    }
-
-    async function releaseWakeLock() {
-      if (wakeLock) {
-        try {
-          await wakeLock.release();
-          console.log('[Wake Lock] Explicitly released.');
-        } catch (err) {
-          console.warn('[Wake Lock] Release failed:', err.message);
-        }
-        wakeLock = null;
-      }
-    }
-
-    function dismissTermsBanner() {
-      const banner = document.getElementById('termsBanner');
-      if (banner) {
-        banner.style.opacity = '0';
-        banner.style.transform = 'translateY(-10px)';
-        banner.style.transition = 'all 0.3s ease';
-        setTimeout(() => banner.remove(), 300);
-        localStorage.setItem('tm_terms_dismissed', '1');
-      }
-    }
-
-    // Auto-hide if previously dismissed
-    if (localStorage.getItem('tm_terms_dismissed') === '1') {
-      const banner = document.getElementById('termsBanner');
-      if (banner) banner.remove();
-    }
-    const elements = {
-      claimInput: document.getElementById("claimInput"),
-      verifyBtn: document.getElementById("verifyBtn"),
-      verifyLoader: document.getElementById("verifyLoader"),
-      btnText: document.querySelector(".btn-text"),
-      loadingStatus: document.getElementById("loadingStatus"),
-      initialState: document.getElementById("initialState"),
-      dashboard: document.getElementById("dashboard"),
-      
-      pipelineTracker: document.getElementById("pipelineTracker"),
-      
-      verdictBanner: document.getElementById("verdictBanner"),
-      verdictClaim: document.getElementById("verdictClaim"),
-      verdictValue: document.getElementById("verdictValue"),
-      verdictOneLine: document.getElementById("verdictOneLine"),
-      confidenceBadge: document.getElementById("confidenceBadge"),
-      
-      fullReasoning: document.getElementById("fullReasoning"),
-      whatIsTrue: document.getElementById("whatIsTrue"),
-      whatIsFalse: document.getElementById("whatIsFalse"),
-      whatIsUnclear: document.getElementById("whatIsUnclear"),
-      
-      blocGrid: document.getElementById("blocGrid"),
-      hiddenStoriesContainer: document.getElementById("hiddenStoriesContainer")
-    };
-
-    // Re-acquire wake lock when user switches back to the tab during verification
-    document.addEventListener('visibilitychange', async () => {
-      if (document.visibilityState === 'visible' && wakeLock === null) {
-        const isRunning = elements.verifyBtn.disabled;
-        if (isRunning) {
-          await requestWakeLock();
-        }
-      }
-    });
-
-    elements.verifyBtn.addEventListener("click", verifyClaim);
-    elements.claimInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") verifyClaim();
-    });
-
-    // Toggle Accordion function
-    window.toggleAccordion = function(element) {
-      const parent = element.parentElement;
-      parent.classList.toggle('active');
-    };
-
-    function toggleBackgroundSources() {
-      const accordion = document.getElementById("backgroundAccordion");
-      const label = document.getElementById("backgroundToggleLabel");
-      const isActive = accordion.classList.contains("active");
-
-      if (isActive) {
-          accordion.classList.remove("active");
-          label.textContent = "∨";
-      } else {
-          accordion.classList.add("active");
-          label.textContent = "∧";
-      }
-    }
-
-    function toggleSourceCard(btn) {
-      const row = btn.closest('tr');
-      const isExpanded = row.classList.contains('expanded');
-      if (isExpanded) {
-        row.classList.remove('expanded');
-        btn.textContent = 'Show more ▼';
-      } else {
-        row.classList.add('expanded');
-        btn.textContent = 'Show less ▲';
-      }
-    }
-
-    function showErrorPanel(detail) {
-        // Hide the dashboard and initial state if visible
-        elements.dashboard.style.display = "none";
-        document.getElementById('skeletonContainer').style.display = 'none';
-        const rc = document.getElementById('resultsContainer');
-        if (rc) rc.style.display = "none";
-
-        // Show or reuse the error panel
-        let errorPanel = document.getElementById("errorPanel");
-        if (!errorPanel) {
-            errorPanel = document.createElement("div");
-            errorPanel.id = "errorPanel";
-            // Insert it into main-content, after the top-bar
-            const mainContent = document.querySelector(".main-content");
-            mainContent.appendChild(errorPanel);
-        }
-
-        errorPanel.style.display = "flex";
-        errorPanel.innerHTML = `
-            <div class="error-panel-icon">✕</div>
-            <div class="error-panel-body">
-                <div class="error-panel-title">Something went wrong</div>
-                <div class="error-panel-msg">
-                    An error occurred while verifying this claim. Please try
-                    again. If the problem persists, refresh the page and
-                    resubmit.
-                </div>
-                <div class="error-panel-detail">${detail || ""}</div>
-                <button class="btn btn-primary error-panel-retry"
-                        onclick="dismissError()">
-                    Try Again
-                </button>
-            </div>
-        `;
-    }
-
-    function dismissError() {
-        const errorPanel = document.getElementById("errorPanel");
-        if (errorPanel) errorPanel.style.display = "none";
-        elements.initialState.style.display = "block";
-    }
-
-    function buildSourceRow(sa) {
-      const stance = sa.stance || "UNKNOWN";
-      let sColor = "var(--text-muted)";
-      if (stance === "SUPPORTS")          sColor = "var(--success)";
-      if (stance === "CONTRADICTS")       sColor = "var(--danger)";
-      if (stance === "PARTIALLY_SUPPORTS") sColor = "var(--warning)";
-
-      let confidence = 'N/A';
-      if (typeof sa.stance_confidence === 'number') {
-        const pct = sa.stance_confidence;
-        if (pct >= 0.8) confidence = 'Very High';
-        else if (pct >= 0.6) confidence = 'High';
-        else if (pct >= 0.4) confidence = 'Medium';
-        else if (pct >= 0.2) confidence = 'Low';
-        else confidence = 'Very Low';
-      }
-
-      return `
-        <tr>
-          <td>
-            <div style="font-weight: 600;">${sa.source_name || "Unknown"}</div>
-            <a href="${sa.url || "#"}" target="_blank"
-               style="font-size: 0.8rem; color: var(--accent); text-decoration: none;">
-              View Source ↗
-            </a>
-          </td>
-          <td>${sa.alignment || "unknown"}</td>
-          <td style="color: ${sColor}; font-weight: 600;">${stance}</td>
-          <td>${confidence}</td>
-          <td style="font-size: 0.85rem; color: var(--text-muted); max-width: 300px;">
-            ${sa.what_emphasized || ""}
-          </td>
-          <td class="source-card-toggle-cell">
-            <button class="source-card-toggle" onclick="toggleSourceCard(this)">
-              Show more ▼
-            </button>
-          </td>
-        </tr>
-      `;
-    }
-
-    async function verifyClaim() {
-      const claim = elements.claimInput.value.trim();
-      if (!claim) return;
-
-      // Acquire wake lock to keep screen on during 2–4 min verification
-      await requestWakeLock();
-
-      elements.btnText.style.display = "none";
-      elements.verifyLoader.style.display = "block";
-      elements.verifyBtn.disabled = true;
-
-
-      // Show skeleton and pipeline tracker
-      elements.dashboard.style.display = 'grid';
-      document.getElementById('skeletonContainer').style.display = 'block';
-      const rc = document.getElementById('resultsContainer');
-      if (rc) rc.style.display = 'none';
-      elements.pipelineTracker.style.display = 'block';
-      
-      elements.loadingStatus.style.fontSize = '0.75rem';
-      elements.loadingStatus.style.opacity = '0.5';
-
-      const STAGE_MESSAGES = {
-        "idle": "Initializing...",
-        "classifying": "Classifying claim scope...",
-        "decomposing": "Breaking down claim...",
-        "querying": "Generating search queries...",
-        "retrieving": "Fetching global sources...",
-        "analyzing_sources": "Analyzing source stances...",
-        "synthesizing_perspectives": "Synthesizing media blocs...",
-        "extracting_stories": "Extracting hidden narratives...",
-        "generating_verdict": "Calculating final verdict..."
-      };
-
-      const FUN_MESSAGES = [
-        "Still thinking...",
-        "Reading between the lines...",
-        "Decoding diplomatic speak...",
-        "Cross-referencing state media...",
-        "Following the money...",
-        "Checking bias filters...",
-        "Synthesizing the truth..."
-      ];
-
-      let currentStage = "idle";
-      let stageCounter = 0;
-      let funMsgIdx = 0;
-
-      const requestId = crypto.randomUUID();
-
-      // Update pipeline tracker
-      const PIPELINE_ORDER = ["classifying", "decomposing", "retrieving", "analyzing_sources", "generating_verdict"];
-      // Map backend stages to pipeline display stages
-      const STAGE_MAP = {
-        "classifying": "classifying",
-        "decomposing": "decomposing",
-        "querying": "retrieving",
-        "retrieving": "retrieving",
-        "analyzing_sources": "analyzing_sources",
-        "synthesizing_perspectives": "analyzing_sources",
-        "extracting_stories": "analyzing_sources",
-        "generating_verdict": "generating_verdict"
-      };
-
-      function updatePipelineTracker(backendStage) {
-        const mappedStage = STAGE_MAP[backendStage] || backendStage;
-        const steps = document.querySelectorAll('.pipeline-step');
-        const currentIdx = PIPELINE_ORDER.indexOf(mappedStage);
-        
-        steps.forEach((step, idx) => {
-          step.classList.remove('active', 'completed');
-          const textEl = step.querySelector('.step-text');
-          const originalText = textEl.getAttribute('data-text') || textEl.textContent;
-          textEl.setAttribute('data-text', originalText.replace(/\.\.\.$/, ''));
-          
-          if (idx < currentIdx) {
-            step.classList.add('completed');
-            step.querySelector('.step-indicator').textContent = '◉';
-            textEl.textContent = textEl.getAttribute('data-text');
-          } else if (idx === currentIdx) {
-            step.classList.add('active');
-            step.querySelector('.step-indicator').textContent = '○';
-            textEl.textContent = textEl.getAttribute('data-text') + '...';
-          } else {
-            step.querySelector('.step-indicator').textContent = '○';
-            textEl.textContent = textEl.getAttribute('data-text');
-          }
-        });
-      }
-
-      const pollStatus = async () => {
-        try {
-          const res = await fetch("/api/status?request_id=" + requestId);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.stage !== currentStage) {
-              currentStage = data.stage;
-              stageCounter = 0;
-              elements.loadingStatus.textContent = STAGE_MESSAGES[currentStage] || "Processing...";
-              updatePipelineTracker(currentStage);
-            } else {
-              stageCounter++;
-              if (stageCounter > 2) {
-                elements.loadingStatus.textContent = FUN_MESSAGES[funMsgIdx % FUN_MESSAGES.length];
-                funMsgIdx++;
-              }
-            }
-          }
-        } catch (e) {
-            console.error(e);
-        }
-      };
-
-      elements.loadingStatus.textContent = STAGE_MESSAGES[currentStage];
-      const mInt = setInterval(pollStatus, 1500);
-
-      const existingError = document.getElementById("errorPanel");
-      if (existingError) existingError.style.display = "none";
-      elements.initialState.style.display = "none";
-
-      try {
-        const res = await fetch("/api/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ claim, request_id: requestId })
-        });
-        
-        if (!res.ok) {
-          if (res.status === 503) {
-            const errData = await res.json();
-            showErrorPanel(
-              errData.verdict_data?.one_line_verdict || 
-              "The system is under heavy load. Please try again in a few minutes."
-            );
-            return;
-          }
-          throw new Error("Verification failed");
-        }
-        const data = await res.json();
-        
-        if (data.is_geopolitical === false) {
-          elements.initialState.innerHTML = `
-            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1.5rem;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-            <h2 style="font-size: 2rem; color: var(--danger); margin-bottom: 0.5rem;">Out of Scope</h2>
-            <p style="font-size: 1.1rem; max-width: 600px; margin: 0 auto; color: var(--text-muted);">${data.rejection_reason}</p>
-          `;
-          elements.initialState.style.display = "block";
-          elements.dashboard.style.display = "none";
-          return;
-        }
-
-        renderDashboard(data);
-        
-      } catch (err) {
-        showErrorPanel(err.message);
-      } finally {
-        elements.btnText.style.display = "block";
-        elements.verifyLoader.style.display = "none";
-        elements.verifyBtn.disabled = false;
-        clearInterval(mInt);
-        elements.loadingStatus.textContent = "";
-        elements.loadingStatus.style.fontSize = '';
-        elements.loadingStatus.style.opacity = '';
-        elements.pipelineTracker.style.display = 'none';
-
-        // Release wake lock — verification complete
-        await releaseWakeLock();
-      }
-    }
-
-    function renderDashboard(data) {
-      document.getElementById('skeletonContainer').style.display = 'none';
-      const rc = document.getElementById('resultsContainer');
-      if (rc) rc.style.display = 'grid';
-      // Check for infrastructure failure — show error panel, not dashboard
-      const vdata = data.verdict_data || {};
-      
-      if (vdata.verdict === "TIMEOUT" || data.verdict === "TIMEOUT") {
-          showErrorPanel(
-              "The analysis timed out due to heavy load. " +
-              "Please wait a few minutes and resubmit."
-          );
-          return;
-      }
-      
-      if (vdata.verdict === "ANALYSIS_FAILED" || data.verdict === "ANALYSIS_FAILED") {
-          showErrorPanel(
-              "API capacity was temporarily exhausted. All available models " +
-              "were rate-limited simultaneously. Please wait 2-3 minutes " +
-              "and resubmit your claim."
-          );
-          return;   // Do not render the dashboard for infra failures
-      }
-
-      elements.initialState.style.display = "none";
-      elements.dashboard.style.display = "grid";
-      
-      // Verdict Banner
-      document.getElementById('verdictClaim').textContent = `"${data.original_claim || data.claim || ''}"`;
-      elements.verdictValue.textContent = (vdata.verdict || data.verdict || "UNVERIFIABLE").replace(/_/g, " ");
-      elements.verdictOneLine.textContent = vdata.one_line_verdict || "No clear verdict generated.";
-      elements.confidenceBadge.textContent = `${vdata.confidence_label || 'Low'} Confidence`;
-      
-      const v = elements.verdictValue.textContent;
-      let verdictColor, verdictGlow, badgeBg;
-
-      if (v.includes("SUPPORTED") && !v.includes("PARTIALLY")) {
-        verdictColor = "var(--success)";
-        verdictGlow = "0 0 40px rgba(34, 197, 94, 0.1)";
-        badgeBg = "var(--success-dim)";
-        elements.verdictBanner.style.borderColor = "rgba(34, 197, 94, 0.3)";
-      } else if (v.includes("PARTIALLY")) {
-        verdictColor = "var(--warning)";
-        verdictGlow = "0 0 40px rgba(234, 179, 8, 0.1)";
-        badgeBg = "var(--warning-dim)";
-        elements.verdictBanner.style.borderColor = "rgba(234, 179, 8, 0.3)";
-      } else if (v.includes("CONTRADICTED")) {
-        verdictColor = "var(--danger)";
-        verdictGlow = "0 0 40px rgba(239, 68, 68, 0.1)";
-        badgeBg = "var(--danger-dim)";
-        elements.verdictBanner.style.borderColor = "rgba(239, 68, 68, 0.3)";
-      } else {
-        verdictColor = "var(--warning)";
-        verdictGlow = "0 0 40px rgba(234, 179, 8, 0.08)";
-        badgeBg = "var(--warning-dim)";
-        elements.verdictBanner.style.borderColor = "rgba(234, 179, 8, 0.2)";
-      }
-
-      elements.verdictValue.style.color = verdictColor;
-      elements.verdictBanner.style.boxShadow = verdictGlow;
-      elements.confidenceBadge.style.background = badgeBg;
-      elements.confidenceBadge.style.color = verdictColor;
-
-      let verdictIcon = '◎';
-      if (v.includes("SUPPORTED") && !v.includes("PARTIALLY")) {
-        verdictIcon = '✓';
-      } else if (v.includes("PARTIALLY")) {
-        verdictIcon = '⊘';
-      } else if (v.includes("CONTRADICTED")) {
-        verdictIcon = '✕';
-      }
-      elements.verdictValue.innerHTML = `<span style="opacity: 0.7;">${verdictIcon}</span> ${elements.verdictValue.textContent}`;
-
-      if (data._from_cache) {
-          elements.verdictBanner.insertAdjacentHTML('beforeend',
-              '<div style="font-size:0.75rem; color: var(--text-muted); ' +
-              'margin-top: 0.5rem; opacity: 0.6;">⚡ Retrieved from cache</div>'
-          );
-      }
-
-      // Breakdown
-      elements.fullReasoning.textContent = vdata.full_reasoning || "No reasoning provided.";
-      elements.whatIsTrue.textContent = vdata.what_is_true || "N/A";
-      elements.whatIsFalse.textContent = vdata.what_is_false || "N/A";
-      elements.whatIsUnclear.textContent = vdata.what_is_unclear || "N/A";
-
-      // Perspectives
-      elements.blocGrid.innerHTML = "";
-      if (data.perspective_groups && Array.isArray(data.perspective_groups)) {
-        data.perspective_groups.forEach(pg => {
-          const label = pg.group_label || "Unknown Bloc";
-          const stance = pg.collective_stance || "Unknown";
-          const narrative = pg.collective_narrative || "No narrative available.";
-          const emphasizes = pg.what_they_emphasize || "N/A";
-          const omits = pg.what_they_omit || "N/A";
-          
-          // Color-code stance badge
-          let stanceBg, stanceColor;
-          const stanceUpper = stance.toUpperCase();
-          if (stanceUpper.includes("SUPPORT")) {
-            stanceBg = "var(--success-dim)"; stanceColor = "var(--success)";
-          } else if (stanceUpper.includes("CONTRADICT")) {
-            stanceBg = "var(--danger-dim)"; stanceColor = "var(--danger)";
-          } else {
-            stanceBg = "rgba(255,255,255,0.08)"; stanceColor = "var(--text-muted)";
-          }
-          
-          elements.blocGrid.innerHTML += `
-            <div class="bloc-card">
-              <div class="bloc-card-header">
-                <h4 class="bloc-title">${label}</h4>
-                <span class="bloc-stance" style="background: ${stanceBg}; color: ${stanceColor};">${stance}</span>
-              </div>
-              <div class="bloc-content">
-                <p style="margin: 0 0 1.25rem 0; font-size: 1rem; color: var(--text-muted); line-height: 1.7;">${narrative}</p>
-                <div style="margin-top: auto;">
-                  <div style="margin-bottom: 0.75rem;">
-                    <strong style="font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-main); display: block; margin-bottom: 0.4rem;">Emphasizes</strong>
-                    <span style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">${emphasizes}</span>
-                  </div>
-                  <div>
-                    <strong style="font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-main); display: block; margin-bottom: 0.4rem;">Omits</strong>
-                    <span style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">${omits}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          `;
-        });
-      }
-
-      // Hidden Stories
-      elements.hiddenStoriesContainer.innerHTML = "";
-      if (data.hidden_stories && Array.isArray(data.hidden_stories) && data.hidden_stories.length > 0) {
-        data.hidden_stories.forEach(hs => {
-          const title = hs.title || "Untitled Story";
-          const explanation = hs.explanation || "No explanation available.";
-          const significance = hs.significance || "Unknown significance.";
-          const hintSources = Array.isArray(hs.which_sources_hint_at_this)
-            ? hs.which_sources_hint_at_this.map(s => `<div style="margin-bottom: 0.25rem;">${s}</div>`).join("")
-            : "None identified";
-          const suppressSources = Array.isArray(hs.which_sources_suppress_this)
-            ? hs.which_sources_suppress_this.map(s => `<div style="margin-bottom: 0.25rem;">${s}</div>`).join("")
-            : "None identified";
-          
-          elements.hiddenStoriesContainer.innerHTML += `
-            <div class="accordion-item">
-              <div class="accordion-header" onclick="toggleAccordion(this)">
-                <span>🔍 ${title}</span>
-                <span style="font-size: 1rem; color: var(--text-dim); transition: transform 0.3s ease;">∨</span>
-              </div>
-              <div class="accordion-content">
-                <p style="margin-top: 1rem; font-size: 1rem; line-height: 1.7;">${explanation}</p>
-                <div class="why-it-matters">
-                  <div class="why-it-matters-label">Why It Matters</div>
-                  <p>${significance}</p>
-                </div>
-                <div class="hidden-story-sources" style="display: flex; gap: 3rem; font-size: 0.9rem; margin-top: 1rem;">
-                  <div>
-                    <strong style="font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-main); display: block; margin-bottom: 0.5rem;">Sources Hinting At This</strong>
-                    <div style="color: var(--text-muted);">${hintSources}</div>
-                  </div>
-                  <div>
-                    <strong style="font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-main); display: block; margin-bottom: 0.5rem;">Sources Suppressing This</strong>
-                    <div style="color: var(--text-muted);">${suppressSources}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          `;
-        });
-      } else {
-        elements.hiddenStoriesContainer.innerHTML = "<p style='color: var(--text-muted);'>No hidden narratives extracted.</p>";
-      }
-
-      // Sources Table
-      // ── Split sources into two groups ────────────────────────────────
-      const RELEVANT_STANCES = new Set(["SUPPORTS", "CONTRADICTS", "PARTIALLY_SUPPORTS"]);
-      const relevantSources = (data.source_analyses || []).filter(
-          sa => RELEVANT_STANCES.has(sa.stance)
-      );
-      const backgroundSources = (data.source_analyses || []).filter(
-          sa => !RELEVANT_STANCES.has(sa.stance)
-      );
-
-      // ── Update counts in panel header ────────────────────────────────
-      document.getElementById("totalCount").textContent =
-          (data.source_analyses || []).length;
-      document.getElementById("backgroundCount").textContent =
-          backgroundSources.length;
-
-      // ── Low-evidence warning ──────────────────────────────────────────
-      const warningEl = document.getElementById("lowEvidenceWarning");
-      if (relevantSources.length === 0) {
-          warningEl.innerHTML = "⚠️ <strong>Limited direct evidence</strong><br>No sources were found which confirm or deny this claim.";
-          warningEl.style.display = "block";
-      } else if (relevantSources.length < 3) {
-          warningEl.innerHTML = "⚠️ <strong>Limited direct evidence</strong><br>Very Few sources were found which directly confirm or deny this claim.";
-          warningEl.style.display = "block";
-      } else {
-          warningEl.style.display = "none";
-      }
-
-      // ── Render relevant sources table ─────────────────────────────────
-      const relevantBody = document.getElementById("relevantSourcesBody");
-      relevantBody.innerHTML = "";
-      const noRelevantMsg = document.getElementById("noRelevantMsg");
-
-      if (relevantSources.length === 0) {
-          noRelevantMsg.style.display = "block";
-      } else {
-          noRelevantMsg.style.display = "none";
-          relevantSources.forEach(sa => {
-              relevantBody.innerHTML += buildSourceRow(sa);
-          });
-      }
-
-      // ── Render background sources table ───────────────────────────────
-      const backgroundBody = document.getElementById("backgroundSourcesBody");
-      backgroundBody.innerHTML = "";
-      backgroundSources.forEach(sa => {
-          backgroundBody.innerHTML += buildSourceRow(sa);
-      });
-
-      // ── Hide background accordion entirely if nothing to show ─────────
-      const bgSection = document.getElementById("backgroundSourcesSection");
-      bgSection.style.display = backgroundSources.length > 0 ? "block" : "none";
-    }
-  </script>
+  <script src="/static/script.js"></script>
 </body>
 </html>

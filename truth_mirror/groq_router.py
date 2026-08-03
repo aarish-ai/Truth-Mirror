@@ -12,6 +12,9 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
+# Connection pooling for synchronous requests
+_session = requests.Session()
+
 # Simple structured tasks — 8b has more than enough capability
 # Uses 8b's separate 500K TPD pool, preserving 70b quota for analysis
 GROQ_SIMPLE_MODEL = "llama-3.1-8b-instant"
@@ -105,7 +108,7 @@ def call_groq_with_key_rotation(
                 f"{log_prefix} Trying model={get_model_label(model_name)} "
                 f"key={key_index}/{len(keys)}"
             )
-            response = requests.post(
+            response = _session.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {api_key}",

@@ -32,12 +32,4 @@ class TemporalValidator:
             if year < self.min_reasonable_year:
                 return False, f"The claim references an impossibly old year ({year}) for this context."
 
-        # Find standalone 4-digit years (1000-2999)
-        standalone_pattern = r'\b(1\d{3}|2\d{3})\b'
-        for match in re.finditer(standalone_pattern, claim):
-            year = int(match.group(1))
-            if year > self.current_year:
-                return False, f"The claim references a future year ({year}), which is impossible."
-            # We don't apply min_reasonable_year here to avoid false positives on numbers like "1500 people"
-            
         return True, "No impossible dates detected."

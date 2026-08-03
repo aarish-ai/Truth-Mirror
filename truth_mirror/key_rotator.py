@@ -13,10 +13,12 @@ _gemini_key_cycle = None
 _lock = threading.RLock()
 _current_key = None
 
-def init_keys():
+def init_keys(force_reload=False):
     global _gemini_keys, _gemini_key_cycle, _current_key
     with _lock:
-        if not _gemini_keys:
+        if not _gemini_keys or force_reload:
+            if force_reload:
+                load_dotenv(override=True)
             keys_str = os.getenv("GEMINI_API_KEYS")
             if not keys_str:
                 keys_str = os.getenv("GEMINI_API_KEY", "")
@@ -46,4 +48,6 @@ def rotate_gemini_key():
         
 def get_current_key():
     init_keys()
+    if not _current_key:
+        init_keys(force_reload=True)
     return _current_key

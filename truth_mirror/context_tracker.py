@@ -10,7 +10,9 @@ from truth_mirror.models import ClaimContext, Entity
 import math
 from truth_mirror.embeddings import get_gemini_embedding, get_gemini_embeddings
 
-def _cosine_similarity(a: List[float], b: List[float]) -> float:
+def _cosine_similarity(a: List[float] | None, b: List[float] | None) -> float:
+    if a is None or b is None:
+        return 0.0
     dot_product = sum(x * y for x, y in zip(a, b))
     norm_a = math.sqrt(sum(x * x for x in a))
     norm_b = math.sqrt(sum(y * y for y in b))
@@ -83,16 +85,31 @@ class ContextTracker:
         claim_mutation_flag = False
         differing_verdicts = set()
         
+        try:
+            claim_emb = get_gemini_embedding(claim)
+        except Exception as e:
+            logger.warning(f"Error computing embedding for current claim: {e}")
+            claim_emb = None
+
         if related_claims:
             try:
-                claim_emb = get_gemini_embedding(claim)
-                past_embs = get_gemini_embeddings(related_claims)
-                
-                similar_claims = []
-                for i, past_emb in enumerate(past_embs):
-                    sim = _cosine_similarity(claim_emb, past_emb)
-                    if sim > 0.75:
-                        similar_claims.append(related_claims[i])
+                if claim_emb is not None:
+                    similar_claims = []
+                    for pr in past_records_for_entities:
+                        past_claim = pr["claim"]
+                        if past_claim == claim:
+                            continue
+                        
+                        past_emb = pr.get("embedding")
+                        if past_emb is None:
+                            past_emb = get_gemini_embedding(past_claim)
+                            pr["embedding"] = past_emb
+                            self._save_history()
+                            
+                        if past_emb is not None:
+                            sim = _cosine_similarity(claim_emb, past_emb)
+                            if sim > 0.75 and past_claim not in similar_claims:
+                                similar_claims.append(past_claim)
                         
                 if similar_claims:
                     for rec in past_records_for_entities:
@@ -119,7 +136,8 @@ class ContextTracker:
             "claim": claim,
             "entities": list(entity_uris),
             "timestamp": current_time,
-            "verdict": None
+            "verdict": None,
+            "embedding": claim_emb if 'claim_emb' in locals() else None
         })
         
         if len(self.history) > 1000:

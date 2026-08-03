@@ -5,8 +5,8 @@ Provides fact-checking via 25+ templates and an LLM-based query selector.
 
 import logging
 import urllib.parse
-import urllib.request
 import json
+import requests
 from typing import Optional, Dict, Any, List, Tuple
 import re
 
@@ -56,12 +56,16 @@ def build_sparql_query(entity_name: str, property_id: str) -> str:
     Builds a robust SPARQL query that searches for the entity by name
     and retrieves the requested property.
     """
+    if not re.match(r"^P\d+$", property_id):
+        raise ValueError(f"Invalid property_id: {property_id}")
+
+    escaped_entity_name = entity_name.replace('\\', '\\\\').replace('"', '\\"')
     return f"""
 SELECT ?objectLabel WHERE {{
   SERVICE wikibase:mwapi {{
       bd:serviceParam wikibase:endpoint "www.wikidata.org";
                       wikibase:api "EntitySearch";
-                      mwapi:search "{entity_name}";
+                      mwapi:search "{escaped_entity_name}";
                       mwapi:language "en".
       ?subject wikibase:apiOutputItem mwapi:item.
   }}
@@ -81,11 +85,10 @@ class KGVerifier:
             'Accept': 'application/sparql-results+json'
         }
         url = self.endpoint_url + '?query=' + urllib.parse.quote(sparql_query)
-        req = urllib.request.Request(url, headers=headers)
-        
         try:
-            with urllib.request.urlopen(req, timeout=15) as response:
-                data = json.loads(response.read().decode('utf-8'))
+            response = requests.get(url, headers=headers, timeout=15)
+            response.raise_for_status()
+            data = response.json()
                 
             results = []
             for binding in data.get('results', {}).get('bindings', []):
@@ -97,43 +100,40 @@ class KGVerifier:
             return []
 
     def _select_template(self, claim: str) -> Tuple[Optional[str], Optional[str]]:
+        from truth_mirror.nlp_pipeline import extract_nlp_features
         claim_lower = claim.lower()
-        entity_regex = r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b'
+        
+        features = extract_nlp_features(claim)
+        ner = features.get("ner", [])
+        entities = [ent[0] for ent in ner]
+        first_entity = entities[0] if entities else None
 
         if re.search(r'\b(president|prime minister|pm|head of)\b', claim_lower):
-            match = re.search(r'\b(?:of|in)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b', claim)
+            match = re.search(r'\b(?:of|in)\s+(.+)', claim)
             if match:
-                return "head_of_government", match.group(1)
+                part = match.group(1)
+                for e in entities:
+                    if e in part:
+                        return "head_of_government", e
+            return "head_of_government", first_entity
 
         if re.search(r'\b(born|birth|birthdate)\b', claim_lower):
-            match = re.search(entity_regex, claim)
-            if match:
-                return "birth_date", match.group(1)
+            return "birth_date", first_entity
 
         if re.search(r'\b(died|death|passed away)\b', claim_lower):
-            match = re.search(entity_regex, claim)
-            if match:
-                return "death_date", match.group(1)
+            return "death_date", first_entity
 
         if re.search(r'\b(population|people|residents)\b', claim_lower):
-            match = re.search(entity_regex, claim)
-            if match:
-                return "population", match.group(1)
+            return "population", first_entity
 
         if re.search(r'\b(capital|capital city)\b', claim_lower):
-            match = re.search(entity_regex, claim)
-            if match:
-                return "capital", match.group(1)
+            return "capital", first_entity
 
         if re.search(r'\bwon\b', claim_lower) and re.search(r'\b(election|vote)\b', claim_lower):
-            match = re.search(entity_regex, claim)
-            if match:
-                return "election_winner", match.group(1)
+            return "election_winner", first_entity
 
         if re.search(r'\b(nobel|award|prize)\b', claim_lower):
-            match = re.search(entity_regex, claim)
-            if match:
-                return "award_received", match.group(1)
+            return "award_received", first_entity
 
         return None, None
 

@@ -1,15 +1,30 @@
 import urllib.parse
-import urllib.request
 import json
+import requests
 from datetime import datetime, timezone
 from typing import List
 import arxiv
+import dateutil.parser
 
 from truth_mirror.models import EvidenceItem
 from truth_mirror.retrieval import RetrievalConfig
 import logging
 
 logger = logging.getLogger(__name__)
+
+def _format_authors(authors_list) -> str:
+    if not authors_list:
+        return "unknown"
+    names = []
+    for a in authors_list[:3]:
+        if isinstance(a, dict):
+            names.append(a.get("name", ""))
+        elif hasattr(a, "name"):
+            names.append(a.name)
+        elif isinstance(a, str):
+            names.append(a)
+    names = [n for n in names if n]
+    return ", ".join(names) if names else "unknown"
 
 class SemanticScholarConnector:
     def __init__(self, config: RetrievalConfig | None = None):
@@ -23,9 +38,9 @@ class SemanticScholarConnector:
         })
         try:
             logger.info(f"[SemanticScholarConnector] Querying: {query}")
-            req = urllib.request.Request(url, headers={"User-Agent": "TruthMirror/0.1"})
-            with urllib.request.urlopen(req, timeout=self.config.timeout_seconds) as response:
-                payload = json.loads(response.read().decode("utf-8"))
+            response = requests.get(url, headers={"User-Agent": "TruthMirror/0.1"}, timeout=self.config.timeout_seconds)
+            response.raise_for_status()
+            payload = response.json()
         except Exception as e:
             logger.warning(f"[SemanticScholarConnector] Failed for query '{query}': {e}")
             return []
@@ -35,7 +50,7 @@ class SemanticScholarConnector:
             title = p.get("title", "")
             if not title: continue
             authors = p.get("authors", [])
-            author_names = ", ".join([a.get("name", "") for a in authors[:3]]) if authors else "unknown"
+            author_names = _format_authors(authors)
             year = p.get("year")
             date = f"{year}-01-01" if year else datetime.now(timezone.utc).date().isoformat()
             venue = p.get("venue") or "Semantic Scholar"
@@ -66,7 +81,8 @@ class ArxivConnector:
             'resign', 'government', 'party', 'leader', 'politician'
         ]
         claim_lower = query.lower()
-        if any(kw in claim_lower for kw in skip_keywords):
+        import re
+        if any(re.search(rf'\b{re.escape(kw)}\b', claim_lower, re.IGNORECASE) for kw in skip_keywords):
             return []
 
         items = []
@@ -79,7 +95,7 @@ class ArxivConnector:
                 sort_by=arxiv.SortCriterion.Relevance
             )
             for result in client.results(search):
-                authors = ", ".join([a.name for a in result.authors[:3]]) if result.authors else "unknown"
+                authors = _format_authors(result.authors)
                 date = result.published.date().isoformat() if result.published else datetime.now(timezone.utc).date().isoformat()
                 
                 items.append(EvidenceItem(
@@ -112,9 +128,9 @@ class PubMedConnector:
         })
         try:
             logger.info(f"[PubMedConnector] Querying E-Search: {query}")
-            req = urllib.request.Request(search_url, headers={"User-Agent": "TruthMirror/0.1"})
-            with urllib.request.urlopen(req, timeout=self.config.timeout_seconds) as response:
-                payload = json.loads(response.read().decode("utf-8"))
+            response = requests.get(search_url, headers={"User-Agent": "TruthMirror/0.1"}, timeout=self.config.timeout_seconds)
+            response.raise_for_status()
+            payload = response.json()
         except Exception as e:
             logger.warning(f"[PubMedConnector] E-Search failed for query '{query}': {e}")
             return []
@@ -123,30 +139,45 @@ class PubMedConnector:
         if not id_list:
             return []
             
-        summary_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?" + urllib.parse.urlencode({
-            "db": "pubmed",
-            "id": ",".join(id_list),
-            "retmode": "json"
-        })
-        try:
-            logger.info(f"[PubMedConnector] Querying E-Summary: {query}")
-            req = urllib.request.Request(summary_url, headers={"User-Agent": "TruthMirror/0.1"})
-            with urllib.request.urlopen(req, timeout=self.config.timeout_seconds) as response:
-                summary_payload = json.loads(response.read().decode("utf-8"))
-        except Exception as e:
-            logger.warning(f"[PubMedConnector] E-Summary failed for query '{query}': {e}")
-            return []
+        import concurrent.futures
+        
+        chunk_size = 3
+        chunks = [id_list[i:i + chunk_size] for i in range(0, len(id_list), chunk_size)]
+        
+        def fetch_chunk(chunk):
+            summary_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?" + urllib.parse.urlencode({
+                "db": "pubmed",
+                "id": ",".join(chunk),
+                "retmode": "json"
+            })
+            resp = requests.get(summary_url, headers={"User-Agent": "TruthMirror/0.1"}, timeout=self.config.timeout_seconds)
+            resp.raise_for_status()
+            return resp.json()
+
+        summary_payloads = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+            futures = {executor.submit(fetch_chunk, c): c for c in chunks}
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    summary_payloads.append(future.result())
+                except Exception as e:
+                    logger.warning(f"[PubMedConnector] E-Summary chunk failed: {e}")
             
         items = []
-        result = summary_payload.get("result", {})
-        for uid in id_list:
-            item = result.get(uid)
-            if not item: continue
-            title = item.get("title", "")
-            if not title: continue
-            authors = [a.get("name") for a in item.get("authors", [])]
-            author_names = ", ".join(authors[:3]) if authors else "unknown"
+        for payload in summary_payloads:
+            result = payload.get("result", {})
+            for uid in id_list:
+                item = result.get(uid)
+                if not item: continue
+                title = item.get("title", "")
+                if not title: continue
+            authors = item.get("authors", [])
+            author_names = _format_authors(authors)
             pubdate = item.get("pubdate", "")
+            try:
+                pubdate = dateutil.parser.parse(pubdate).date().isoformat()
+            except Exception:
+                pass
             source = item.get("source", "PubMed")
             
             items.append(EvidenceItem(

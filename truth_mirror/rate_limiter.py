@@ -18,19 +18,30 @@ class AdaptiveRateLimiter:
     - Resets backoff on next success.
     """
     
-    def __init__(self, base_delay: float = 2.0, max_delay: float = 30.0):
+    def __init__(self, base_delay: float = 2.0, max_delay: float = 30.0, max_size: int = 1000):
         self._base_delay = base_delay
         self._max_delay = max_delay
-        self._consecutive_429: dict[str, int] = defaultdict(int)
+        self._max_size = max_size
+        self._consecutive_429: dict[str, int] = {}
         self._lock = asyncio.Lock()
+        
+    def _set_count(self, provider: str, count: int) -> None:
+        if provider in self._consecutive_429:
+            del self._consecutive_429[provider]
+        self._consecutive_429[provider] = count
+        if len(self._consecutive_429) > self._max_size:
+            oldest = next(iter(self._consecutive_429))
+            del self._consecutive_429[oldest]
     
     def record_success(self, provider: str) -> None:
         """Reset backoff counter for a provider after a successful call."""
-        self._consecutive_429[provider] = 0
+        if provider in self._consecutive_429:
+            del self._consecutive_429[provider]
     
     def record_rate_limit(self, provider: str) -> None:
         """Increment backoff counter for a provider after a 429."""
-        self._consecutive_429[provider] += 1
+        count = self._consecutive_429.get(provider, 0)
+        self._set_count(provider, count + 1)
     
     async def wait_if_needed(self, provider: str) -> float:
         """

@@ -5,8 +5,7 @@ from __future__ import annotations
 import math
 import re
 import json
-import urllib.request
-import urllib.error
+import requests
 import time
 import logging
 from collections import Counter
@@ -18,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 NEGATION_TERMS = {"not", "false", "hoax", "denied", "incorrect", "no evidence"}
 CONTRAST_TERMS = {"however", "but", "although", "yet"}
+SHORT_TOKENS = {"us", "uk", "un", "eu", "au", "nz", "rt"}
 
 
 class StanceAnalyzer:
@@ -26,16 +26,16 @@ class StanceAnalyzer:
 
     @staticmethod
     def _token_overlap(claim: str, evidence_text: str) -> float:
-        claim_tokens = {t for t in re.findall(r"[a-zA-Z0-9]+", claim.lower()) if len(t) > 2}
-        ev_tokens = {t for t in re.findall(r"[a-zA-Z0-9]+", evidence_text.lower()) if len(t) > 2}
+        claim_tokens = {t for t in re.findall(r"[a-zA-Z0-9]+", claim.lower()) if len(t) > 2 or t in SHORT_TOKENS}
+        ev_tokens = {t for t in re.findall(r"[a-zA-Z0-9]+", evidence_text.lower()) if len(t) > 2 or t in SHORT_TOKENS}
         if not claim_tokens or not ev_tokens:
             return 0.0
         return len(claim_tokens & ev_tokens) / len(claim_tokens | ev_tokens)
 
     @staticmethod
     def _cosine_similarity(text1: str, text2: str) -> float:
-        t1 = [t for t in re.findall(r"[a-zA-Z0-9]+", text1.lower()) if len(t) > 2]
-        t2 = [t for t in re.findall(r"[a-zA-Z0-9]+", text2.lower()) if len(t) > 2]
+        t1 = [t for t in re.findall(r"[a-zA-Z0-9]+", text1.lower()) if len(t) > 2 or t in SHORT_TOKENS]
+        t2 = [t for t in re.findall(r"[a-zA-Z0-9]+", text2.lower()) if len(t) > 2 or t in SHORT_TOKENS]
         c1 = Counter(t1)
         c2 = Counter(t2)
         terms = set(c1) | set(c2)
@@ -95,23 +95,26 @@ Do not include any explanation or additional text.
                 }
             }
             try:
-                req_data = json.dumps(gemini_payload).encode("utf-8")
-                req = urllib.request.Request(gemini_url, data=req_data, headers={"Content-Type": "application/json"})
-                with urllib.request.urlopen(req, timeout=20) as response:
-                    resp_data = json.loads(response.read().decode("utf-8"))
-                    content = resp_data["candidates"][0]["content"]["parts"][0]["text"]
-                    parsed = json.loads(content)
-                    break
-            except urllib.error.HTTPError as e:
-                if e.code in (429, 403):
+                response = requests.post(gemini_url, json=gemini_payload, headers={"Content-Type": "application/json"}, timeout=20)
+                if response.status_code in (429, 403):
                     wait_time = (2 ** attempt) + 1
-                    logger.warning(f"[StanceAnalyzer] Rate limited/forbidden ({e.code}). Rotating key and retrying in {wait_time}s.")
+                    logger.warning(f"[StanceAnalyzer] Rate limited/forbidden ({response.status_code}). Rotating key and retrying in {wait_time}s.")
                     rotate_gemini_key()
                     time.sleep(wait_time)
                     continue
-                else:
-                    logger.warning(f"[StanceAnalyzer] HTTPError {e.code}: {e.reason}")
+                response.raise_for_status()
+                resp_data = response.json()
+                if resp_data.get("candidates") and resp_data["candidates"][0].get("content", {}).get("parts"):
+                    content = resp_data["candidates"][0]["content"]["parts"][0]["text"]
+                    from truth_mirror.utils import strip_markdown_json
+                    parsed = json.loads(strip_markdown_json(content))
                     break
+                else:
+                    logger.warning(f"[StanceAnalyzer] Gemini response missing content: {resp_data}")
+                    break
+            except requests.exceptions.RequestException as e:
+                logger.warning(f"[StanceAnalyzer] RequestException in detect: {e}")
+                break
             except Exception as e:
                 logger.warning(f"[StanceAnalyzer] Exception in detect: {e}")
                 break

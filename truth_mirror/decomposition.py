@@ -12,6 +12,7 @@ try:
     from google import genai
     from google.genai import types as genai_types
     from dotenv import load_dotenv
+    load_dotenv()
     LLM_AVAILABLE = True
 except ImportError:
     LLM_AVAILABLE = False
@@ -46,8 +47,10 @@ def _mock_dependency_parse(text: str) -> list[tuple[str, str, str]]:
     words = [w.strip(",.;()[]{}") for w in text.split() if w.strip(",.;()[]{}")]
     if len(words) >= 3:
         # Mock a subject-verb-object relationship
-        deps.append((words[1], "nsubj", words[0]))
-        deps.append((words[1], "dobj", words[2]))
+        verbs = {"is", "are", "was", "were", "has", "have", "had", "does", "did", "says", "said"}
+        if words[1].lower() in verbs or words[1].endswith("ed") or words[1].endswith("ing") or words[1].endswith("s"):
+            deps.append((words[1], "nsubj", words[0]))
+            deps.append((words[1], "dobj", words[2]))
     return deps
 
 
@@ -111,7 +114,6 @@ def decompose_claim(claim: str) -> DecompositionResult:
 
     if LLM_AVAILABLE:
         try:
-            load_dotenv()
             from truth_mirror.key_rotator import get_current_key
             api_key = get_current_key()
             if api_key:
@@ -145,7 +147,8 @@ Respond ONLY with a valid JSON object matching this schema. Ensure dependencies 
                     )
                 )
                 
-                result = json.loads(response.text)
+                from truth_mirror.utils import strip_markdown_json
+                result = json.loads(strip_markdown_json(response.text))
                 
                 deps = []
                 for d in result.get("dependencies", []):

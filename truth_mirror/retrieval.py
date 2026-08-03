@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 import re
 import urllib.parse
-import urllib.request
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
+import requests
 from dataclasses import asdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -30,20 +30,23 @@ class EvidenceRetriever:
     def __init__(self, cache_path: str = ".tm_cache.json", config: RetrievalConfig | None = None):
         self.cache_file = Path(cache_path)
         self.config = config or RetrievalConfig()
-        self._cache = self._load_cache()
+        from cachetools import LRUCache
+        self._cache = LRUCache(maxsize=500)
+        self._load_cache()
 
-    def _load_cache(self) -> dict[str, list[dict]]:
+    def _load_cache(self) -> None:
         if not self.cache_file.exists():
-            return {}
+            return
         try:
             cache_data = json.loads(self.cache_file.read_text(encoding="utf-8"))
             logger.info(f"Loaded {len(cache_data)} items from cache version {self.CACHE_VERSION}")
-            return cache_data
+            for k, v in list(cache_data.items())[-500:]:
+                self._cache[k] = v
         except json.JSONDecodeError:
-            return {}
+            pass
 
     def _save_cache(self) -> None:
-        self.cache_file.write_text(json.dumps(self._cache, indent=2), encoding="utf-8")
+        self.cache_file.write_text(json.dumps(dict(self._cache), indent=2), encoding="utf-8")
 
     def retrieve(self, query: str) -> list[EvidenceItem]:
         key = f"{self.CACHE_VERSION}:{query.strip().lower()}"
@@ -76,7 +79,9 @@ class EvidenceRetriever:
         seen: set[str] = set()
         deduped: list[EvidenceItem] = []
         for item in evidence:
-            key = (item.url_or_id or item.source_title).strip().lower()
+            import hashlib
+            key = item.url_or_id or hashlib.md5((item.excerpt or item.source_title or "")[:200].encode('utf-8')).hexdigest()
+            key = key.strip().lower()
             if key in seen:
                 continue
             seen.add(key)
@@ -99,9 +104,9 @@ class EvidenceRetriever:
         )
         try:
             logger.info(f"[WikipediaConnector] Querying: {query}")
-            req = urllib.request.Request(search_url, headers={"User-Agent": "TruthMirror/0.1"})
-            with urllib.request.urlopen(req, timeout=self.config.timeout_seconds) as response:
-                payload = json.loads(response.read().decode("utf-8"))
+            response = requests.get(search_url, headers={"User-Agent": "TruthMirror/0.1"}, timeout=self.config.timeout_seconds)
+            response.raise_for_status()
+            payload = response.json()
         except Exception as e:
             logger.warning(f"[WikipediaConnector] Failed for query '{query}': {e}")
             return []
@@ -142,9 +147,9 @@ class EvidenceRetriever:
         )
         try:
             logger.info(f"[WikinewsConnector] Querying: {query}")
-            req = urllib.request.Request(search_url, headers={"User-Agent": "TruthMirror/0.2"})
-            with urllib.request.urlopen(req, timeout=self.config.timeout_seconds) as response:
-                payload = json.loads(response.read().decode("utf-8"))
+            response = requests.get(search_url, headers={"User-Agent": "TruthMirror/0.2"}, timeout=self.config.timeout_seconds)
+            response.raise_for_status()
+            payload = response.json()
         except Exception as e:
             logger.warning(f"[WikinewsConnector] Failed for query '{query}': {e}")
             return []
@@ -177,9 +182,9 @@ class EvidenceRetriever:
         )
         try:
             logger.info(f"[CrossrefConnector] Querying: {query}")
-            req = urllib.request.Request(api_url, headers={"User-Agent": "TruthMirror/0.2"})
-            with urllib.request.urlopen(req, timeout=self.config.timeout_seconds) as response:
-                payload = json.loads(response.read().decode("utf-8"))
+            response = requests.get(api_url, headers={"User-Agent": "TruthMirror/0.2"}, timeout=self.config.timeout_seconds)
+            response.raise_for_status()
+            payload = response.json()
         except Exception as e:
             logger.warning(f"[CrossrefConnector] Failed for query '{query}': {e}")
             return []
@@ -192,7 +197,8 @@ class EvidenceRetriever:
             link = f"https://doi.org/{doi}" if doi else ""
             year_parts = work.get("created", {}).get("date-parts", [[None]])
             year = year_parts[0][0]
-            date = f"{year}-01-01" if isinstance(year, int) else datetime.now(timezone.utc).date().isoformat()
+            year = int(year) if str(year).isdigit() else None
+            date = f"{year}-01-01" if year is not None else datetime.now(timezone.utc).date().isoformat()
             container = work.get("container-title", [])
             publisher = (container[0] if container else "Crossref").strip() or "Crossref"
             if not title:

@@ -1,0 +1,616 @@
+# Truth Mirror — Comprehensive Codebase Analysis
+
+> **Scope**: Every Python module (57 files), the frontend, Docker config, and tests.
+> **Goal**: Identify all bugs, logic errors, inefficiencies, security issues, and improvement opportunities.
+
+---
+
+## Project Understanding
+
+Truth Mirror is a **geopolitical claim verification engine** that:
+1. Accepts a natural-language claim via a web UI or API
+2. Decomposes it into sub-claims
+3. Retrieves evidence from 15+ sources (news, academic, fact-checkers, archives, non-Western media)
+4. Analyzes source credibility, stance, and geopolitical perspective
+5. Triangulates across ideologically opposing sources
+6. Produces a verdict with confidence score, hidden narratives, and perspective divergence analysis
+
+The architecture flows: `app.py` → `orchestrator.py` / `geo_orchestrator.py` → decomposition → retrieval → analysis → verdict.
+
+---
+
+## Issue Summary
+
+| Severity | Count |
+|----------|-------|
+| 🔴 Critical (bugs, data corruption, security) | 14 |
+| 🟠 High (logic errors, silent failures) | 21 |
+| 🟡 Medium (inefficiencies, poor patterns) | 24 |
+| 🔵 Low (code quality, maintainability) | 16 |
+| **Total** | **75** |
+
+---
+
+## 🔴 Critical Issues
+
+### C1. Geo-Credibility Overrides Are Completely Ignored
+**File**: [credibility.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/credibility.py) + [credibility_registry.json](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/credibility_registry.json)
+
+**Problem**: `credibility_registry.json` defines `geo_credibility_overrides` with bias adjustments for state media (TASS, RT, CGTN, etc.). However, `CredibilityRegistry.load()` in `credibility.py` **never reads or applies this key**. All geopolitical credibility overrides silently fall back to the default `0.55` score, completely neutralizing the bias-adjustment engine — a core feature of the project.
+
+**Fix**: Parse `geo_credibility_overrides` in `CredibilityRegistry.load()` and apply them during credibility scoring when a geopolitical context is detected.
+
+---
+
+### C2. SPARQL Injection in Knowledge Graph Verifier
+**File**: [kg_verifier.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/kg_verifier.py)
+
+**Problem**: `entity_name` is injected directly into `build_sparql_query` without escaping double quotes. A claim containing `"` characters can break SPARQL syntax or alter the query semantics.
+
+**Fix**: Escape special characters in entity names before injection: `entity_name.replace('"', '\\"')`.
+
+---
+
+### C3. aiohttp Session Created Per Request (Socket Exhaustion)
+**File**: [source_analyzer.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/source_analyzer.py)
+
+**Problem**: `aiohttp.ClientSession()` is instantiated independently on **every single async API call** to Gemini and OpenRouter. This bypasses connection pooling entirely, causes massive TCP overhead, and leads to socket exhaustion under any meaningful load.
+
+**Fix**: Create a single `aiohttp.ClientSession` per pipeline run (or use a shared session with connection pooling) and pass it through or store it as an instance attribute.
+
+---
+
+### C4. Missing `timeout` on ALL Network Calls in Retrieval Modules
+**Files**: [retrieval_fact.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_fact.py), [retrieval_archival.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_archival.py), [retrieval_quotes.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_quotes.py)
+
+**Problem**: Multiple `requests.get()` calls across Snopes, GovInfo, Wikidata, WorldBank, Wayback Machine, OpenLibrary, and Wikiquote have **no `timeout` parameter**. Any of these can hang indefinitely and stall the entire pipeline.
+
+**Fix**: Add `timeout=15` (or configurable) to every `requests.get()` and `requests.post()` call.
+
+---
+
+### C5. XML External Entity (XXE) Vulnerability in RSS Parsing
+**File**: [retrieval_news.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_news.py)
+
+**Problem**: Uses native `xml.etree.ElementTree.fromstring()` to parse untrusted RSS feeds from the internet. This is vulnerable to XXE attacks that could read local files or trigger SSRF.
+
+**Fix**: Replace with `defusedxml.ElementTree.fromstring()` from the `defusedxml` package.
+
+---
+
+### C6. Zero-Vector Embeddings Silently Poison Similarity Search
+**File**: [embeddings.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/embeddings.py)
+
+**Problem**: When the Gemini embedding API fails, the fallback returns `[0.0] * 768`. These zero vectors have zero cosine similarity with everything, but in FAISS (L2 distance), they'll match at predictable distances, silently injecting garbage results into the ranking pipeline.
+
+**Fix**: Return `None` on failure and handle the `None` case in callers by skipping those items rather than storing toxic embeddings.
+
+---
+
+### C7. Auth Bypass When `AUTH_PASSWORD` Not Set
+**File**: [app.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/../app.py)
+
+**Problem**: If `AUTH_PASSWORD` is not set in `.env`, the check `if not AUTH_PASSWORD: return True` completely bypasses authentication, exposing the API endpoint to anyone.
+
+**Fix**: Default to requiring auth. If no password is configured, either refuse to start or generate a random password and log it to stdout.
+
+---
+
+### C8. Mock Data Served Silently in Production
+**Files**: [retrieval_fact.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_fact.py), [retrieval_archival.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_archival.py), [retrieval_quotes.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_quotes.py)
+
+**Problem**: When API keys are missing, several connectors return **mock/dummy data** silently instead of raising errors or returning empty results. In production, this means the verdict engine could base its analysis on fabricated evidence.
+
+**Fix**: Return empty lists when keys are missing and log a warning. Never serve mock data outside of test mode.
+
+---
+
+### C9. Prompt Injection via Untrusted Source Content
+**File**: [source_analyzer.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/source_analyzer.py)
+
+**Problem**: Raw article titles and snippets from untrusted news sources are injected directly into LLM prompts without sanitization. A malicious domain could craft article titles that hijack the analysis prompt.
+
+**Fix**: Sanitize or truncate source content before prompt injection. Strip control characters and limit length.
+
+---
+
+### C10. Unhandled Exceptions Crash HTTP Handler Thread
+**File**: [app.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/../app.py)
+
+**Problem**: In `do_POST`, `future.result(timeout=300)` can raise any exception from the pipeline (e.g., `ValueError`, `KeyError`, `TypeError`). Only `TimeoutError` is explicitly caught. Any other exception crashes the HTTP handler thread with no response sent to the client.
+
+**Fix**: Add a broad `except Exception as e:` handler that returns a 500 JSON error response.
+
+---
+
+### C11. Race Condition in Thread Pool Destroys Result Ordering
+**File**: [search_planner.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/search_planner.py)
+
+**Problem**: Results are appended to `all_results` via `as_completed(futures)`. This returns results in the order threads finish, not in relevance order. Search engines return ranked results, but this approach randomizes that ranking.
+
+**Fix**: Use `executor.map()` or associate each future with its source index and re-sort after collection.
+
+---
+
+### C12. `rt.com` Domain Matching Catches `art.com`, `smart.com`
+**File**: [triangulation.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/triangulation.py)
+
+**Problem**: Naive substring matching `if known_domain in domain:` causes `rt.com` to match `art.com`, `smart.com`, `chart.com`, etc., incorrectly labeling them as Russian state-sponsored media.
+
+**Fix**: Use exact domain matching or compare against the registered domain suffix: `domain == known_domain or domain.endswith('.' + known_domain)`.
+
+---
+
+### C13. `"time"` Fuzzy-Matches `"new york times"` in Source Registry
+**File**: [source_registry.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/source_registry.py)
+
+**Problem**: The fallback logic `if known_name in pub_lower or pub_lower in known_name:` means a publisher named `"time"` matches `"new york times"` (and vice versa), incorrectly assigning the wrong credibility and bias metadata.
+
+**Fix**: Use exact matching first, then use token-set similarity (e.g., Jaccard over words) instead of substring containment.
+
+---
+
+### C14. `_call_count` Thread Safety Issue
+**File**: [gemini_analyzer.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/gemini_analyzer.py)
+
+**Problem**: `GeminiAnalyzer._call_count` is a class-level counter incremented without locks. In a threaded environment (the server uses `ThreadingHTTPServer`), concurrent requests can cause race conditions on this counter, either exceeding or under-counting API calls.
+
+**Fix**: Use `threading.Lock()` around counter increments or switch to `threading.atomic` / `itertools.count`.
+
+---
+
+## 🟠 High-Priority Issues
+
+### H1. Memory Leak — Pipeline Status Never Cleaned
+**File**: [pipeline_status.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/pipeline_status.py)
+
+**Problem**: `cleanup_stale()` is defined but **never called**. The `_statuses` dict grows indefinitely with every request.
+
+**Fix**: Call `cleanup_stale()` periodically (e.g., at the start of each new request) or use a TTL-based `cachetools.TTLCache`.
+
+---
+
+### H2. Memory Leak — SQLite Cache Never Purged
+**File**: [caching.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/caching.py)
+
+**Problem**: `cleanup_expired_results()` is defined but never invoked. While `get_result()` correctly filters by `expires_at`, stale rows remain on disk forever, growing the SQLite database unboundedly.
+
+**Fix**: Call `cleanup_expired_results()` on cache initialization or on a periodic schedule.
+
+---
+
+### H3. JSON Cache Loaded Entirely Into Memory
+**File**: [retrieval.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval.py)
+
+**Problem**: The JSON cache file is loaded entirely into memory on every `EvidenceRetriever` instantiation and written back entirely on every save. As the cache grows, this causes severe memory and I/O bottlenecks.
+
+**Fix**: Migrate to the existing SQLite cache (`caching.py`) or implement lazy loading with pagination.
+
+---
+
+### H4. `perspective_registry.json` Reloaded From Disk on Every Instantiation
+**File**: [perspective_tagger.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/perspective_tagger.py)
+
+**Problem**: The ~100KB `perspective_registry.json` file is read and parsed from disk every time `PerspectiveTagger` is instantiated. This is wasteful and slow.
+
+**Fix**: Cache the parsed registry at the module level or use `functools.lru_cache`.
+
+---
+
+### H5. `load_dotenv()` Called Inside Hot Functions
+**Files**: [decomposition.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/decomposition.py), [claim_scope_gate.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/claim_scope_gate.py), [geo_classifier.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/geo_classifier.py)
+
+**Problem**: `load_dotenv()` is called inside frequently-invoked functions like `decompose_claim()` and `gate_claim()` instead of once at module load. This reads `.env` from disk on every invocation.
+
+**Fix**: Move `load_dotenv()` to the module top-level or `app.py` startup.
+
+---
+
+### H6. Gemini Safety Filter Causes Unhandled Crash
+**Files**: [claim_scope_gate.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/claim_scope_gate.py), [stance.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/stance.py), [narrative_clusterer.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/narrative_clusterer.py)
+
+**Problem**: Multiple modules parse Gemini HTTP API responses as `resp_data["candidates"][0]["content"]["parts"][0]["text"]`. When Google's safety filters block a response, `candidates` is empty or missing `parts`, causing an unhandled `IndexError` or `KeyError`.
+
+**Fix**: Add defensive checks: `if resp_data.get("candidates") and resp_data["candidates"][0].get("content", {}).get("parts"):` before accessing nested fields.
+
+---
+
+### H7. LLM JSON Responses Wrapped in Markdown Not Handled
+**Files**: [decomposition.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/decomposition.py), [verdict_engine.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/verdict_engine.py), [narrative_clusterer.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/narrative_clusterer.py), [geo_synthesizer.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/geo_synthesizer.py)
+
+**Problem**: `json.loads(response.text)` is used directly on LLM output. LLMs frequently wrap JSON in markdown fences (` ```json ... ``` `), causing `JSONDecodeError`. Some files have partial stripping; many don't.
+
+**Fix**: Create a shared utility function `strip_markdown_json(text)` that removes markdown fences before parsing, and use it consistently across all LLM response parsing.
+
+---
+
+### H8. Substring Matching Causes False Positive Keyword Skips
+**Files**: [retrieval_news.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_news.py), [retrieval_acad.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_acad.py)
+
+**Problem**: `any(term in text for term in query_terms)` matches substrings. "war" matches "award", "forward", "warning". In `retrieval_acad.py`, skip keywords like "war" cause academic queries about "award" to be skipped entirely.
+
+**Fix**: Use regex word boundaries: `re.search(rf'\b{re.escape(term)}\b', text)`.
+
+---
+
+### H9. Temporal Validator Triggers on Non-Date Numbers
+**File**: [temporal_validator.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/temporal_validator.py)
+
+**Problem**: The regex `r'\b(1\d{3}|2\d{3})\b'` matches any 4-digit number starting with 1 or 2. "He spent 2050 dollars" is flagged as an impossible future date (2050 > 2026), causing the claim to be rejected.
+
+**Fix**: Require contextual year indicators (e.g., "in 2050", "since 2050", "year 2050") or use NER to distinguish years from quantities.
+
+---
+
+### H10. Stance Detection Drops 2-Letter Country Codes
+**File**: [stance.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/stance.py)
+
+**Problem**: The token overlap heuristic ignores words with fewer than 3 characters. This drops critical geopolitical entities: "UK", "US", "UN", "EU", "AU", "NZ".
+
+**Fix**: Maintain a whitelist of important short tokens or lower the minimum to 2 characters.
+
+---
+
+### H11. Entity Extraction Fails on Non-Title-Case Names
+**File**: [kg_verifier.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/kg_verifier.py)
+
+**Problem**: The regex `r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b'` assumes strict Title Case. It fails on "Leonardo da Vinci", "Osama bin Laden", "iPhone", or entirely lowercase input.
+
+**Fix**: Use spaCy NER (already loaded in `nlp_pipeline.py`) for entity extraction instead of regex.
+
+---
+
+### H12. Crossref Date Parsing Treats String Years as Current Date
+**File**: [retrieval.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval.py)
+
+**Problem**: `date = f"{year}-01-01" if isinstance(year, int) else datetime.now()`. If the API returns the year as a string `"2023"`, it falls back to the current date, which corrupts recency scoring.
+
+**Fix**: `year = int(year) if str(year).isdigit() else None` before the format step.
+
+---
+
+### H13. ReAct Agent Context Window Overflow
+**File**: [agent.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/agent.py)
+
+**Problem**: If the LLM response contains neither an action nor a final answer, a long generic observation string is appended to the prompt. If the LLM gets stuck in this state, the observation string loops and rapidly consumes the entire context window.
+
+**Fix**: Add a stuck-detection counter. After 2-3 consecutive generic observations, force a final answer or abort.
+
+---
+
+### H14. Grammatically Broken Claim Negation
+**File**: [verifiers.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/verifiers.py)
+
+**Problem**: `negated_claim = f"not {enriched_subclaim}"` produces nonsensical queries like "not The US bombed Syria" which confuse search engines and LLMs.
+
+**Fix**: Use proper grammatical negation (insert "did not" before the verb) or rephrase as a question: "Is it false that {claim}?".
+
+---
+
+### H15. Wayback Machine URL Substitution Destroys Original Reference
+**File**: [verifiers.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/verifiers.py)
+
+**Problem**: `item.url_or_id = wb["url"]` irreversibly overwrites the original source URL with the Wayback Machine archive URL. The original URL is permanently lost.
+
+**Fix**: Store the Wayback URL in a separate field (e.g., `item.archive_url`) while preserving `item.url_or_id`.
+
+---
+
+### H16. Groq Key Rotation Uses Non-Deterministic Set Order
+**File**: [groq_router.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/groq_router.py)
+
+**Problem**: API keys are deduplicated using `set()`, which has non-deterministic iteration order. `GROQ_API_KEY_1` might be tried after `GROQ_API_KEY_2`, making rotation unpredictable.
+
+**Fix**: Use `dict.fromkeys(keys)` for ordered deduplication.
+
+---
+
+### H17. Silent Exception Swallowing in Parallel Retrieval
+**Files**: [geo_orchestrator.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/geo_orchestrator.py), [retrieval_free.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_free.py)
+
+**Problem**: `except Exception: pass` and `except Exception: return []` in parallel futures silently swallows all errors, including authentication failures, rate limits, and configuration errors.
+
+**Fix**: Log exceptions at `WARNING` level before returning empty results.
+
+---
+
+### H18. LLM Index Hallucination in Batch Source Analysis
+**File**: [source_analyzer.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/source_analyzer.py)
+
+**Problem**: When parsing batch responses, `idx = int(raw_item.get("article_index", 0)) - 1` assumes the LLM correctly mirrors the index. If the LLM hallucinates, skips, or reorders indices, stances are applied to wrong sources.
+
+**Fix**: Match by article title or URL hash instead of relying on LLM-generated indices.
+
+---
+
+### H19. Temporal Context Injection Creates Grammatically Wrong Claims
+**File**: [normalization.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/normalization.py)
+
+**Problem**: `inject_temporal_context` always appends `as of {current_month_year}` if time words aren't found, producing nonsensical claims like "Water boils at 100 degrees as of July 2026".
+
+**Fix**: Only inject temporal context when the claim is classified as temporally sensitive (use `temporal_classifier.py` result).
+
+---
+
+### H20. Deduplication by `url_or_id` Fails for Sources Without URLs
+**Files**: [search_planner.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/search_planner.py), [retrieval.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval.py)
+
+**Problem**: Deduplication uses `url_or_id or source_title`. For sources with empty URLs and common generic titles (e.g., "Report"), distinct articles are incorrectly discarded. Conversely, items with empty `url_or_id` bypass dedup entirely in `search_planner.py`.
+
+**Fix**: Generate a content hash (e.g., `hashlib.md5(snippet[:200])`) as a dedup key when `url_or_id` is absent.
+
+---
+
+### H21. NLP Pipeline Always Fails First Load Attempt
+**File**: [nlp_pipeline.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/nlp_pipeline.py)
+
+**Problem**: Tries to load `en_core_web_trf` (a heavy transformer model), but the Dockerfile only installs `en_core_web_sm`. The first load always fails with an `OSError`, wastes time, then falls back to `sm`.
+
+**Fix**: Match the code to the Dockerfile — try `en_core_web_sm` first, or install `en_core_web_trf` in the Dockerfile.
+
+---
+
+## 🟡 Medium-Priority Issues
+
+### M1. Blocking `time.sleep()` Inside `asyncio.to_thread()`
+**Files**: [perspective_synthesizer.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/perspective_synthesizer.py), [hidden_story_extractor.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/hidden_story_extractor.py)
+
+**Problem**: Synchronous `time.sleep(2)` retries inside `asyncio.to_thread()` block thread pool workers, potentially exhausting the default pool.
+
+**Fix**: Use `asyncio.sleep()` with proper async retry logic, or increase the thread pool size.
+
+---
+
+### M2. Inconsistent HTTP Clients Across Codebase
+**Files**: Multiple modules
+
+**Problem**: The codebase uses 4 different HTTP clients inconsistently:
+- `urllib.request` (perspective_synthesizer, hidden_story_extractor, geo_classifier)
+- `requests` (retrieval modules, geo_query_generator)
+- `aiohttp` (source_analyzer, geo_orchestrator)
+- `openai` SDK (geo_synthesizer)
+
+**Fix**: Standardize on `aiohttp` for async paths and `requests` for sync paths. Remove `urllib.request` usage.
+
+---
+
+### M3. Massive Code Duplication in LLM Fallback Chains
+**Files**: [perspective_synthesizer.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/perspective_synthesizer.py), [hidden_story_extractor.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/hidden_story_extractor.py), [claim_scope_gate.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/claim_scope_gate.py), [geo_query_generator.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/geo_query_generator.py)
+
+**Problem**: The Groq → Gemini → OpenRouter → regex fallback pattern is duplicated across 5+ files with slight variations. Any fix to API handling must be applied in multiple places.
+
+**Fix**: Extract a shared `LLMFallbackChain` class or utility that encapsulates the cascade with configurable prompts.
+
+---
+
+### M4. `geo_orchestrator.py` Has 200+ Line Method
+**File**: [geo_orchestrator.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/geo_orchestrator.py)
+
+**Problem**: The `run_async` method is over 200 lines with inline imports, hardcoded prompts, and deeply nested try-except blocks.
+
+**Fix**: Break into smaller, well-named methods: `_classify()`, `_generate_queries()`, `_retrieve()`, `_analyze()`, `_synthesize()`.
+
+---
+
+### M5. Hardcoded Magic Numbers Throughout Verdict Logic
+**Files**: [verdict.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/verdict.py), [abstention.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/abstention.py)
+
+**Problem**: Confidence thresholds (`0.55`, `0.35`, `0.7`) and status assignments are completely hardcoded with no configuration or documentation of why these values were chosen.
+
+**Fix**: Move to a configuration file or constants module with documented rationale.
+
+---
+
+### M6. `ThreadPoolExecutor(max_workers=1)` Created Per Request
+**File**: [app.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/../app.py)
+
+**Problem**: A new `ThreadPoolExecutor` is created for each POST request. Thread pool creation is expensive.
+
+**Fix**: Create a single executor at module level and reuse it.
+
+---
+
+### M7. Context Tracker Performance Degrades With History
+**File**: [context_tracker.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/context_tracker.py)
+
+**Problem**: Loads up to 1000 claims from a JSON file, then computes Gemini embeddings synchronously for all related claims during each tracking call. This becomes a severe bottleneck as history grows.
+
+**Fix**: Pre-compute and cache embeddings. Use the vector store for similarity search instead of brute-force iteration.
+
+---
+
+### M8. PubMed Uses Sequential HTTP Calls
+**File**: [retrieval_acad.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_acad.py)
+
+**Problem**: PubMed uses two sequential synchronous HTTP calls (E-Search then E-Summary) that could be parallelized or batched.
+
+**Fix**: Use `asyncio.gather()` or `concurrent.futures` to parallelize the two calls.
+
+---
+
+### M9. Inline Imports in Hot Paths
+**Files**: [models.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/models.py), [orchestrator.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/orchestrator.py), [source_registry.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/source_registry.py), [geo_orchestrator.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/geo_orchestrator.py)
+
+**Problem**: Standard library imports (`asyncio`, `time`, `datetime`, `urlparse`, `asdict`) are placed inside frequently-called functions instead of at module top-level.
+
+**Fix**: Move all standard library imports to the top of each file.
+
+---
+
+### M10. `abstention.py` Iterates Evidence List Multiple Times
+**File**: [abstention.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/abstention.py)
+
+**Problem**: Calculates `contradict_ratio`, `support_ratio`, etc., by iterating over the evidence list multiple times.
+
+**Fix**: Single-pass aggregation with a counter dict.
+
+---
+
+### M11. Timezone-Unaware `datetime.now()` in Temporal Logic
+**File**: [temporal_classifier.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/temporal_classifier.py)
+
+**Problem**: `datetime.now().strftime("%B %Y")` uses server-local time with no timezone awareness. Edge cases around month/year boundaries produce incorrect temporal markers.
+
+**Fix**: Use `datetime.now(timezone.utc)` consistently.
+
+---
+
+### M12. Scraper Fragility for Snopes
+**File**: [retrieval_fact.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_fact.py)
+
+**Problem**: `SnopesFactCheckScraper` relies on specific HTML structure (`article.find("a")`). Any Snopes layout change will silently break this connector.
+
+**Fix**: Add defensive parsing with fallback selectors and log warnings when expected elements aren't found.
+
+---
+
+### M13. `query_generator.py` Regex Guardrail Bypassed by Leading Spaces
+**File**: [query_generator.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/query_generator.py)
+
+**Problem**: `re.match(pattern, q)` anchors at string start. If the LLM generates queries with a leading space (common), the bad-prefix guardrail is completely bypassed.
+
+**Fix**: Strip whitespace before matching: `re.match(pattern, q.strip())`.
+
+---
+
+### M14. Wikidata Fallback in Entity Resolution Is Ineffective
+**File**: [entity_resolution.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/entity_resolution.py)
+
+**Problem**: The Wikidata fallback passes the **full claim text** as a search query, which yields poor results for sentence-length inputs.
+
+**Fix**: Extract entities using NER first, then query Wikidata for each individual entity.
+
+---
+
+### M15. RSS Feeds Are Hardcoded
+**File**: [retrieval_news.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_news.py)
+
+**Problem**: BBC, NPR, and other RSS feeds are hardcoded inside the class. Adding or removing feeds requires code changes.
+
+**Fix**: Move feed URLs to a configuration file or the source registry.
+
+---
+
+### M16. FAISS Index Assumes No Deletions
+**File**: [vector_store.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/vector_store.py)
+
+**Problem**: FAISS `IndexFlatL2` doesn't natively map IDs. The brittle list-based sync (`self.docs`, `self.ids`) assumes items are never deleted. Any deletion will desync indices.
+
+**Fix**: Use `faiss.IndexIDMap` to map custom IDs to vectors, or switch to ChromaDB for all cases.
+
+---
+
+### M17. Synchronous `time.sleep(1.0)` in Snopes Scraper
+**File**: [retrieval_fact.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_fact.py)
+
+**Problem**: Blocks the execution thread for 1 second on every Snopes query.
+
+**Fix**: Use `asyncio.sleep()` or move to the thread pool.
+
+---
+
+### M18. Testing Logger Crashes if `misc/` Directory Missing
+**File**: [testing_logger.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/testing_logger.py)
+
+**Problem**: `open("misc/testing_run_count.txt", "w")` will throw `FileNotFoundError` if the `misc/` directory doesn't exist.
+
+**Fix**: Use `os.makedirs("misc", exist_ok=True)` before writing.
+
+---
+
+### M19. Concurrent Log Writes Can Interleave
+**File**: [eval_logger.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/eval_logger.py)
+
+**Problem**: Opens `eval.txt` in append mode synchronously. Concurrent pipeline runs can interleave output, corrupting log entries.
+
+**Fix**: Use file locking (`fcntl.flock` on Unix, `msvcrt.locking` on Windows) or switch to Python's `logging` module.
+
+---
+
+### M20. Archival Connectors Are Stubs
+**File**: [retrieval_archival.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_archival.py)
+
+**Problem**: UNDocument, Hansard, Europarl, and Project Gutenberg connectors return hardcoded dummy data, giving a false impression of breadth.
+
+**Fix**: Either implement them properly or remove them and document them as planned features.
+
+---
+
+### M21. `print()` Used Instead of `logging`
+**Files**: [search_planner.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/search_planner.py), multiple other files
+
+**Problem**: Raw `print()` statements are used for error reporting instead of the `logging` module.
+
+**Fix**: Replace all `print()` calls with structured `logging.warning()` / `logging.error()` calls.
+
+---
+
+### M22. Dummy Entries in `perspective_registry.json`
+**File**: [perspective_registry.json](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/perspective_registry.json)
+
+**Problem**: Contains hundreds of placeholder entries (`news-source-1.com`, `news-source-2.com`, etc.) that bloat the ~100KB file without providing value.
+
+**Fix**: Remove dummy entries. If they're templates, document them separately.
+
+---
+
+### M23. `claim_scope_gate.py` Year Regex Misses Sub-1000 Years
+**File**: [claim_scope_gate.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/claim_scope_gate.py)
+
+**Problem**: `extract_years_mentioned` only matches `19xx`, `20xx`, and `2100`. Claims about ancient history (e.g., "Alexander conquered Persia in 331 BC") are invisible to the gate.
+
+**Fix**: Expand the regex or use NER-based date extraction for broader coverage.
+
+---
+
+### M24. Rate Limiter `_consecutive_429` Dict Grows Unbounded
+**File**: [rate_limiter.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Minor/truth_mirror/rate_limiter.py)
+
+**Problem**: The `_consecutive_429` dictionary grows indefinitely as more unique providers are encountered.
+
+**Fix**: Use a bounded `collections.OrderedDict` or `cachetools.LRUCache`.
+
+---
+
+## 🔵 Low-Priority Issues
+
+| # | File | Issue |
+|---|------|-------|
+| L1 | [Dockerfile](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/Dockerfile) | Doesn't install `en_core_web_trf`, guaranteeing fallback warning on every startup |
+| L2 | [test_integration.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/test_integration.py) | Hardcoded auth credentials (`"tmirror2024"`), no assertions, manual smoke test only |
+| L3 | [models.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/models.py) | `to_json()` imports `asdict` inline instead of at module top |
+| L4 | [orchestrator.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/orchestrator.py) | Silent `except ImportError: pass` for `GoogleNewsRSSConnector` — no logging |
+| L5 | [llm_client.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/llm_client.py) | Hardcoded Ollama timeout of 30s — too short for large models |
+| L6 | [key_rotator.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/key_rotator.py) | `.env` changes after startup not picked up without restart |
+| L7 | [ranking.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/ranking.py) | `fromisoformat()` fails on "Z" suffix in older Python, defaults to poor recency score |
+| L8 | [static/index.html](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/static/index.html) | 1600-line monolithic file with inline CSS and JS — should be split |
+| L9 | [verdict_engine.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/verdict_engine.py) | Hardcoded sentinel `"your_openrouter_api_key_here"` — code smell |
+| L10 | [app.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/app.py) | Username in Basic Auth is ignored — any username works |
+| L11 | [retrieval_acad.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_acad.py) | Author formatting logic copy-pasted across connector classes |
+| L12 | [retrieval_nonwestern.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/retrieval_nonwestern.py) | Google News `site:` operator unreliable, may pollute feeds |
+| L13 | [local_decomposer.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/local_decomposer.py) | Short claim expansion validation too aggressive — rejects legitimate expansions |
+| L14 | [decomposition.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/decomposition.py) | `_mock_dependency_parse` creates meaningless tuples for 3-word non-verb inputs |
+| L15 | [routing.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/routing.py) | Regex word boundaries may miss plurals or punctuation-attached words |
+| L16 | [geo_orchestrator.py](file:///c:/Users/DELL/.gemini/antigravity/scratch/Truth%20Mirror/truth_mirror/geo_orchestrator.py) | Neutral-stance claims silently dropped from consensus/disputed lists |
+
+---
+
+## Architecture-Level Recommendations
+
+### A1. Create a Shared LLM Client Layer
+The codebase has **5+ different ways** of calling LLMs (direct Groq SDK, Gemini HTTP, Gemini SDK, OpenRouter via requests, OpenRouter via urllib, OpenRouter via OpenAI SDK). Consolidate into a single `LLMClient` with provider-agnostic methods and built-in JSON parsing, markdown stripping, retry logic, and rate limiting.
+
+### A2. Unify Caching Strategy
+There are **3 separate caching mechanisms**: SQLite (`caching.py`), JSON file (`retrieval.py`), and in-memory dicts. Consolidate on the SQLite cache with proper TTL and cleanup.
+
+### A3. Implement Structured Logging
+Replace all `print()` statements with Python's `logging` module. Add request IDs for tracing through the pipeline.
+
+### A4. Add Integration Test Assertions
+`test_integration.py` is a manual smoke test with no assertions. Add proper `assert` statements and run it in CI.
+
+### A5. Split the Frontend
+`static/index.html` is a 1600-line monolith. Split into separate HTML, CSS, and JS files for maintainability.
+
+### A6. Fix Import Style for Deployment
+Multiple files use `from truth_mirror.module import X` which breaks when running from within the `truth_mirror/` directory (per deployment rules). Switch to relative imports: `from .module import X`.

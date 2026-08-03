@@ -8,6 +8,17 @@ from truth_mirror.models import EvidenceItem
 
 logger = logging.getLogger(__name__)
 
+import functools
+
+@functools.lru_cache(maxsize=1)
+def _load_registry(registry_path: str) -> dict:
+    try:
+        with open(registry_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"Failed to load perspective registry from {registry_path}: {e}")
+        return {}
+
 class PerspectiveTagger:
     """
     Determines the geopolitical perspective group for evidence items.
@@ -15,14 +26,9 @@ class PerspectiveTagger:
     """
     def __init__(self, registry_path: str = None):
         if registry_path is None:
-            registry_path = Path(__file__).parent / "perspective_registry.json"
+            registry_path = str(Path(__file__).parent / "perspective_registry.json")
         
-        self.registry = {}
-        try:
-            with open(registry_path, "r", encoding="utf-8") as f:
-                self.registry = json.load(f)
-        except Exception as e:
-            logger.error(f"Failed to load perspective registry from {registry_path}: {e}")
+        self.registry = _load_registry(registry_path)
 
     def tag(self, evidence_list: List[EvidenceItem], involved_parties: List[str]) -> None:
         """

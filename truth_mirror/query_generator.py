@@ -118,7 +118,7 @@ class QueryGenerator:
             # GUARDRAIL 2
             is_bad_prefix = False
             for pattern in bad_prefixes:
-                if re.match(pattern, q, re.IGNORECASE):
+                if re.match(pattern, q.strip(), re.IGNORECASE):
                     is_bad_prefix = True
                     break
                     

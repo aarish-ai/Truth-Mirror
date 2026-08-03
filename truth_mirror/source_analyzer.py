@@ -4,8 +4,7 @@ import logging
 import asyncio
 import aiohttp
 import re
-import urllib.request
-import urllib.error
+import requests
 import random
 import threading
 from dataclasses import dataclass
@@ -67,6 +66,7 @@ class SourceAnalysis:
     what_emphasized: str
     what_omitted: str
     hidden_implication: str
+    archive_url: str = ""
 
 
 # Known geopolitical acronyms and short-form entities that must NOT be
@@ -126,25 +126,31 @@ def _call_gemini_sync(prompt: str, model: str, timeout: int = 45) -> Optional[st
             "generationConfig": {"temperature": 0.1, "responseMimeType": "application/json"},
         }
         try:
-            req_data = json.dumps(payload).encode("utf-8")
-            req = urllib.request.Request(
-                url, data=req_data, headers={"Content-Type": "application/json"}
-            )
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                raw = json.loads(resp.read().decode("utf-8"))
-                return raw["candidates"][0]["content"]["parts"][0]["text"]
-        except urllib.error.HTTPError as e:
-            if e.code in (429, 403):
+            response = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=timeout)
+            if response.status_code in (429, 403):
                 wait = (2 ** attempt) + random.uniform(0.5, 1.5)
                 logger.warning(
-                    f"[SourceAnalyzer] Gemini {model} HTTP {e.code} on attempt "
+                    f"[SourceAnalyzer] Gemini {model} HTTP {response.status_code} on attempt "
+                    f"{attempt + 1}. Rotating key, waiting {wait:.1f}s."
+                )
+                rotate_gemini_key()
+                time.sleep(wait)
+                continue
+            response.raise_for_status()
+            raw = response.json()
+            return raw["candidates"][0]["content"]["parts"][0]["text"]
+        except requests.exceptions.RequestException as e:
+            if getattr(e.response, 'status_code', None) in (429, 403):
+                wait = (2 ** attempt) + random.uniform(0.5, 1.5)
+                logger.warning(
+                    f"[SourceAnalyzer] Gemini {model} HTTP {e.response.status_code} on attempt "
                     f"{attempt + 1}. Rotating key, waiting {wait:.1f}s."
                 )
                 rotate_gemini_key()
                 time.sleep(wait)
                 continue
             else:
-                logger.warning(f"[SourceAnalyzer] Gemini HTTP {e.code}: {e.reason}")
+                logger.warning(f"[SourceAnalyzer] Gemini call exception: {e}")
                 return None
         except Exception as e:
             logger.warning(f"[SourceAnalyzer] Gemini call exception: {e}")
@@ -174,58 +180,62 @@ def _call_openrouter_sync(prompt: str, timeout: int = 30) -> Optional[str]:
     max_attempts = 3
     for attempt in range(max_attempts):
         try:
-            req_data = json.dumps(payload).encode("utf-8")
-            req = urllib.request.Request(
-                "https://openrouter.ai/api/v1/chat/completions",
-                data=req_data,
-                headers=headers,
-            )
             with _openrouter_semaphore:
-                with urllib.request.urlopen(req, timeout=timeout) as resp:
-                    data = json.loads(resp.read().decode("utf-8"))
-                    choices = data.get("choices") or []
-                    if choices and choices[0].get("message", {}).get("content"):
-                        return choices[0]["message"]["content"]
-                    return None
-        except urllib.error.HTTPError as e:
-            if e.code == 429:
-                wait = 15 * (attempt + 1)
-                logger.warning(
-                    f"[SourceAnalyzer] OpenRouter 429 on attempt {attempt + 1}. "
-                    f"Waiting {wait:.1f}s."
+                response = requests.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    json=payload,
+                    headers=headers,
+                    timeout=timeout
                 )
-                time.sleep(wait)
-                continue
-            else:
-                logger.warning(f"[SourceAnalyzer] OpenRouter HTTP {e.code}: {e.reason}")
+                if response.status_code == 429:
+                    wait = 15 * (attempt + 1)
+                    logger.warning(
+                        f"[SourceAnalyzer] OpenRouter 429 on attempt {attempt + 1}. "
+                        f"Waiting {wait:.1f}s."
+                    )
+                    time.sleep(wait)
+                    continue
+                response.raise_for_status()
+                data = response.json()
+                choices = data.get("choices") or []
+                if choices and choices[0].get("message", {}).get("content"):
+                    return choices[0]["message"]["content"]
                 return None
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"[SourceAnalyzer] OpenRouter RequestException: {e}")
+            return None
         except Exception as e:
             logger.warning(f"[SourceAnalyzer] OpenRouter exception: {e}")
             return None
     return None
 
 
-async def _call_gemini_async(prompt: str, model: str, timeout: int = 45) -> Optional[str]:
+async def _call_gemini_async(prompt: str, model: str, timeout: int = 45, session: Optional[aiohttp.ClientSession] = None) -> Optional[str]:
     from truth_mirror.key_rotator import get_current_key, rotate_gemini_key
     from truth_mirror.rate_limiter import rate_limiter
 
-    max_attempts = 5
-    for attempt in range(max_attempts):
-        api_key = get_current_key()
-        if not api_key:
-            logger.error("[SourceAnalyzer] No Gemini API key available.")
-            return None
+    own_session = False
+    if session is None:
+        session = aiohttp.ClientSession()
+        own_session = True
 
-        url = (
-            f"https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{model}:generateContent?key={api_key}"
-        )
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0.1, "responseMimeType": "application/json"},
-        }
-        try:
-            async with aiohttp.ClientSession() as session:
+    try:
+        max_attempts = 5
+        for attempt in range(max_attempts):
+            api_key = get_current_key()
+            if not api_key:
+                logger.error("[SourceAnalyzer] No Gemini API key available.")
+                return None
+
+            url = (
+                f"https://generativelanguage.googleapis.com/v1beta/models/"
+                f"{model}:generateContent?key={api_key}"
+            )
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0.1, "responseMimeType": "application/json"},
+            }
+            try:
                 async with session.post(
                     url,
                     json=payload,
@@ -248,38 +258,46 @@ async def _call_gemini_async(prompt: str, model: str, timeout: int = 45) -> Opti
                     raw = await resp.json()
                     rate_limiter.record_success("gemini")
                     return raw["candidates"][0]["content"]["parts"][0]["text"]
-        except asyncio.TimeoutError:
-            logger.warning(f"[SourceAnalyzer] Gemini {model} timed out on attempt {attempt + 1}")
-            continue
-        except Exception as e:
-            logger.warning(f"[SourceAnalyzer] Gemini call exception: {e}")
-            return None
+            except asyncio.TimeoutError:
+                logger.warning(f"[SourceAnalyzer] Gemini {model} timed out on attempt {attempt + 1}")
+                continue
+            except Exception as e:
+                logger.warning(f"[SourceAnalyzer] Gemini call exception: {e}")
+                return None
 
-    logger.error(f"[SourceAnalyzer] Exhausted all {max_attempts} Gemini attempts for {model}.")
-    return None
+        logger.error(f"[SourceAnalyzer] Exhausted all {max_attempts} Gemini attempts for {model}.")
+        return None
+    finally:
+        if own_session:
+            await session.close()
 
 
-async def _call_openrouter_async(prompt: str, timeout: int = 30) -> Optional[str]:
+async def _call_openrouter_async(prompt: str, timeout: int = 30, session: Optional[aiohttp.ClientSession] = None) -> Optional[str]:
     if not OPENROUTER_API_KEY:
         return None
     from truth_mirror.rate_limiter import rate_limiter
 
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://truthmirror.app",
-        "X-Title": "Truth Mirror",
-    }
-    payload = {
-        "model": "qwen/qwen3-next-80b-a3b-instruct:free",
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.1,
-        "response_format": {"type": "json_object"},
-    }
-    max_attempts = 3
-    for attempt in range(max_attempts):
-        try:
-            async with aiohttp.ClientSession() as session:
+    own_session = False
+    if session is None:
+        session = aiohttp.ClientSession()
+        own_session = True
+
+    try:
+        headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://truthmirror.app",
+            "X-Title": "Truth Mirror",
+        }
+        payload = {
+            "model": "qwen/qwen3-next-80b-a3b-instruct:free",
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.1,
+            "response_format": {"type": "json_object"},
+        }
+        max_attempts = 3
+        for attempt in range(max_attempts):
+            try:
                 async with session.post(
                     "https://openrouter.ai/api/v1/chat/completions",
                     headers=headers,
@@ -305,13 +323,16 @@ async def _call_openrouter_async(prompt: str, timeout: int = 30) -> Optional[str
                         rate_limiter.record_success("openrouter")
                         return choices[0]["message"]["content"]
                     return None
-        except asyncio.TimeoutError:
-            logger.warning(f"[SourceAnalyzer] OpenRouter timed out on attempt {attempt + 1}")
-            continue
-        except Exception as e:
-            logger.warning(f"[SourceAnalyzer] OpenRouter exception: {e}")
-            return None
-    return None
+            except asyncio.TimeoutError:
+                logger.warning(f"[SourceAnalyzer] OpenRouter timed out on attempt {attempt + 1}")
+                continue
+            except Exception as e:
+                logger.warning(f"[SourceAnalyzer] OpenRouter exception: {e}")
+                return None
+        return None
+    finally:
+        if own_session:
+            await session.close()
 
 
 def _build_single_prompt(article, claim: str) -> str:
@@ -320,14 +341,25 @@ def _build_single_prompt(article, claim: str) -> str:
     snippet = (article.excerpt or "")[:800]
     publisher_hint = getattr(article, 'publisher', '') if hasattr(article, 'publisher') else ''
     meta = get_source_metadata(url, publisher=publisher_hint)
+
+    def _sanitize(text: str) -> str:
+        if not text:
+            return ""
+        escaped = str(text).replace("```", "` ` `")
+        return f"<untrusted_content>{escaped}</untrusted_content>"
+
+    safe_claim = _sanitize(claim)
+    safe_title = _sanitize(title)
+    safe_snippet = _sanitize(snippet)
+
     return f"""You are an intelligence analyst. Analyze the following news article in relation to the given claim.
 
-CLAIM: {claim}
+CLAIM: {safe_claim}
 
 SOURCE: {meta['name']} ({meta['country']}, {meta['alignment']})
-ARTICLE TITLE: {title}
+ARTICLE TITLE: {safe_title}
 ARTICLE TEXT:
-{snippet}
+{safe_snippet}
 
 Respond ONLY in this exact JSON format, no other text:
 {{
@@ -351,11 +383,20 @@ Rules:
 
 
 def _build_mini_batch_prompt(claim: str, batch: list, temporal_context=None) -> str:
+    def _sanitize(text: str) -> str:
+        if not text:
+            return ""
+        escaped = str(text).replace("```", "` ` `")
+        return f"<untrusted_content>{escaped}</untrusted_content>"
+
+    safe_claim = _sanitize(claim)
     articles_text = ""
     for i, article in enumerate(batch, 1):
         url = article.url_or_id or ""
         title = article.source_title or ""
         excerpt = (article.excerpt or "")[:600]
+        safe_title = _sanitize(title)
+        safe_excerpt = _sanitize(excerpt)
         try:
             publisher_hint = getattr(article, 'publisher', '') if hasattr(article, 'publisher') else ''
             meta = get_source_metadata(url, publisher=publisher_hint)
@@ -369,8 +410,8 @@ def _build_mini_batch_prompt(claim: str, batch: list, temporal_context=None) -> 
         articles_text += (
             f"[{i}] {source_name} ({country}, {alignment})\n"
             f"URL: {url}\n"
-            f"Title: {title}\n"
-            f"{excerpt}\n---\n"
+            f"Title: {safe_title}\n"
+            f"{safe_excerpt}\n---\n"
         )
 
     temporal_instruction = ""
@@ -387,7 +428,7 @@ def _build_mini_batch_prompt(claim: str, batch: list, temporal_context=None) -> 
 You will be given {len(batch)} news articles and a claim to verify.
 For EACH article, produce a structured analysis.
 
-CLAIM BEING VERIFIED: "{claim}"{temporal_instruction}
+CLAIM BEING VERIFIED: {safe_claim}{temporal_instruction}
 
 ARTICLES:
 {articles_text}
@@ -438,8 +479,25 @@ def _parse_batch_response(raw_text: str, batch: list) -> list:
             if not isinstance(raw_item, dict):
                 continue
             try:
-                idx = int(raw_item.get("article_index", 0)) - 1
-                original = batch[idx] if 0 <= idx < len(batch) else None
+                def _jaccard(s1, s2):
+                    set1, set2 = set(s1.split()), set(s2.split())
+                    if not set1 and not set2: return 1.0
+                    return len(set1 & set2) / len(set1 | set2)
+                    
+                resp_title = raw_item.get("title", raw_item.get("source_name", "")).lower().strip()
+                best_match = None
+                best_score = 0.0
+                for a in batch:
+                    score = _jaccard(resp_title, (a.source_title or "").lower())
+                    if score > best_score:
+                        best_score = score
+                        best_match = a
+                
+                if best_match and best_score >= 0.3:
+                    original = best_match
+                else:
+                    idx = int(raw_item.get("article_index", 0)) - 1
+                    original = batch[idx] if 0 <= idx < len(batch) else None
                 if original is not None:
                     url = original.url_or_id or raw_item.get("url", "")
                     title = original.source_title or raw_item.get("source_name", "")
@@ -451,8 +509,12 @@ def _parse_batch_response(raw_text: str, batch: list) -> list:
                     excerpt = ""
                     src_type = "journalism"
                 
+                raw_source_name = raw_item.get("source_name", "")
+                if re.match(r'^\[(?:Source\s*)?\d+\]', raw_source_name, re.IGNORECASE) or not raw_source_name:
+                    raw_source_name = getattr(original, 'publisher', raw_source_name) if original else raw_source_name
+                    
                 # Use registry alignment where known; fall back to LLM's label
-                publisher_hint = raw_item.get("source_name", "")
+                publisher_hint = raw_source_name
                 registry_meta = get_source_metadata(url, publisher=publisher_hint)
                 registry_alignment = registry_meta.get("alignment", "")
                 llm_alignment = raw_item.get("alignment", "unknown")
@@ -460,9 +522,11 @@ def _parse_batch_response(raw_text: str, batch: list) -> list:
                              if registry_alignment and registry_alignment != "unknown"
                              else llm_alignment)
 
+                archive_url = getattr(original, 'archive_url', '') if original else ''
                 results.append(SourceAnalysis(
                     url=url, title=title,
-                    source_name=raw_item.get("source_name", ""),
+                    archive_url=archive_url,
+                    source_name=raw_source_name,
                     source_category=src_type, source_country="",
                     alignment=alignment,
                     reliability_tier=2, snippet=excerpt,
@@ -492,6 +556,7 @@ def _parse_single_response(raw_text: str, article) -> Optional[SourceAnalysis]:
         meta = get_source_metadata(url, publisher=publisher_hint)
         return SourceAnalysis(
             url=url, title=title,
+            archive_url=getattr(article, 'archive_url', ''),
             source_name=meta.get("name", article.publisher or ""),
             source_category=article.source_type or "journalism",
             source_country=meta.get("country", ""),
@@ -516,16 +581,16 @@ class SourceAnalyzer:
     def __init__(self):
         pass
 
-    async def analyze(self, article, claim: str, session: aiohttp.ClientSession) -> Optional[SourceAnalysis]:
+    async def analyze(self, article, claim: str, session: Optional[aiohttp.ClientSession] = None) -> Optional[SourceAnalysis]:
         prompt = _build_single_prompt(article, claim)
-        raw = await _call_gemini_async(prompt, BULK_ANALYSIS_MODEL)
+        raw = await _call_gemini_async(prompt, BULK_ANALYSIS_MODEL, session=session)
         if raw:
             result = _parse_single_response(raw, article)
             if result:
                 logger.info(f"Successfully analyzed source: {article.url_or_id} -> stance={result.stance}")
                 return result
         # Try OpenRouter if Gemini fails
-        raw = await _call_openrouter_async(prompt)
+        raw = await _call_openrouter_async(prompt, session=session)
         if raw:
             result = _parse_single_response(raw, article)
             if result:
@@ -574,8 +639,8 @@ class SourceAnalyzer:
         results = _parse_batch_response(content, articles)
         return results if results else None
 
-    async def _call_gemini_batch_async(self, claim: str, batch: list, prompt: str) -> list | None:
-        raw = await _call_gemini_async(prompt, BULK_ANALYSIS_MODEL, timeout=45)
+    async def _call_gemini_batch_async(self, claim: str, batch: list, prompt: str, session: Optional[aiohttp.ClientSession] = None) -> list | None:
+        raw = await _call_gemini_async(prompt, BULK_ANALYSIS_MODEL, timeout=45, session=session)
         if not raw:
             return None
 
@@ -610,14 +675,14 @@ class SourceAnalyzer:
                        f"First 200 chars of raw: {raw[:200]}")
         return None
 
-    async def _call_openrouter_batch_async(self, claim: str, batch: list, prompt: str) -> list | None:
-        raw = await _call_openrouter_async(prompt, timeout=60)
+    async def _call_openrouter_batch_async(self, claim: str, batch: list, prompt: str, session: Optional[aiohttp.ClientSession] = None) -> list | None:
+        raw = await _call_openrouter_async(prompt, timeout=60, session=session)
         if raw:
             results = _parse_batch_response(raw, batch)
             return results if results else None
         return None
 
-    async def analyze_all(self, articles: list, claim: str, max_concurrent: int = 1, temporal_context=None) -> list:
+    async def analyze_all(self, articles: list, claim: str, max_concurrent: int = 1, temporal_context=None, session: Optional[aiohttp.ClientSession] = None) -> list:
         from truth_mirror.rate_limiter import rate_limiter
         self._temporal_context = temporal_context
         if not articles:
@@ -650,101 +715,110 @@ class SourceAnalyzer:
         logger.info(f"[SourceAnalyzer] Processing {len(relevant)} articles in "
             f"mini-batch(es) of up to {MINI_BATCH_SIZE} (Groq primary, Gemini fallback).")
 
-        all_results = []
-        for i in range(0, len(relevant), MINI_BATCH_SIZE):
-            batch = relevant[i:i + MINI_BATCH_SIZE]
-            batch_num = (i // MINI_BATCH_SIZE) + 1
-            total_batches = (len(relevant) + MINI_BATCH_SIZE - 1) // MINI_BATCH_SIZE
-            prompt = _build_mini_batch_prompt(claim, batch, temporal_context=self._temporal_context)
-            
-            result = None
+        own_session = False
+        if session is None:
+            session = aiohttp.ClientSession()
+            own_session = True
 
-            # ── GROQ PRIMARY (70b) ───────────────────────────────────────────
-            raw = await asyncio.to_thread(
-                self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_PRIMARY
-            )
-            if raw == "RATE_LIMITED" or raw is None:
-                status = "rate_limited" if raw == "RATE_LIMITED" else "failed"
-                tracker.record(f"source_analysis_batch_{batch_num}",
-                               GROQ_ANALYSIS_PRIMARY, "groq", status)
-                logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
-                               f"70b {status}. Trying specdec fallback.")
+        try:
+            all_results = []
+            for i in range(0, len(relevant), MINI_BATCH_SIZE):
+                batch = relevant[i:i + MINI_BATCH_SIZE]
+                batch_num = (i // MINI_BATCH_SIZE) + 1
+                total_batches = (len(relevant) + MINI_BATCH_SIZE - 1) // MINI_BATCH_SIZE
+                prompt = _build_mini_batch_prompt(claim, batch, temporal_context=self._temporal_context)
+                
+                result = None
 
-                # ── GROQ FALLBACK 1 (70b-specdec) ───────────────────────────
+                # ── GROQ PRIMARY (70b) ───────────────────────────────────────────
                 raw = await asyncio.to_thread(
-                    self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_FALLBACK_1
+                    self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_PRIMARY
                 )
                 if raw == "RATE_LIMITED" or raw is None:
                     status = "rate_limited" if raw == "RATE_LIMITED" else "failed"
                     tracker.record(f"source_analysis_batch_{batch_num}",
-                                   GROQ_ANALYSIS_FALLBACK_1, "groq", status)
+                                   GROQ_ANALYSIS_PRIMARY, "groq", status)
                     logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
-                                   f"specdec {status}. Trying qwen-2.5-32b fallback.")
+                                   f"70b {status}. Trying specdec fallback.")
 
-                    # ── GROQ FALLBACK 2 (qwen-2.5-32b) ──────────────────────────
+                    # ── GROQ FALLBACK 1 (70b-specdec) ───────────────────────────
                     raw = await asyncio.to_thread(
-                        self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_FALLBACK_2
+                        self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_FALLBACK_1
                     )
                     if raw == "RATE_LIMITED" or raw is None:
                         status = "rate_limited" if raw == "RATE_LIMITED" else "failed"
                         tracker.record(f"source_analysis_batch_{batch_num}",
-                                       GROQ_ANALYSIS_FALLBACK_2, "groq", status)
-                        logger.warning(
-                            f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
-                            f"qwen-32b {status}. Trying 8b last resort. "
-                            f"QUALITY WARNING: 8b quality is reduced."
-                        )
+                                       GROQ_ANALYSIS_FALLBACK_1, "groq", status)
+                        logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
+                                       f"specdec {status}. Trying qwen-2.5-32b fallback.")
 
-                        # ── GROQ FALLBACK 3 (8b) ────────────────────────────────
+                        # ── GROQ FALLBACK 2 (qwen-2.5-32b) ──────────────────────────
                         raw = await asyncio.to_thread(
-                            self._call_groq_batch, claim, batch, prompt,
-                            GROQ_ANALYSIS_FALLBACK_3
+                            self._call_groq_batch, claim, batch, prompt, GROQ_ANALYSIS_FALLBACK_2
                         )
                         if raw == "RATE_LIMITED" or raw is None:
                             status = "rate_limited" if raw == "RATE_LIMITED" else "failed"
                             tracker.record(f"source_analysis_batch_{batch_num}",
-                                           GROQ_ANALYSIS_FALLBACK_3, "groq", status)
+                                           GROQ_ANALYSIS_FALLBACK_2, "groq", status)
+                            logger.warning(
+                                f"[SourceAnalyzer] Batch {batch_num}/{total_batches}: "
+                                f"qwen-32b {status}. Trying 8b last resort. "
+                                f"QUALITY WARNING: 8b quality is reduced."
+                            )
+
+                            # ── GROQ FALLBACK 3 (8b) ────────────────────────────────
+                            raw = await asyncio.to_thread(
+                                self._call_groq_batch, claim, batch, prompt,
+                                GROQ_ANALYSIS_FALLBACK_3
+                            )
+                            if raw == "RATE_LIMITED" or raw is None:
+                                status = "rate_limited" if raw == "RATE_LIMITED" else "failed"
+                                tracker.record(f"source_analysis_batch_{batch_num}",
+                                               GROQ_ANALYSIS_FALLBACK_3, "groq", status)
+                            elif raw is not None:
+                                tracker.record(f"source_analysis_batch_{batch_num}",
+                                               GROQ_ANALYSIS_FALLBACK_3, "groq", "fallback_used")
                         elif raw is not None:
                             tracker.record(f"source_analysis_batch_{batch_num}",
-                                           GROQ_ANALYSIS_FALLBACK_3, "groq", "fallback_used")
+                                           GROQ_ANALYSIS_FALLBACK_2, "groq", "fallback_used")
                     elif raw is not None:
                         tracker.record(f"source_analysis_batch_{batch_num}",
-                                       GROQ_ANALYSIS_FALLBACK_2, "groq", "fallback_used")
+                                       GROQ_ANALYSIS_FALLBACK_1, "groq", "fallback_used")
                 elif raw is not None:
                     tracker.record(f"source_analysis_batch_{batch_num}",
-                                   GROQ_ANALYSIS_FALLBACK_1, "groq", "fallback_used")
-            elif raw is not None:
-                tracker.record(f"source_analysis_batch_{batch_num}",
-                               GROQ_ANALYSIS_PRIMARY, "groq", "success")
-                rate_limiter.record_success("groq")
+                                   GROQ_ANALYSIS_PRIMARY, "groq", "success")
+                    rate_limiter.record_success("groq")
 
-            if raw and raw != "RATE_LIMITED":
-                result = raw
+                if raw and raw != "RATE_LIMITED":
+                    result = raw
 
-            if result is not None:
-                all_results.extend(result)
-                logger.info(f"[SourceAnalyzer] Batch {batch_num}/{total_batches} succeeded: "
-                            f"{len(result)} analyses.")
-                await rate_limiter.wait_if_needed("groq")
-            else:
-                # All Groq models rate limited or failed — try Gemini fallback
-                logger.warning(f"[SourceAnalyzer] All Groq models failed for batch "
-                               f"{batch_num}/{total_batches}. Trying Gemini 2.5 Flash.")
-                gemini_result = await self._call_gemini_batch_async(claim, batch, prompt)
-                if gemini_result:
-                    tracker.record(f"source_analysis_batch_{batch_num}", "gemini-2.5-flash", "gemini", "fallback_used")
-                    all_results.extend(gemini_result)
-                    rate_limiter.record_success("gemini")
-                    await rate_limiter.wait_if_needed("gemini")
+                if result is not None:
+                    all_results.extend(result)
+                    logger.info(f"[SourceAnalyzer] Batch {batch_num}/{total_batches} succeeded: "
+                                f"{len(result)} analyses.")
+                    await rate_limiter.wait_if_needed("groq")
                 else:
-                    tracker.record(f"source_analysis_batch_{batch_num}", "ALL_FAILED", "none", "failed")
-                    logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches} "
-                                   f"completely failed. Skipping.")
+                    # All Groq models rate limited or failed — try Gemini fallback
+                    logger.warning(f"[SourceAnalyzer] All Groq models failed for batch "
+                                   f"{batch_num}/{total_batches}. Trying Gemini 2.5 Flash.")
+                    gemini_result = await self._call_gemini_batch_async(claim, batch, prompt, session=session)
+                    if gemini_result:
+                        tracker.record(f"source_analysis_batch_{batch_num}", "gemini-2.5-flash", "gemini", "fallback_used")
+                        all_results.extend(gemini_result)
+                        rate_limiter.record_success("gemini")
+                        await rate_limiter.wait_if_needed("gemini")
+                    else:
+                        tracker.record(f"source_analysis_batch_{batch_num}", "ALL_FAILED", "none", "failed")
+                        logger.warning(f"[SourceAnalyzer] Batch {batch_num}/{total_batches} "
+                                       f"completely failed. Skipping.")
 
-        logger.info(
-            f"[SourceAnalyzer] Completed: {len(all_results)} succeeded out of "
-            f"{len(relevant)} relevant sources ({len(dropped)} pre-filtered)."
-        )
-        return all_results
+            logger.info(
+                f"[SourceAnalyzer] Completed: {len(all_results)} succeeded out of "
+                f"{len(relevant)} relevant sources ({len(dropped)} pre-filtered)."
+            )
+            return all_results
+        finally:
+            if own_session:
+                await session.close()
 
     # _analyze_all_individual_fallback removed as part of fallback simplification.

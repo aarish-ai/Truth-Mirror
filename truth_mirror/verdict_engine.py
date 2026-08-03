@@ -146,8 +146,8 @@ Verdict definitions:
                         
                     raw_json = await asyncio.to_thread(_call_gemini_sync_sdk)
                     if raw_json is not None:
-                        if raw_json.startswith("```json"):
-                            raw_json = raw_json.strip("` \n").removeprefix("json")
+                        from truth_mirror.utils import strip_markdown_json
+                        raw_json = strip_markdown_json(raw_json)
                         data = json.loads(raw_json)
                         if data is not None:
                             tracker.record("verdict_generation", "gemini-3.5-flash", "gemini", "success")
@@ -192,7 +192,7 @@ Verdict definitions:
 
             if data is None:
                 api_key = os.environ.get("OPENROUTER_API_KEY")
-                if api_key and api_key != "your_openrouter_api_key_here":
+                if api_key and not api_key.startswith("your_"):
                     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
                     payload = {
                         "model": "qwen/qwen3-next-80b-a3b-instruct:free",
