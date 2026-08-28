@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 AUTH_PASSWORD = os.environ.get("AUTH_PASSWORD", "")
-AUTH_USERNAMES = {"haziq", "mbo", "test"}
-WHATSAPP_NUMBER = os.environ.get("WHATSAPP_NUMBER", "+923135247525")
+AUTH_USERNAMES = {"john", "mary", "test"}
+WHATSAPP_NUMBER = os.environ.get("WHATSAPP_NUMBER", "")
 
 import uuid as _uuid
 _active_sessions = {}  # token -> username
